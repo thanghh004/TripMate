@@ -19,6 +19,7 @@ import { MapPin, Calendar, ShieldCheck, Sparkles } from 'lucide-react';
 import './App.css';
 
 import { Header } from './components/common/Header';
+import { Footer } from './components/common/Footer';
 
 function Home() {
   const authContext = useContext(AuthContext);
@@ -31,7 +32,7 @@ function Home() {
       <Header />
 
       {/* 2. Hero Section */}
-      <main className="flex-1 pt-32 pb-20 px-6 relative overflow-hidden flex items-center justify-center">
+      <main className="flex-1 min-h-screen pt-32 pb-20 px-6 relative overflow-hidden flex items-center justify-center">
         {/* Decorative Ambient Glowing Orbs */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-coral-500/10 rounded-full blur-[150px] pointer-events-none" />
         <div className="absolute top-1/3 left-1/3 w-[500px] h-[300px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
@@ -103,9 +104,7 @@ function Home() {
       </main>
 
       {/* 3. Footer */}
-      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500 font-medium">
-        © 2026 TripMate - Nền tảng Tìm Bạn Đồng Hành & Kết Nối Du Lịch Nhóm.
-      </footer>
+      <Footer />
 
       {/* 5. Reusable Scroll To Top Button */}
       <ScrollToTop />
