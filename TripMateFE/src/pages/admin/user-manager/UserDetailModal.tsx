@@ -14,6 +14,7 @@ const getHostStatusLabel = (status: number): string => {
     case 2: return 'Đã phê duyệt Host';
     case 1: return 'Chờ duyệt Host';
     case 3: return 'Bị từ chối Host';
+    case 4: return 'Khóa tạo chuyến';
     default: return 'Chưa đăng ký Host';
   }
 };
@@ -28,7 +29,7 @@ const InfoField: React.FC<{ label: string; value?: string; mono?: boolean }> = (
 );
 
 const CccdPhotos: React.FC<{ frontUrl?: string; backUrl?: string }> = ({ frontUrl, backUrl }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
     {(['front', 'back'] as const).map((side) => {
       const url = side === 'front' ? frontUrl : backUrl;
       const label = side === 'front' ? 'Ảnh CCCD Mặt trước' : 'Ảnh CCCD Mặt sau';
@@ -36,10 +37,9 @@ const CccdPhotos: React.FC<{ frontUrl?: string; backUrl?: string }> = ({ frontUr
         <div key={side}>
           <span className="text-xs font-semibold text-slate-700 block mb-1.5">{label}</span>
           {url ? (
-            <img src={url} alt={label}
-              className="w-full h-36 object-cover rounded-lg border border-slate-200 shadow-xs" />
+            <img src={url} alt={label} className="w-full h-36 object-cover rounded-lg border border-slate-200 shadow-xs" />
           ) : (
-            <div className="w-full h-36 rounded-lg bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400">
+            <div className="w-full h-36 rounded-lg bg-slate-50 border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400">
               Chưa có ảnh
             </div>
           )}
@@ -54,7 +54,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose 
     <Modal
       isOpen
       onClose={onClose}
-      title={`${user.fullName} — Chi tiết thông tin thành viên`}
+      title={`Chi tiết người dùng — ${user.fullName}`}
       maxWidth="3xl"
       position="top"
     >
@@ -66,8 +66,8 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose 
         <InfoField label="Giới tính" value={user.gender} />
         <InfoField label="Ngày sinh" value={formatDate(user.birthDate)} />
         <InfoField label="Số CCCD" value={user.identityCardNumber} mono />
-        <InfoField label="Vai trò hệ thống" value={user.role === 'Admin' ? 'Quản trị viên (Admin)' : 'Thành viên (User)'} />
-        <InfoField label="Trạng thái tài khoản" value={user.status === 1 ? 'Tạm khóa (Suspended)' : 'Đang hoạt động (Active)'} />
+        <InfoField label="Vai trò hệ thống" value={user.role === 'Admin' ? 'Quản trị viên' : 'Thành viên'} />
+        <InfoField label="Trạng thái tài khoản" value={user.status === 1 ? 'Tạm khóa' : 'Đang hoạt động'} />
         <InfoField label="Trạng thái Host" value={getHostStatusLabel(user.hostVerificationStatus)} />
         <InfoField label="Đánh giá trung bình" value={`${user.avgRating.toFixed(1)} / 5.0`} />
         <InfoField label="Tổng số chuyến đi" value={`${user.totalTrips} chuyến`} />

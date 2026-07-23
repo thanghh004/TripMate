@@ -103,6 +103,7 @@ const ProfilePage: React.FC = () => {
   const [cccdBackUrl, setCccdBackUrl] = useState('');
   const [identityCardNumber, setIdentityCardNumber] = useState('');
   const [hostVerificationStatus, setHostVerificationStatus] = useState<HostVerificationStatus>(HostVerificationStatus.Unverified);
+  const [hostRejectReason, setHostRejectReason] = useState<string>('');
 
   // Profile Stats from DB
   const [avgRating, setAvgRating] = useState(0);
@@ -145,6 +146,7 @@ const ProfilePage: React.FC = () => {
         setCccdBackUrl(profile.identityCardBackUrl || '');
         setIdentityCardNumber(profile.identityCardNumber || '');
         setHostVerificationStatus(profile.hostVerificationStatus ?? HostVerificationStatus.Unverified);
+        setHostRejectReason(profile.hostRejectReason || '');
         setBio(profile.bio || '');
         setAvgRating(profile.avgRating || 0);
         setTotalReviews(profile.totalReviews || 0);
@@ -621,7 +623,20 @@ const ProfilePage: React.FC = () => {
                   Yêu cầu duyệt quyền tạo chuyến của bạn đã bị từ chối
                 </p>
                 <p className="text-xs text-rose-700 font-medium">
-                  Lý do từ chối: <span className="font-bold text-rose-900">{currentUser?.hostRejectReason || 'Hồ sơ chưa đạt đủ yêu cầu xét duyệt.'}</span>
+                  Lý do từ chối: <span className="font-bold text-rose-900">{hostRejectReason || currentUser?.hostRejectReason || 'Hồ sơ chưa đạt đủ yêu cầu xét duyệt.'}</span>
+                </p>
+              </div>
+            )}
+
+            {/* Cảnh báo khi bị khóa quyền tạo chuyến vĩnh viễn (HostVerificationStatus === Blocked) */}
+            {hostVerificationStatus === HostVerificationStatus.Blocked && (
+              <div className="mt-4 p-4 rounded-2xl bg-rose-100 border border-rose-300 text-left space-y-1">
+                <p className="text-xs font-bold text-rose-950 flex items-center gap-1.5">
+                  <AlertCircle size={16} className="text-rose-600" />
+                  Quyền tạo chuyến đi của bạn đã bị khóa bởi Quản trị viên
+                </p>
+                <p className="text-xs text-rose-800 font-medium">
+                  Trạng thái: <span className="font-bold text-rose-950">Bị khóa vĩnh viễn (Bạn không thể gửi lại yêu cầu duyệt)</span>
                 </p>
               </div>
             )}

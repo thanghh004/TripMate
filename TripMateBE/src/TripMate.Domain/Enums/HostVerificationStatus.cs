@@ -23,5 +23,10 @@ public enum HostVerificationStatus
     /// <summary>
     /// Yêu cầu bị Admin từ chối (do thông tin/ảnh CCCD không hợp lệ)
     /// </summary>
-    Rejected = 3
+    Rejected = 3,
+
+    /// <summary>
+    /// Bị Admin khóa vĩnh viễn quyền tạo chuyến đi -> Không thể gửi lại yêu cầu
+    /// </summary>
+    Blocked = 4
 }

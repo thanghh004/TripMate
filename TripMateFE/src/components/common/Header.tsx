@@ -68,7 +68,7 @@ export const Header: React.FC = () => {
       `}</style>
 
       {/* 1. Header / Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-slate-50/80 backdrop-blur-md px-6 py-4 transition-all">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-slate-50 px-6 py-4 transition-all">
         <div className="w-full flex items-center justify-between px-2 sm:px-4">
           {/* Logo & Left Navigation Elements */}
           <div className="flex items-center gap-6">

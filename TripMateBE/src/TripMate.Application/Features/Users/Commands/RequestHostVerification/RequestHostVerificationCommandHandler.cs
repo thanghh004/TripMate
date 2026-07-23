@@ -37,6 +37,11 @@ public class RequestHostVerificationCommandHandler : IRequestHandler<RequestHost
             throw new BusinessRuleException("Tài khoản của bạn đã được phê duyệt quyền tạo chuyến từ trước.");
         }
 
+        if (user.HostVerificationStatus == HostVerificationStatus.Blocked)
+        {
+            throw new BusinessRuleException("Quyền tạo chuyến đi của bạn đã bị khóa vĩnh viễn bởi Quản trị viên.");
+        }
+
         // 3. Kiểm tra đầy đủ 7 thông tin bắt buộc
         var missingFields = new List<string>();
 

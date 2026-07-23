@@ -79,6 +79,7 @@ export const HostVerificationStatus = {
   Pending: 1,
   Approved: 2,
   Rejected: 3,
+  Blocked: 4,
 } as const;
 
 export type HostVerificationStatus = (typeof HostVerificationStatus)[keyof typeof HostVerificationStatus];

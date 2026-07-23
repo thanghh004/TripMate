@@ -11,12 +11,17 @@
     box-sizing: border-box;
   }
   
+  html {
+    scrollbar-gutter: stable overlay;
+  }
+
   body {
     margin: 0;
     padding: 0;
     background-color: #f8fafc;
     color: #0f172a;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    overflow-y: overlay;
   }
 
   /* Quy tắc toàn cục: Nút bấm và liên kết khi hover BẮT BUỘC hiển thị bàn tay (cursor: pointer) */

@@ -14,20 +14,21 @@ interface EditUserModalProps {
 }
 
 const roleOptions: SelectOption[] = [
-  { label: 'Thành viên (User)', value: 0 },
-  { label: 'Quản trị viên (Admin)', value: 1 },
+  { label: 'Thành viên', value: 0 },
+  { label: 'Quản trị viên', value: 1 },
 ];
 
 const statusOptions: SelectOption[] = [
-  { label: 'Hoạt động (Active)', value: 0 },
-  { label: 'Tạm khóa (Suspended)', value: 1 },
+  { label: 'Hoạt động', value: 0 },
+  { label: 'Tạm khóa', value: 1 },
 ];
 
 const hostStatusOptions: SelectOption[] = [
-  { label: 'Chưa đăng ký (Unverified)', value: 0 },
-  { label: 'Chờ duyệt (Pending)', value: 1 },
-  { label: 'Đã phê duyệt (Approved)', value: 2 },
-  { label: 'Bị từ chối (Rejected)', value: 3 },
+  { label: 'Chưa đăng ký', value: 0 },
+  { label: 'Chờ duyệt', value: 1 },
+  { label: 'Đã phê duyệt', value: 2 },
+  { label: 'Bị từ chối', value: 3 },
+  { label: 'Khóa tạo chuyến', value: 4 },
 ];
 
 export const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onSuccess }) => {

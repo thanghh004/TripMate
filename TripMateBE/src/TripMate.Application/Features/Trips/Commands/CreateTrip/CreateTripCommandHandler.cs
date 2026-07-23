@@ -43,6 +43,11 @@ public class CreateTripCommandHandler : IRequestHandler<CreateTripCommand, Creat
                 throw new BusinessRuleException("Yêu cầu cấp quyền tạo chuyến của bạn đã bị từ chối. Vui lòng quay lại sau!");
             }
 
+            if (user.HostVerificationStatus == HostVerificationStatus.Blocked)
+            {
+                throw new BusinessRuleException("Quyền tạo chuyến đi của bạn đã bị khóa vĩnh viễn bởi Quản trị viên.");
+            }
+
             throw new BusinessRuleException("Bạn chưa đăng ký quyền Tạo chuyến. Vui lòng gửi yêu cầu trong phần cài đặt!");
         }
 
