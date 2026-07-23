@@ -6,10 +6,11 @@ import ScrollToTop from '../../components/common/ScrollToTop';
 import Button from '../../components/common/Button';
 import { useToast } from '../../context/ToastContext';
 import { userApi } from '../../api/userApi';
+import { DatePicker } from '../../components/common/DatePicker';
 import { HostVerificationStatus } from '../../types/auth';
 import {
   ShieldCheck, Star, Award,
-  AlignLeft, Camera, Loader2, ImagePlus, X, Calendar, Phone, UserCheck, ChevronDown, ChevronLeft, ChevronRight, Check, CreditCard, Clock, AlertCircle, Send
+  AlignLeft, Camera, Loader2, ImagePlus, X, Phone, UserCheck, ChevronDown, Check, CreditCard, Clock, AlertCircle, Send
 } from 'lucide-react';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -72,167 +73,7 @@ const GenderSelect: React.FC<{
   );
 };
 
-// Custom Calendar DatePicker Component
-const DatePickerPopover: React.FC<{
-  value: string; // "YYYY-MM-DD"
-  onChange: (val: string) => void;
-}> = ({ value, onChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Parsed initial view date (year/month)
-  const initialDate = value ? new Date(value + 'T00:00:00') : new Date();
-  const [viewYear, setViewYear] = useState(initialDate.getFullYear() || new Date().getFullYear());
-  const [viewMonth, setViewMonth] = useState(initialDate.getMonth() ?? new Date().getMonth());
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Format YYYY-MM-DD to DD/MM/YYYY for display button
-  const displayFormatted = value
-    ? (() => {
-      const parts = value.split('-');
-      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : value;
-    })()
-    : 'Chọn ngày sinh';
-
-  // Calculate days in current view month
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const firstDayOfWeek = new Date(viewYear, viewMonth, 1).getDay();
-
-  const handlePrevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear(viewYear - 1);
-    } else {
-      setViewMonth(viewMonth - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear(viewYear + 1);
-    } else {
-      setViewMonth(viewMonth + 1);
-    }
-  };
-
-  const handleSelectDay = (day: number) => {
-    const m = String(viewMonth + 1).padStart(2, '0');
-    const d = String(day).padStart(2, '0');
-    onChange(`${viewYear}-${m}-${d}`);
-    setIsOpen(false);
-  };
-
-  const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
-  const monthNames = [
-    'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-    'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
-  ];
-
-  return (
-    <div ref={containerRef} className="relative w-full">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold text-left flex items-center justify-between cursor-pointer"
-      >
-        <span className={value ? 'text-slate-900 font-semibold' : 'text-slate-400'}>
-          {displayFormatted}
-        </span>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-      <Calendar size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-
-      {isOpen && (
-        <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-72 bg-white border border-slate-200/80 rounded-2xl shadow-xl shadow-slate-900/[0.08] z-50 p-4 animate-in fade-in zoom-in-95 duration-150">
-          {/* Month & Year navigation */}
-          <div className="flex items-center justify-between mb-3">
-            <button
-              type="button"
-              onClick={handlePrevMonth}
-              className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition cursor-pointer"
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            <div className="flex items-center gap-1.5">
-              <select
-                value={viewMonth}
-                onChange={(e) => setViewMonth(Number(e.target.value))}
-                className="text-xs font-bold text-slate-800 bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none cursor-pointer"
-              >
-                {monthNames.map((name, idx) => (
-                  <option key={name} value={idx}>{name}</option>
-                ))}
-              </select>
-
-              <select
-                value={viewYear}
-                onChange={(e) => setViewYear(Number(e.target.value))}
-                className="text-xs font-bold text-slate-800 bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none cursor-pointer"
-              >
-                {years.map((y) => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleNextMonth}
-              className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition cursor-pointer"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          {/* Weekday headers */}
-          <div className="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 mb-1.5">
-            <span>CN</span><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span>
-          </div>
-
-          {/* Days grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
-
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const m = String(viewMonth + 1).padStart(2, '0');
-              const d = String(day).padStart(2, '0');
-              const dateStr = `${viewYear}-${m}-${d}`;
-              const isSelected = value === dateStr;
-
-              return (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => handleSelectDay(day)}
-                  className={`h-8 text-xs font-semibold rounded-lg flex items-center justify-center transition-all cursor-pointer ${isSelected
-                      ? 'bg-slate-900 text-white font-bold shadow-xs scale-105'
-                      : 'text-slate-700 hover:bg-coral-50 hover:text-coral-600'
-                    }`}
-                >
-                  {day}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const ProfilePage: React.FC = () => {
   const authContext = useContext(AuthContext);
@@ -671,7 +512,7 @@ const ProfilePage: React.FC = () => {
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Ngày sinh</label>
                   )}
                   {isEditing ? (
-                    <DatePickerPopover value={birthDate} onChange={setBirthDate} />
+                    <DatePicker value={birthDate} onChange={setBirthDate} placeholder="Chọn ngày sinh" />
                   ) : (
                     <p className="text-slate-500 text-sm font-medium">
                       {birthDate ? (() => {
