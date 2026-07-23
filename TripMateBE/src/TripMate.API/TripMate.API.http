@@ -1,0 +1,54 @@
+@TripMate.API_HostAddress = http://localhost:1301
+
+### 1. Đăng ký tài khoản người dùng mới (Gửi mã OTP về Email)
+POST {{TripMate.API_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "Nguyen Van A",
+  "email": "tripmate004@gmail.com",
+  "password": "Password123!"
+}
+
+###
+
+### 2. Xác thực mã OTP vừa nhận trong Email
+POST {{TripMate.API_HostAddress}}/api/auth/verify-otp
+Content-Type: application/json
+
+{
+  "email": "tripmate004@gmail.com",
+  "code": "123456"
+}
+
+###
+
+### 3. Đăng nhập hệ thống (Nhận Access Token & Refresh Token)
+POST {{TripMate.API_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "tripmate004@gmail.com",
+  "password": "Password123!"
+}
+
+###
+
+### 4. Làm mới Access Token bằng Refresh Token
+POST {{TripMate.API_HostAddress}}/api/auth/refresh-token
+Content-Type: application/json
+
+{
+  "accessToken": "PASTE_YOUR_EXPIRED_ACCESS_TOKEN_HERE",
+  "refreshToken": "PASTE_YOUR_REFRESH_TOKEN_HERE"
+}
+
+###
+
+### 5. Đăng nhập bằng Google ID Token
+POST {{TripMate.API_HostAddress}}/api/auth/google-login
+Content-Type: application/json
+
+{
+  "idToken": "PASTE_YOUR_GOOGLE_ID_TOKEN_HERE"
+}

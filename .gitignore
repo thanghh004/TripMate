@@ -1,0 +1,36 @@
+# Roots & IDEs
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build & Dependencies - Backend
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Log]s/
+[Pp]ublish/
+*.user
+*.suo
+
+# Backend Secrets
+appsettings.Development.json
+appsettings.Production.json
+secrets.json
+
+# Build & Dependencies - Frontend
+node_modules/
+dist/
+dist-ssr/
+build/
+.next/
+*.log
+
+# Frontend Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production

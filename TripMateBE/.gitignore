@@ -1,0 +1,52 @@
+## 1. .NET / Visual Studio (C#)
+## Build outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Log]s/
+[Pp]ublish/
+
+## Visual Studio cache and settings
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## User Secrets & Local Appsettings
+appsettings.Development.json
+appsettings.Production.json
+# ⚠️  appsettings.json GỐC vẫn được theo dõi nhưng KHÔNG được chứa thông tin nhạy cảm thật
+# Nếu bạn lưu ConnectionString / JWT Secret trong appsettings.json → bỏ comment dòng dưới:
+# appsettings.json
+
+## Secrets (dotnet user-secrets)
+secrets.json
+
+## 2. Next.js / React / Node.js
+node_modules/
+.next/
+out/
+build/
+dist/
+.npm
+.yarn
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+## Local env files containing secrets
+.env*.local
+.env
+
+## 3. IDE / OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+
+## 4. User Uploaded Files (Nếu lưu ảnh local trong wwwroot)
+src/TripMate.API/wwwroot/uploads/
+src/TripMate.API/wwwroot/images/temp/
