@@ -31,6 +31,11 @@ public class User : IdentityUser<Guid>, ISoftDelete
     public string? IdentityCardBackUrl { get; set; }
 
     /// <summary>
+    /// Mã số căn cước công dân (CCCD)
+    /// </summary>
+    public string? IdentityCardNumber { get; set; }
+
+    /// <summary>
     /// Giới tính (Nam, Nữ, Khác...)
     /// </summary>
     public string? Gender { get; set; }
@@ -64,6 +69,11 @@ public class User : IdentityUser<Guid>, ISoftDelete
     /// Vai trò của người dùng trong hệ thống (User, Admin)
     /// </summary>
     public UserRole Role { get; set; } = UserRole.User;
+
+    /// <summary>
+    /// Trạng thái duyệt quyền tạo chuyến/tổ chức chuyến đi của người dùng
+    /// </summary>
+    public HostVerificationStatus HostVerificationStatus { get; set; } = HostVerificationStatus.Unverified;
 
     /// <summary>
     /// Đánh dấu tài khoản đã bị xóa mềm hay chưa

@@ -8,6 +8,10 @@ import RegisterPage from './pages/auth/RegisterPage';
 import VerifyOtpPage from './pages/auth/VerifyOtpPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ProfilePage from './pages/user/ProfilePage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import HostVerificationPage from './pages/admin/HostVerificationPage';
+import UserManagementPage from './pages/admin/UserManagementPage';
+import TripManagementPage from './pages/admin/TripManagementPage';
 import { MapPin, Calendar, ShieldCheck, Sparkles } from 'lucide-react';
 import './App.css';
 
@@ -115,6 +119,12 @@ function App() {
       <Route path="/verify-otp" element={<VerifyOtpPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/profile" element={<ProfilePage />} />
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminDashboardPage />} />
+      <Route path="/admin/host-verifications" element={<HostVerificationPage />} />
+      <Route path="/admin/users" element={<UserManagementPage />} />
+      <Route path="/admin/trips" element={<TripManagementPage />} />
     </Routes>
   );
 }

@@ -6,9 +6,10 @@ import ScrollToTop from '../../components/common/ScrollToTop';
 import Button from '../../components/common/Button';
 import { useToast } from '../../context/ToastContext';
 import { userApi } from '../../api/userApi';
+import { HostVerificationStatus } from '../../types/auth';
 import {
   ShieldCheck, Star, Award,
-  AlignLeft, Camera, Loader2, ImagePlus, X, Calendar, Phone, UserCheck, ChevronDown, ChevronLeft, ChevronRight, Check
+  AlignLeft, Camera, Loader2, ImagePlus, X, Calendar, Phone, UserCheck, ChevronDown, ChevronLeft, ChevronRight, Check, CreditCard, Clock, AlertCircle, Send
 } from 'lucide-react';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -259,6 +260,8 @@ const ProfilePage: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState('');
   const [cccdFrontUrl, setCccdFrontUrl] = useState('');
   const [cccdBackUrl, setCccdBackUrl] = useState('');
+  const [identityCardNumber, setIdentityCardNumber] = useState('');
+  const [hostVerificationStatus, setHostVerificationStatus] = useState<HostVerificationStatus>(HostVerificationStatus.Unverified);
 
   // Profile Stats from DB
   const [avgRating, setAvgRating] = useState(0);
@@ -270,6 +273,7 @@ const ProfilePage: React.FC = () => {
   const [uploadingFront, setUploadingFront] = useState(false);
   const [uploadingBack, setUploadingBack] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
 
   // Route Guard: nếu chưa đăng nhập hoặc đăng xuất thì về Trang chủ
   useEffect(() => {
@@ -298,6 +302,8 @@ const ProfilePage: React.FC = () => {
         setAvatarUrl(profile.avatarUrl || '');
         setCccdFrontUrl(profile.identityCardFrontUrl || '');
         setCccdBackUrl(profile.identityCardBackUrl || '');
+        setIdentityCardNumber(profile.identityCardNumber || '');
+        setHostVerificationStatus(profile.hostVerificationStatus ?? HostVerificationStatus.Unverified);
         setBio(profile.bio || '');
         setAvgRating(profile.avgRating || 0);
         setTotalReviews(profile.totalReviews || 0);
@@ -378,6 +384,7 @@ const ProfilePage: React.FC = () => {
         avatarUrl: avatarUrl || undefined,
         identityCardFrontUrl: cccdFrontUrl || undefined,
         identityCardBackUrl: cccdBackUrl || undefined,
+        identityCardNumber: identityCardNumber.trim() || undefined,
       });
 
       // Cập nhật lại state cục bộ trong AuthContext
@@ -415,6 +422,23 @@ const ProfilePage: React.FC = () => {
     setCccdFrontUrl(currentUser.identityCardFrontUrl || '');
     setCccdBackUrl(currentUser.identityCardBackUrl || '');
     setIsEditing(false);
+  };
+
+  const handleRequestVerification = async () => {
+    try {
+      setIsSubmittingRequest(true);
+      await userApi.requestHostVerification();
+      setHostVerificationStatus(HostVerificationStatus.Pending);
+      toast.success('Gửi yêu cầu duyệt quyền tạo chuyến thành công! Vui lòng chờ Admin xét duyệt.');
+    } catch (err: any) {
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error('Gửi yêu cầu thất bại. Vui lòng kiểm tra lại thông tin.');
+      }
+    } finally {
+      setIsSubmittingRequest(false);
+    }
   };
 
   // Component hiển thị ô upload ảnh CCCD
@@ -563,7 +587,29 @@ const ProfilePage: React.FC = () => {
                   />
                 </div>
               ) : (
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">{currentUser.fullName}</h1>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-2xl font-black text-slate-900 tracking-tight">{currentUser.fullName}</h1>
+                  {hostVerificationStatus === HostVerificationStatus.Approved && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <ShieldCheck size={14} className="text-emerald-600" /> Đã duyệt tạo chuyến
+                    </span>
+                  )}
+                  {hostVerificationStatus === HostVerificationStatus.Pending && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      <Clock size={14} className="text-amber-600 animate-spin" /> Chờ Admin duyệt
+                    </span>
+                  )}
+                  {hostVerificationStatus === HostVerificationStatus.Rejected && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                      <AlertCircle size={14} className="text-rose-600" /> Bị từ chối tạo chuyến
+                    </span>
+                  )}
+                  {hostVerificationStatus === HostVerificationStatus.Unverified && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                      Chưa đăng ký tạo chuyến
+                    </span>
+                  )}
+                </div>
               )}
 
               {/* Email (Hàng riêng) */}
@@ -675,11 +721,36 @@ const ProfilePage: React.FC = () => {
         {/* ─── Profile Details ─── */}
         <div className="space-y-6 pt-8">
           {/* ─── CCCD Section ─── */}
-          <div className="text-left">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+          <div className="text-left space-y-3">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Xác minh danh tính (CCCD)
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            {/* Ô nhập/hiển thị Số CCCD */}
+            <div className="space-y-1">
+              {isEditing && (
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Số CCCD</label>
+              )}
+              {isEditing ? (
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={identityCardNumber}
+                    onChange={(e) => setIdentityCardNumber(e.target.value)}
+                    maxLength={12}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold"
+                    placeholder="012345678901"
+                  />
+                  <CreditCard size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                </div>
+              ) : (
+                <p className="text-slate-500 text-sm font-medium">
+                  {identityCardNumber ? `Số CCCD: ${identityCardNumber}` : 'Chưa cập nhật số CCCD'}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <CccdUploadBox
                 label="Mặt trước CCCD"
                 url={cccdFrontUrl}
@@ -697,8 +768,30 @@ const ProfilePage: React.FC = () => {
                 onClear={() => setCccdBackUrl('')}
               />
             </div>
-            {!isEditing && !cccdFrontUrl && !cccdBackUrl && (
-              <p className="text-xs text-slate-400 mt-2 italic">Chưa cung cấp ảnh CCCD. Nhấn chỉnh sửa hồ sơ để thêm.</p>
+            {!isEditing && !cccdFrontUrl && !cccdBackUrl && !identityCardNumber && (
+              <p className="text-xs text-slate-400 mt-2 italic">Chưa cung cấp thông tin CCCD. Nhấn chỉnh sửa hồ sơ để thêm.</p>
+            )}
+
+            {/* Nút gửi yêu cầu duyệt tạo chuyến khi không trong chế độ chỉnh sửa */}
+            {!isEditing && (hostVerificationStatus === HostVerificationStatus.Unverified || hostVerificationStatus === HostVerificationStatus.Rejected) && (
+              <div className="mt-4 p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                    <Send size={14} className="text-amber-600" />
+                    Đăng ký quyền Tổ chức / Tạo chuyến đi (Organizer)
+                  </p>
+                  <p className="text-[11px] text-amber-700 font-medium mt-0.5">
+                    Yêu cầu cập nhật đủ 7 thông tin: Họ tên, Ngày sinh, Giới tính, SĐT, Số CCCD, Ảnh CCCD mặt trước & mặt sau.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleRequestVerification}
+                  isLoading={isSubmittingRequest}
+                  className="w-full sm:w-auto shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer shadow-xs flex items-center gap-2"
+                >
+                  <Send size={14} /> Gửi yêu cầu duyệt
+                </Button>
+              </div>
             )}
           </div>
 

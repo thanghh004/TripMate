@@ -79,6 +79,12 @@ public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, Goo
             }
         }
 
+        // Kiểm tra xem tài khoản có bị tạm khóa không
+        if (user.Status == Domain.Enums.UserStatus.Suspended)
+        {
+            throw new UnauthorizedException("Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ hỗ trợ.");
+        }
+
         // 5. Sinh Access Token và Refresh Token cho người dùng
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();

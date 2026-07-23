@@ -6,6 +6,7 @@ import { authApi } from '../../api/authApi';
 import { AuthContext } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { GoogleLogin } from '@react-oauth/google';
+import { UserRole } from '../../types/auth';
 import { Mail, Lock } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
@@ -29,7 +30,11 @@ const LoginPage: React.FC = () => {
       }
 
       toast.success('Đăng nhập thành công!');
-      navigate('/');
+      if (res.data.role === 'Admin' || res.data.role === UserRole.Admin || res.data.role === 1) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setIsLoading(false);
       if (err.response?.data) {
@@ -57,7 +62,11 @@ const LoginPage: React.FC = () => {
       }
 
       toast.success('Đăng nhập bằng Google thành công!');
-      navigate('/');
+      if (res.data.role === 'Admin' || res.data.role === UserRole.Admin || res.data.role === 1) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err: any) {
       setIsLoading(false);
       if (err.response?.data) {

@@ -47,4 +47,9 @@ public interface IUserRepository
     /// Tìm kiếm thông tin hồ sơ người dùng kèm danh sách chuyến đi
     /// </summary>
     Task<User?> GetProfileByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lấy danh sách toàn bộ người dùng trong cơ sở dữ liệu
+    /// </summary>
+    Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken);
 }

@@ -38,8 +38,11 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserP
             AvatarUrl = user.AvatarUrl,
             Bio = user.Bio,
             Role = user.Role.ToString(),
+            Status = user.Status,
             IdentityCardFrontUrl = user.IdentityCardFrontUrl,
             IdentityCardBackUrl = user.IdentityCardBackUrl,
+            IdentityCardNumber = user.IdentityCardNumber,
+            HostVerificationStatus = user.HostVerificationStatus,
             AvgRating = user.AvgRating,
             TotalReviews = user.TotalReviews,
             TotalTrips = totalTrips

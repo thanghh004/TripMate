@@ -37,7 +37,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponseDt
             throw new UnauthorizedException("Địa chỉ Email hoặc Mật khẩu không chính xác.");
         }
 
-        // 3. Kiểm tra xem tài khoản đã kích thực Email chưa
+        // 3. Kiểm tra xem tài khoản có bị tạm khóa không
+        if (user.Status == Domain.Enums.UserStatus.Suspended)
+        {
+            throw new UnauthorizedException("Tài khoản của bạn đã bị tạm khóa . Vui lòng liên hệ hỗ trợ.");
+        }
+
+        // 4. Kiểm tra xem tài khoản đã kích thực Email chưa
         if (!user.EmailConfirmed)
         {
             throw new BusinessRuleException("Tài khoản của bạn chưa được xác thực Email. Vui lòng nhập mã OTP đã được gửi tới hòm thư của bạn.");

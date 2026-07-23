@@ -70,6 +70,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(1000)
             .IsRequired(false);
 
+        builder.Property(u => u.IdentityCardNumber)
+            .HasColumnName("identity_card_number")
+            .HasMaxLength(20)
+            .IsRequired(false);
+
         builder.Property(u => u.Gender)
             .HasColumnName("gender")
             .HasMaxLength(10);
@@ -98,6 +103,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Role)
             .HasColumnName("role")
             .HasDefaultValue(Domain.Enums.UserRole.User);
+
+        builder.Property(u => u.HostVerificationStatus)
+            .HasColumnName("host_verification_status")
+            .HasDefaultValue(Domain.Enums.HostVerificationStatus.Unverified);
 
         builder.Property(u => u.IsDeleted)
             .HasColumnName("is_deleted")

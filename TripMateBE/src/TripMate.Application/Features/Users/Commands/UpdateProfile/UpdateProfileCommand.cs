@@ -14,5 +14,6 @@ public record UpdateProfileCommand(
     string? Bio,
     string? AvatarUrl,
     string? IdentityCardFrontUrl,
-    string? IdentityCardBackUrl
+    string? IdentityCardBackUrl,
+    string? IdentityCardNumber
 ) : IRequest<bool>;

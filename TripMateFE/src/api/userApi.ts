@@ -21,11 +21,19 @@ export const userApi = {
     return res.data;
   },
 
-  // API 2: Cập nhật thông tin cá nhân người dùng
+  // API 3: Cập nhật thông tin cá nhân người dùng
   updateProfile: async (data: UpdateProfileRequest): Promise<ApiResponse<{ isSuccess: boolean }>> => {
     const res = await axiosClient.put<ApiResponse<{ isSuccess: boolean }>>(
       '/api/users/profile',
       data
+    );
+    return res.data;
+  },
+
+  // API 4: Gửi yêu cầu duyệt quyền tạo chuyến/tổ chức chuyến đi cho Admin
+  requestHostVerification: async (): Promise<ApiResponse<{ isSuccess: boolean }>> => {
+    const res = await axiosClient.post<ApiResponse<{ isSuccess: boolean }>>(
+      '/api/users/request-host-verification'
     );
     return res.data;
   },

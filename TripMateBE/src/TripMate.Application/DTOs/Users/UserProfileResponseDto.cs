@@ -1,3 +1,5 @@
+using TripMate.Domain.Enums;
+
 namespace TripMate.Application.DTOs.Users;
 
 /// <summary>
@@ -14,8 +16,11 @@ public class UserProfileResponseDto
     public string? AvatarUrl { get; set; }
     public string? Bio { get; set; }
     public string Role { get; set; } = string.Empty;
+    public UserStatus Status { get; set; }
     public string? IdentityCardFrontUrl { get; set; }
     public string? IdentityCardBackUrl { get; set; }
+    public string? IdentityCardNumber { get; set; }
+    public HostVerificationStatus HostVerificationStatus { get; set; }
     public decimal AvgRating { get; set; }
     public int TotalReviews { get; set; }
     public int TotalTrips { get; set; }

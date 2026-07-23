@@ -13,4 +13,5 @@ public class UpdateProfileRequest
     public string? AvatarUrl { get; set; }
     public string? IdentityCardFrontUrl { get; set; }
     public string? IdentityCardBackUrl { get; set; }
+    public string? IdentityCardNumber { get; set; }
 }

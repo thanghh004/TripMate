@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TripMate.API.Requests;
+using TripMate.Application.Features.Users.Commands.RequestHostVerification;
 using TripMate.Application.Features.Users.Commands.UpdateProfile;
 using TripMate.Application.Features.Users.Queries.GetMyProfile;
 using TripMate.Domain.Interfaces;
@@ -118,7 +119,8 @@ public class UsersController : ControllerBase
             request.Bio,
             request.AvatarUrl,
             request.IdentityCardFrontUrl,
-            request.IdentityCardBackUrl
+            request.IdentityCardBackUrl,
+            request.IdentityCardNumber
         );
 
         var isSuccess = await _mediator.Send(command, cancellationToken);
@@ -127,6 +129,32 @@ public class UsersController : ControllerBase
         {
             status = 200,
             message = "Cập nhật hồ sơ thông tin cá nhân thành công.",
+            data = new { isSuccess }
+        });
+    }
+
+    /// <summary>
+    /// Gửi yêu cầu duyệt quyền tạo chuyến/tổ chức chuyến đi cho Admin
+    /// </summary>
+    [HttpPost("request-host-verification")]
+    public async Task<IActionResult> RequestHostVerification(CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new
+            {
+                status = 401,
+                message = "Thông tin xác thực của tài khoản không hợp lệ. Vui lòng đăng nhập lại."
+            });
+        }
+
+        var isSuccess = await _mediator.Send(new RequestHostVerificationCommand(userId), cancellationToken);
+
+        return Ok(new
+        {
+            status = 200,
+            message = "Gửi yêu cầu duyệt quyền tạo chuyến thành công! Vui lòng chờ Admin xét duyệt.",
             data = new { isSuccess }
         });
     }

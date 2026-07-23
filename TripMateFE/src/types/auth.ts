@@ -41,7 +41,7 @@ export interface AuthResponse {
   userId: string;
   fullName: string;
   email: string;
-  role: string;
+  role: string | number;
   avatarUrl?: string;
   phoneNumber?: string;
 }
@@ -53,17 +53,33 @@ export interface ApiResponse<T> {
   errors?: Record<string, string[]>;
 }
 
+export const UserRole = {
+  User: 0,
+  Admin: 1,
+} as const;
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
 export interface User {
   userId: string;
   fullName: string;
   email: string;
-  role: string;
+  role: string | number;
   avatarUrl?: string;
   phoneNumber?: string;
   identityCardFrontUrl?: string;
   identityCardBackUrl?: string;
   bio?: string;
 }
+
+export const HostVerificationStatus = {
+  Unverified: 0,
+  Pending: 1,
+  Approved: 2,
+  Rejected: 3,
+} as const;
+
+export type HostVerificationStatus = (typeof HostVerificationStatus)[keyof typeof HostVerificationStatus];
 
 export interface UpdateProfileRequest {
   fullName: string;
@@ -74,6 +90,7 @@ export interface UpdateProfileRequest {
   avatarUrl?: string;
   identityCardFrontUrl?: string;
   identityCardBackUrl?: string;
+  identityCardNumber?: string;
 }
 
 export interface UserProfileResponse {
@@ -85,9 +102,12 @@ export interface UserProfileResponse {
   birthDate?: string;
   avatarUrl?: string;
   bio?: string;
-  role: string;
+  role: string | number;
+  status?: number;
   identityCardFrontUrl?: string;
   identityCardBackUrl?: string;
+  identityCardNumber?: string;
+  hostVerificationStatus: HostVerificationStatus;
   avgRating: number;
   totalReviews: number;
   totalTrips: number;

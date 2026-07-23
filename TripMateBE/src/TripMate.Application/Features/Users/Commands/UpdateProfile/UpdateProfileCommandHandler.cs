@@ -44,6 +44,7 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
         user.AvatarUrl = request.AvatarUrl?.Trim();
         user.IdentityCardFrontUrl = request.IdentityCardFrontUrl?.Trim();
         user.IdentityCardBackUrl = request.IdentityCardBackUrl?.Trim();
+        user.IdentityCardNumber = request.IdentityCardNumber?.Trim();
         user.UpdatedAt = DateTime.UtcNow;
 
         // 4. Lưu thay đổi vào Cơ sở dữ liệu

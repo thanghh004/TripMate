@@ -43,5 +43,11 @@ public class UpdateProfileCommandValidator : AbstractValidator<UpdateProfileComm
             .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
             .WithMessage("Đường dẫn ảnh CCCD mặt sau không hợp lệ.")
             .When(x => !string.IsNullOrEmpty(x.IdentityCardBackUrl));
+
+        // Số CCCD: phải là chuỗi 12 chữ số nếu được cung cấp
+        RuleFor(x => x.IdentityCardNumber)
+            .Matches(@"^[0-9]{12}$")
+            .WithMessage("Số CCCD không hợp lệ (phải gồm đúng 12 chữ số).")
+            .When(x => !string.IsNullOrEmpty(x.IdentityCardNumber));
     }
 }

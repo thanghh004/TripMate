@@ -63,4 +63,14 @@ public class UserRepository : IUserRepository
             .Include(u => u.JoinedTrips)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
+
+    public async Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken)
+    {
+        return await _userManager.Users
+            .Where(u => u.Role == Domain.Enums.UserRole.User)
+            .Include(u => u.OrganizedTrips)
+            .Include(u => u.JoinedTrips)
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
 }
