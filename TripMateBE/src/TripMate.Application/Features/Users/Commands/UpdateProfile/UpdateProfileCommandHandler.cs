@@ -1,6 +1,7 @@
 using MediatR;
-using TripMate.Domain.Interfaces;
+using TripMate.Domain.Enums;
 using TripMate.Domain.Exceptions;
+using TripMate.Domain.Interfaces;
 
 namespace TripMate.Application.Features.Users.Commands.UpdateProfile;
 
@@ -35,7 +36,22 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
             }
         }
 
-        // 3. Cập nhật các trường thông tin
+        // 3. Kiểm tra xem có thay đổi các thông tin xác thực danh tính nhạy cảm hay không
+        bool sensitiveInfoChanged =
+            (request.PhoneNumber?.Trim() != user.PhoneNumber) ||
+            (request.Gender?.Trim() != user.Gender) ||
+            (request.BirthDate != user.BirthDate) ||
+            (request.IdentityCardNumber?.Trim() != user.IdentityCardNumber) ||
+            (request.IdentityCardFrontUrl?.Trim() != user.IdentityCardFrontUrl) ||
+            (request.IdentityCardBackUrl?.Trim() != user.IdentityCardBackUrl);
+
+        // Nếu tài khoản đã được phê duyệt Host mà thay đổi thông tin xác thực -> Chuyển về trạng thái Chờ duyệt
+        if (user.HostVerificationStatus == HostVerificationStatus.Approved && sensitiveInfoChanged)
+        {
+            user.HostVerificationStatus = HostVerificationStatus.Pending;
+        }
+
+        // 4. Cập nhật các trường thông tin
         user.FullName = request.FullName.Trim();
         user.PhoneNumber = request.PhoneNumber?.Trim();
         user.Gender = request.Gender?.Trim();
@@ -47,7 +63,7 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
         user.IdentityCardNumber = request.IdentityCardNumber?.Trim();
         user.UpdatedAt = DateTime.UtcNow;
 
-        // 4. Lưu thay đổi vào Cơ sở dữ liệu
+        // 5. Lưu thay đổi vào Cơ sở dữ liệu
         var result = await _userRepository.UpdateAsync(user);
         if (!result.Succeeded)
         {

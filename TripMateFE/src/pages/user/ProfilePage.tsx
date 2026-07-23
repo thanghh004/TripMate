@@ -7,10 +7,11 @@ import Button from '../../components/common/Button';
 import { useToast } from '../../context/ToastContext';
 import { userApi } from '../../api/userApi';
 import { DatePicker } from '../../components/common/DatePicker';
+import { Modal } from '../../components/common/Modal';
 import { HostVerificationStatus } from '../../types/auth';
 import {
   ShieldCheck, Star, Award,
-  AlignLeft, Camera, Loader2, ImagePlus, X, Phone, UserCheck, ChevronDown, Check, CreditCard, Clock, AlertCircle, Send
+  AlignLeft, Camera, Loader2, ImagePlus, X, Phone, UserCheck, ChevronDown, Check, CreditCard, Clock, AlertCircle, Send, RefreshCw, Lock
 } from 'lucide-react';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -20,7 +21,8 @@ const MAX_FILE_SIZE_MB = 5;
 const GenderSelect: React.FC<{
   value: string;
   onChange: (val: string) => void;
-}> = ({ value, onChange }) => {
+  disabled?: boolean;
+}> = ({ value, onChange, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -40,13 +42,18 @@ const GenderSelect: React.FC<{
     <div ref={containerRef} className="relative w-full">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-9 py-2.5 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold text-left flex items-center justify-between cursor-pointer"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full border rounded-xl pl-10 pr-9 py-2.5 text-sm transition-all font-semibold text-left flex items-center justify-between ${
+          disabled
+            ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed select-none'
+            : 'bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 cursor-pointer'
+        }`}
       >
-        <span className={value ? 'text-slate-900 font-semibold' : 'text-slate-400'}>
+        <span className={value ? (disabled ? 'text-slate-500 font-semibold' : 'text-slate-900 font-semibold') : 'text-slate-400'}>
           {value || 'Chọn giới tính'}
         </span>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {!disabled && <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
       </button>
       <UserCheck size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
 
@@ -89,9 +96,10 @@ const ProfilePage: React.FC = () => {
 
   // Edit Mode state
   const [isEditing, setIsEditing] = useState(false);
+  const [isReverificationMode, setIsReverificationMode] = useState(false);
+  const [showReverifyConfirmModal, setShowReverifyConfirmModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Form fields state
   // Form fields state
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -104,6 +112,9 @@ const ProfilePage: React.FC = () => {
   const [identityCardNumber, setIdentityCardNumber] = useState('');
   const [hostVerificationStatus, setHostVerificationStatus] = useState<HostVerificationStatus>(HostVerificationStatus.Unverified);
   const [hostRejectReason, setHostRejectReason] = useState<string>('');
+
+  const isApproved = hostVerificationStatus === HostVerificationStatus.Approved;
+  const isIdentityLocked = isApproved && !isReverificationMode;
 
   // Profile Stats from DB
   const [avgRating, setAvgRating] = useState(0);
@@ -239,8 +250,14 @@ const ProfilePage: React.FC = () => {
         identityCardBackUrl: cccdBackUrl || undefined,
       });
 
+      if (isReverificationMode) {
+        setHostVerificationStatus(HostVerificationStatus.Pending);
+        setIsReverificationMode(false);
+        toast.success('Đã cập nhật thông tin mới và gửi lại cho Admin xét duyệt!');
+      } else {
+        toast.success('Cập nhật hồ sơ thành công!');
+      }
       setIsEditing(false);
-      toast.success('Cập nhật hồ sơ thành công!');
     } catch (err: any) {
       if (err.response?.data) {
         const data = err.response.data;
@@ -265,6 +282,7 @@ const ProfilePage: React.FC = () => {
     setCccdFrontUrl(currentUser.identityCardFrontUrl || '');
     setCccdBackUrl(currentUser.identityCardBackUrl || '');
     setIsEditing(false);
+    setIsReverificationMode(false);
   };
 
   const handleRequestVerification = async () => {
@@ -292,6 +310,7 @@ const ProfilePage: React.FC = () => {
     inputRef,
     onFileChange,
     onClear,
+    disabled = false,
   }: {
     label: string;
     url: string;
@@ -299,6 +318,7 @@ const ProfilePage: React.FC = () => {
     inputRef: React.RefObject<HTMLInputElement | null>;
     onFileChange: (file: File) => void;
     onClear: () => void;
+    disabled?: boolean;
   }) => (
     <div className="space-y-1.5">
       <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">{label}</label>
@@ -307,6 +327,7 @@ const ProfilePage: React.FC = () => {
         type="file"
         accept="image/jpeg,image/jpg,image/png,image/webp"
         className="hidden"
+        disabled={disabled}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) onFileChange(file);
@@ -316,7 +337,7 @@ const ProfilePage: React.FC = () => {
       {url ? (
         <div className="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-slate-100">
           <img src={url} alt={label} className="w-full h-full object-cover" />
-          {isEditing && (
+          {isEditing && !disabled && (
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <button
                 onClick={() => inputRef.current?.click()}
@@ -343,7 +364,7 @@ const ProfilePage: React.FC = () => {
       ) : (
         <button
           onClick={() => inputRef.current?.click()}
-          disabled={isUploading || !isEditing}
+          disabled={isUploading || !isEditing || disabled}
           className="w-full aspect-video rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-slate-300 hover:bg-slate-100 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isUploading ? (
@@ -472,15 +493,22 @@ const ProfilePage: React.FC = () => {
               {/* Số điện thoại (Hàng riêng) */}
               <div className="space-y-1">
                 {isEditing && (
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Số điện thoại</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                    <span>Số điện thoại</span>
+                    {isIdentityLocked && <span className="text-[10px] text-sky-700 font-bold flex items-center gap-1"><Lock size={11} /> Đã duyệt (Đã khóa)</span>}
+                  </label>
                 )}
                 {isEditing ? (
                   <div className="relative">
                     <input
                       type="text"
+                      disabled={isIdentityLocked}
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold"
+                      className={isIdentityLocked
+                        ? 'w-full bg-slate-100 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-500 font-semibold cursor-not-allowed select-none'
+                        : 'w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold'
+                      }
                       placeholder="0912345678"
                     />
                     <Phone size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -500,7 +528,7 @@ const ProfilePage: React.FC = () => {
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Giới tính</label>
                   )}
                   {isEditing ? (
-                    <GenderSelect value={gender} onChange={setGender} />
+                    <GenderSelect value={gender} onChange={setGender} disabled={isIdentityLocked} />
                   ) : (
                     <p className="text-slate-500 text-sm font-medium">
                       {gender ? `Giới tính: ${gender}` : 'Chưa cập nhật giới tính'}
@@ -514,7 +542,7 @@ const ProfilePage: React.FC = () => {
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Ngày sinh</label>
                   )}
                   {isEditing ? (
-                    <DatePicker value={birthDate} onChange={setBirthDate} placeholder="Chọn ngày sinh" />
+                    <DatePicker value={birthDate} onChange={setBirthDate} placeholder="Chọn ngày sinh" disabled={isIdentityLocked} />
                   ) : (
                     <p className="text-slate-500 text-sm font-medium">
                       {birthDate ? (() => {
@@ -527,16 +555,30 @@ const ProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Action button ở góc trên khi xem */}
+            {/* Action buttons ở góc trên khi xem */}
             {!isEditing && (
-              <div className="self-start shrink-0">
+              <div className="self-start shrink-0 flex flex-col items-stretch sm:items-end gap-2.5">
                 <Button
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => {
+                    setIsReverificationMode(false);
+                    setIsEditing(true);
+                  }}
                   variant="outline"
                   className="border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
                 >
                   Chỉnh sửa hồ sơ
                 </Button>
+
+                {isApproved && (
+                  <Button
+                    onClick={() => setShowReverifyConfirmModal(true)}
+                    variant="outline"
+                    leftIcon={<RefreshCw size={14} className="text-amber-600 shrink-0" />}
+                    className="border-amber-200 bg-amber-50/60 text-amber-800 hover:bg-amber-100/70 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
+                  >
+                    Yêu cầu cập nhật lại thông tin xác thực
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -563,6 +605,31 @@ const ProfilePage: React.FC = () => {
 
         {/* ─── Profile Details ─── */}
         <div className="space-y-6 pt-8">
+
+          {isEditing && isIdentityLocked && (
+            <div className="p-3.5 rounded-2xl bg-sky-50 border border-sky-200 text-left text-xs font-semibold text-sky-900 flex items-start gap-2">
+              <Lock size={16} className="text-sky-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sky-950">Hồ sơ đã phê duyệt Host — Thông tin xác minh bị khóa Read-Only</p>
+                <p className="text-[11px] text-sky-700 font-medium mt-0.5">
+                  Các trường SĐT, Ngày sinh, CCCD đã được duyệt chính chủ. Bạn chỉ có thể sửa Họ tên & Bio. Để sửa thông tin xác thực, vui lòng dùng nút <span className="font-bold">"Yêu cầu cập nhật lại thông tin xác thực"</span>.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {isEditing && isReverificationMode && (
+            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs font-semibold text-amber-900 flex items-start gap-2">
+              <RefreshCw size={16} className="text-amber-600 shrink-0 mt-0.5 animate-spin" />
+              <div>
+                <p className="font-bold text-amber-950">Chế độ cập nhật lại thông tin xác thực (Cần Admin duyệt lại)</p>
+                <p className="text-[11px] text-amber-700 font-medium mt-0.5">
+                  Sau khi bấm <span className="font-bold">Lưu thay đổi</span>, thông tin mới của bạn sẽ được lưu và quyền Host sẽ tạm thời chuyển sang trạng thái <span className="font-bold">Chờ duyệt (Pending)</span> để Admin xác minh lại.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* ─── CCCD Section ─── */}
           <div className="text-left space-y-3">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -578,10 +645,14 @@ const ProfilePage: React.FC = () => {
                 <div className="relative">
                   <input
                     type="text"
+                    disabled={isIdentityLocked}
                     value={identityCardNumber}
                     onChange={(e) => setIdentityCardNumber(e.target.value)}
                     maxLength={12}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold"
+                    className={isIdentityLocked
+                      ? 'w-full bg-slate-100 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-500 font-semibold cursor-not-allowed select-none'
+                      : 'w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold'
+                    }
                     placeholder="012345678901"
                   />
                   <CreditCard size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -601,6 +672,7 @@ const ProfilePage: React.FC = () => {
                 inputRef={cccdFrontInputRef}
                 onFileChange={(file) => handleFileUpload(file, setUploadingFront, setCccdFrontUrl)}
                 onClear={() => setCccdFrontUrl('')}
+                disabled={isIdentityLocked}
               />
               <CccdUploadBox
                 label="Mặt sau CCCD"
@@ -609,6 +681,7 @@ const ProfilePage: React.FC = () => {
                 inputRef={cccdBackInputRef}
                 onFileChange={(file) => handleFileUpload(file, setUploadingBack, setCccdBackUrl)}
                 onClear={() => setCccdBackUrl('')}
+                disabled={isIdentityLocked}
               />
             </div>
             {!isEditing && !cccdFrontUrl && !cccdBackUrl && !identityCardNumber && (
@@ -732,6 +805,45 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Modal Xác nhận cập nhật thông tin xác thực */}
+      {showReverifyConfirmModal && (
+        <Modal
+          isOpen
+          onClose={() => setShowReverifyConfirmModal(false)}
+          title="Xác nhận cập nhật thông tin xác thực"
+          maxWidth="md"
+        >
+          <div className="space-y-4 text-slate-700 text-sm font-medium">
+            <p className="leading-relaxed">
+              Khi cập nhật lại thông tin xác thực mới (Số điện thoại, Số CCCD, Ảnh CCCD...), quyền tạo chuyến của bạn sẽ được <span className="font-bold text-amber-700">tạm chuyển về trạng thái Chờ duyệt (Pending)</span> để Admin xét duyệt lại bộ hồ sơ mới.
+            </p>
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 font-semibold">
+              ⚠️ Bạn có đồng ý mở khóa thông tin xác thực để chỉnh sửa không?
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowReverifyConfirmModal(false)}
+                className="text-xs font-bold px-4 py-2 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowReverifyConfirmModal(false);
+                  setIsReverificationMode(true);
+                  setIsEditing(true);
+                }}
+                className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs cursor-pointer"
+              >
+                Đồng ý & Mở khóa
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       <ScrollToTop />
     </div>
