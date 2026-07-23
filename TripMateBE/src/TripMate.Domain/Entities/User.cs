@@ -76,6 +76,11 @@ public class User : IdentityUser<Guid>, ISoftDelete
     public HostVerificationStatus HostVerificationStatus { get; set; } = HostVerificationStatus.Unverified;
 
     /// <summary>
+    /// Lý do Admin từ chối yêu cầu duyệt quyền tạo chuyến (nếu bị từ chối)
+    /// </summary>
+    public string? HostRejectReason { get; set; }
+
+    /// <summary>
     /// Đánh dấu tài khoản đã bị xóa mềm hay chưa
     /// </summary>
     public bool IsDeleted { get; set; } = false;

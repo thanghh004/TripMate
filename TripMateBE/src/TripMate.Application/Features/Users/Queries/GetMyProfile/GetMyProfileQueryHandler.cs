@@ -43,6 +43,7 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserP
             IdentityCardBackUrl = user.IdentityCardBackUrl,
             IdentityCardNumber = user.IdentityCardNumber,
             HostVerificationStatus = user.HostVerificationStatus,
+            HostRejectReason = user.HostRejectReason,
             AvgRating = user.AvgRating,
             TotalReviews = user.TotalReviews,
             TotalTrips = totalTrips

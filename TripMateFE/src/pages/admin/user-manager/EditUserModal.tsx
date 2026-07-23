@@ -4,6 +4,7 @@ import { type AdminUserListItem, type AdminUpdateUserRequest } from '../../../ty
 import { Select, type SelectOption } from '../../../components/common/Select';
 import { adminApi } from '../../../api/adminApi';
 import { useToast } from '../../../context/ToastContext';
+import { formatDate } from '../../../utils/formatters';
 import { Loader2, Save } from 'lucide-react';
 
 interface EditUserModalProps {
@@ -81,7 +82,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onS
             { label: 'Email', value: user.email },
             { label: 'Số điện thoại', value: user.phoneNumber || 'Chưa cập nhật' },
             { label: 'Giới tính', value: user.gender || 'Chưa chọn' },
-            { label: 'Ngày sinh', value: user.birthDate ? String(user.birthDate).substring(0, 10) : 'Chưa nhập' },
+            { label: 'Ngày sinh', value: formatDate(user.birthDate) || 'Chưa nhập' },
             { label: 'Số CCCD', value: user.identityCardNumber || 'Chưa đăng ký', mono: true },
             { label: 'Đánh giá trung bình', value: `${user.avgRating.toFixed(1)} / 5.0` },
             { label: 'Tổng số chuyến đi', value: `${user.totalTrips} chuyến` },

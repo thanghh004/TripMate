@@ -1,6 +1,7 @@
 import { axiosClient } from './axiosClient';
 import type { ApiResponse } from '../types/auth';
 import type { AdminUserListItem, AdminUpdateUserRequest } from '../types/admin';
+import type { PendingHostVerification } from '../types/adminHost';
 
 export interface AdminStatsResponse {
   totalUsers: number;
@@ -17,8 +18,8 @@ export const adminApi = {
   },
 
   // 2. Lấy danh sách yêu cầu duyệt CCCD / tạo chuyến (Host Verification Requests)
-  getPendingVerifications: async (): Promise<ApiResponse<AdminUserListItem[]>> => {
-    const res = await axiosClient.get<ApiResponse<AdminUserListItem[]>>('/api/admin/host-verifications/pending');
+  getPendingVerifications: async (): Promise<ApiResponse<PendingHostVerification[]>> => {
+    const res = await axiosClient.get<ApiResponse<PendingHostVerification[]>>('/api/admin/host-verifications/pending');
     return res.data;
   },
 

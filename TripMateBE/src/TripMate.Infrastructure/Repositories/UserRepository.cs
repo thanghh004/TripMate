@@ -73,4 +73,12 @@ public class UserRepository : IUserRepository
             .OrderByDescending(u => u.CreatedAt)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<User>> GetPendingHostVerificationsAsync(CancellationToken cancellationToken)
+    {
+        return await _userManager.Users
+            .Where(u => u.HostVerificationStatus == Domain.Enums.HostVerificationStatus.Pending && u.EmailConfirmed)
+            .OrderByDescending(u => u.UpdatedAt)
+            .ToListAsync(cancellationToken);
+    }
 }

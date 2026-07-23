@@ -70,6 +70,7 @@ export interface User {
   identityCardFrontUrl?: string;
   identityCardBackUrl?: string;
   bio?: string;
+  hostRejectReason?: string;
 }
 
 export const HostVerificationStatus = {
@@ -108,6 +109,7 @@ export interface UserProfileResponse {
   identityCardBackUrl?: string;
   identityCardNumber?: string;
   hostVerificationStatus: HostVerificationStatus;
+  hostRejectReason?: string;
   avgRating: number;
   totalReviews: number;
   totalTrips: number;

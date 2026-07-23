@@ -52,4 +52,9 @@ public interface IUserRepository
     /// Lấy danh sách toàn bộ người dùng trong cơ sở dữ liệu
     /// </summary>
     Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Lấy danh sách yêu cầu xác thực Host đang chờ duyệt (Pending)
+    /// </summary>
+    Task<List<User>> GetPendingHostVerificationsAsync(CancellationToken cancellationToken);
 }

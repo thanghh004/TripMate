@@ -2,6 +2,8 @@ import React from 'react';
 import { Modal } from '../../../components/common/Modal';
 import { type AdminUserListItem } from '../../../types/admin';
 
+import { formatDate } from '../../../utils/formatters';
+
 interface UserDetailModalProps {
   user: AdminUserListItem;
   onClose: () => void;
@@ -62,7 +64,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose 
         <InfoField label="Địa chỉ Email" value={user.email} />
         <InfoField label="Số điện thoại" value={user.phoneNumber} />
         <InfoField label="Giới tính" value={user.gender} />
-        <InfoField label="Ngày sinh" value={user.birthDate ? String(user.birthDate).substring(0, 10) : undefined} />
+        <InfoField label="Ngày sinh" value={formatDate(user.birthDate)} />
         <InfoField label="Số CCCD" value={user.identityCardNumber} mono />
         <InfoField label="Vai trò hệ thống" value={user.role === 'Admin' ? 'Quản trị viên (Admin)' : 'Thành viên (User)'} />
         <InfoField label="Trạng thái tài khoản" value={user.status === 1 ? 'Tạm khóa (Suspended)' : 'Đang hoạt động (Active)'} />

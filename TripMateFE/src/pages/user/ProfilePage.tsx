@@ -613,6 +613,19 @@ const ProfilePage: React.FC = () => {
               <p className="text-xs text-slate-400 mt-2 italic">Chưa cung cấp thông tin CCCD. Nhấn chỉnh sửa hồ sơ để thêm.</p>
             )}
 
+            {/* Cảnh báo lý do bị từ chối khi HostVerificationStatus === Rejected */}
+            {hostVerificationStatus === HostVerificationStatus.Rejected && (
+              <div className="mt-4 p-4 rounded-2xl bg-rose-50 border border-rose-200/80 text-left space-y-1">
+                <p className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
+                  <AlertCircle size={15} className="text-rose-600" />
+                  Yêu cầu duyệt quyền tạo chuyến của bạn đã bị từ chối
+                </p>
+                <p className="text-xs text-rose-700 font-medium">
+                  Lý do từ chối: <span className="font-bold text-rose-900">{currentUser?.hostRejectReason || 'Hồ sơ chưa đạt đủ yêu cầu xét duyệt.'}</span>
+                </p>
+              </div>
+            )}
+
             {/* Nút gửi yêu cầu duyệt tạo chuyến khi không trong chế độ chỉnh sửa */}
             {!isEditing && (hostVerificationStatus === HostVerificationStatus.Unverified || hostVerificationStatus === HostVerificationStatus.Rejected) && (
               <div className="mt-4 p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
