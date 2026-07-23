@@ -1,4 +1,5 @@
 # Roots & IDEs
+.agents/
 .vscode/
 .idea/
 .DS_Store
