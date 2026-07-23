@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { adminApi } from '../../api/adminApi';
 import { useToast } from '../../context/ToastContext';
-import { type UserProfileResponse } from '../../types/auth';
+import { type AdminUserListItem } from '../../types/admin';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -19,10 +19,10 @@ import {
 
 const HostVerificationPage: React.FC = () => {
   const { toast } = useToast();
-  const [requests, setRequests] = useState<UserProfileResponse[]>([]);
+  const [requests, setRequests] = useState<AdminUserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState<UserProfileResponse | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUserListItem | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);

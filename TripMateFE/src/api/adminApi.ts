@@ -1,5 +1,6 @@
 import { axiosClient } from './axiosClient';
-import type { ApiResponse, UserProfileResponse } from '../types/auth';
+import type { ApiResponse } from '../types/auth';
+import type { AdminUserListItem, AdminUpdateUserRequest } from '../types/admin';
 
 export interface AdminStatsResponse {
   totalUsers: number;
@@ -16,8 +17,8 @@ export const adminApi = {
   },
 
   // 2. Lấy danh sách yêu cầu duyệt CCCD / tạo chuyến (Host Verification Requests)
-  getPendingVerifications: async (): Promise<ApiResponse<UserProfileResponse[]>> => {
-    const res = await axiosClient.get<ApiResponse<UserProfileResponse[]>>('/api/admin/host-verifications/pending');
+  getPendingVerifications: async (): Promise<ApiResponse<AdminUserListItem[]>> => {
+    const res = await axiosClient.get<ApiResponse<AdminUserListItem[]>>('/api/admin/host-verifications/pending');
     return res.data;
   },
 
@@ -34,8 +35,8 @@ export const adminApi = {
   },
 
   // 5. Lấy danh sách tất cả người dùng trong hệ thống
-  getUsers: async (): Promise<ApiResponse<UserProfileResponse[]>> => {
-    const res = await axiosClient.get<ApiResponse<UserProfileResponse[]>>('/api/admin/users');
+  getUsers: async (): Promise<ApiResponse<AdminUserListItem[]>> => {
+    const res = await axiosClient.get<ApiResponse<AdminUserListItem[]>>('/api/admin/users');
     return res.data;
   },
 
@@ -48,7 +49,7 @@ export const adminApi = {
   // 7. Admin cập nhật cài đặt quản trị của người dùng
   updateUser: async (
     userId: string,
-    data: { role: number; status: number; hostVerificationStatus: number }
+    data: AdminUpdateUserRequest
   ): Promise<ApiResponse<{ isSuccess: boolean }>> => {
     const res = await axiosClient.put<ApiResponse<{ isSuccess: boolean }>>(`/api/admin/users/${userId}`, data);
     return res.data;

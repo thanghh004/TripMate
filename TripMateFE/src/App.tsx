@@ -10,7 +10,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ProfilePage from './pages/user/ProfilePage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import HostVerificationPage from './pages/admin/HostVerificationPage';
-import UserManagementPage from './pages/admin/UserManagementPage';
+import UserManagementPage from './pages/admin/user-manager';
 import TripManagementPage from './pages/admin/TripManagementPage';
 import { MapPin, Calendar, ShieldCheck, Sparkles } from 'lucide-react';
 import './App.css';
