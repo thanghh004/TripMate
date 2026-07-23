@@ -9,6 +9,8 @@ import VerifyOtpPage from './pages/auth/VerifyOtpPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ProfilePage from './pages/user/ProfilePage';
 import CreateTripPage from './pages/trip/CreateTripPage';
+import NotFoundPage from './pages/error/NotFoundPage';
+import ForbiddenPage from './pages/error/ForbiddenPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import HostVerificationPage from './pages/admin/HostVerificationPage';
 import UserManagementPage from './pages/admin/user-manager';
@@ -128,6 +130,9 @@ function App() {
       <Route path="/admin/host-verifications" element={<HostVerificationPage />} />
       <Route path="/admin/users" element={<UserManagementPage />} />
       <Route path="/admin/trips" element={<TripManagementPage />} />
+      {/* Error & Fallback Routes */}
+      <Route path="/403" element={<ForbiddenPage />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

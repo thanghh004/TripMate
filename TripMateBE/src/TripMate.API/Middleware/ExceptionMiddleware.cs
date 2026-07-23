@@ -68,6 +68,15 @@ public class ExceptionMiddleware
                 };
                 break;
 
+            case ForbiddenException forbiddenEx:
+                statusCode = HttpStatusCode.Forbidden;
+                responsePayload = new
+                {
+                    status = (int)statusCode,
+                    message = forbiddenEx.Message
+                };
+                break;
+
             case NotFoundException notFoundEx:
                 statusCode = HttpStatusCode.NotFound;
                 responsePayload = new

@@ -47,6 +47,13 @@ axiosClient.interceptors.response.use(
   async (error: AxiosError<ApiResponse<unknown>>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+    if (error.response?.status === 403) {
+      if (window.location.pathname !== '/403') {
+        window.location.href = '/403';
+      }
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401) {
       const errorMessage = error.response.data?.message || '';
       // Nếu là lỗi tài khoản bị khóa -> Đăng xuất ngay lập tức và đưa người dùng về trang login

@@ -25,7 +25,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, pendingCount
       if (!isAuthenticated) {
         navigate('/login');
       } else if (currentUser && !isAdmin) {
-        navigate('/');
+        navigate('/403');
       }
     }
   }, [authContext, isAuthenticated, currentUser, isAdmin, navigate]);
