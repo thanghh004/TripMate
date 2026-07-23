@@ -1,6 +1,7 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { adminApi } from '../../api/adminApi';
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -19,10 +20,25 @@ interface AdminSidebarProps {
 
 const SIDEBAR_STORAGE_KEY = 'admin-sidebar-collapsed';
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount = 0 }) => {
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
   const authContext = useContext(AuthContext);
   const currentUser = authContext?.user;
   const navigate = useNavigate();
+  const [internalPendingCount, setInternalPendingCount] = useState<number>(pendingCount ?? 0);
+
+  useEffect(() => {
+    if (pendingCount !== undefined) {
+      setInternalPendingCount(pendingCount);
+    } else {
+      adminApi.getPendingVerifications()
+        .then((res) => {
+          setInternalPendingCount(res.data?.length || 0);
+        })
+        .catch(() => {
+          // ignore
+        });
+    }
+  }, [pendingCount]);
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
@@ -60,7 +76,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount = 0 }) 
       to: '/admin/host-verifications',
       label: 'Duyệt quyền tạo chuyến',
       icon: <ShieldCheck size={18} />,
-      badge: pendingCount > 0 ? pendingCount : undefined,
+      badge: internalPendingCount > 0 ? internalPendingCount : undefined,
     },
     {
       to: '/admin/users',

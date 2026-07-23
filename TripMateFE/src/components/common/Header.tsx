@@ -1,15 +1,49 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { LogOut, Search, MessageSquare, Bell, Plus, Settings, Compass } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
+import { tripApi } from '../../api/tripApi';
+import { LogOut, Search, MessageSquare, Bell, Plus, Settings, Compass, Loader2 } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const authContext = useContext(AuthContext);
   const user = authContext?.user;
   const isAuthenticated = authContext?.isAuthenticated;
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isCheckingHostPermission, setIsCheckingHostPermission] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleCreateTripClick = async () => {
+    setShowDropdown(false);
+    setIsCheckingHostPermission(true);
+    try {
+      // Gửi API Backend POST /api/trips kiểm tra phân quyền bảo mật 100% tại CSDL Backend
+      const res = await tripApi.createTrip({ title: 'Chuyến đi mới' });
+      if (res.status === 200) {
+        // Đã duyệt (Approved) / Admin: Chuyển thẳng sang trang tạo chuyến luôn, không hiện thông báo
+        navigate('/create-trip');
+      }
+    } catch (err: any) {
+      const errorMsg =
+        err.response?.data?.message ||
+        'Tài khoản của bạn không có đủ thẩm quyền để tạo chuyến đi mới.';
+      
+      // Bật Toast Notification chuẩn UI/UX của dự án
+      if (errorMsg.includes('chờ Admin xét duyệt')) {
+        toast.warning(errorMsg);
+      } else {
+        toast.error(errorMsg);
+      }
+
+      if (errorMsg.includes('chưa đăng ký') || errorMsg.includes('Chưa đăng ký')) {
+        navigate('/profile');
+      }
+    } finally {
+      setIsCheckingHostPermission(false);
+    }
+  };
 
   // Click outside listener to automatically close dropdown
   useEffect(() => {
@@ -126,13 +160,15 @@ export const Header: React.FC = () => {
                         <div className="w-full space-y-1.5 text-left">
                           {/* Create Trip Action inside Dropdown */}
                           <button
-                            onClick={() => {
-                              setShowDropdown(false);
-                              navigate('/create-trip');
-                            }}
-                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                            onClick={handleCreateTripClick}
+                            disabled={isCheckingHostPermission}
+                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer disabled:opacity-60"
                           >
-                            <Plus size={15} />
+                            {isCheckingHostPermission ? (
+                              <Loader2 size={15} className="animate-spin text-coral-500" />
+                            ) : (
+                              <Plus size={15} />
+                            )}
                             <span>Tạo chuyến đi mới</span>
                           </button>
 

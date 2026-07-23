@@ -1,9 +1,9 @@
-namespace TripMate.API.Requests;
+namespace TripMate.Application.DTOs.Users;
 
 /// <summary>
-/// DTO chứa thông tin yêu cầu cập nhật hồ sơ từ client gửi lên
+/// DTO chứa thông tin cập nhật hồ sơ cá nhân từ Client gửi lên
 /// </summary>
-public class UpdateProfileRequest
+public class UpdateProfileRequestDto
 {
     public string FullName { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }

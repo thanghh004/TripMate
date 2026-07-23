@@ -2,7 +2,7 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TripMate.API.Requests;
+using TripMate.Application.DTOs.Users;
 using TripMate.Application.Features.Users.Commands.RequestHostVerification;
 using TripMate.Application.Features.Users.Commands.UpdateProfile;
 using TripMate.Application.Features.Users.Queries.GetMyProfile;
@@ -96,7 +96,7 @@ public class UsersController : ControllerBase
     /// Cập nhật thông tin cá nhân của người dùng hiện tại (bao gồm cả CCCD mặt trước/sau)
     /// </summary>
     [HttpPut("profile")]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequestDto request, CancellationToken cancellationToken)
     {
         // 1. Lấy UserId từ Claims của JWT Token đã xác thực
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

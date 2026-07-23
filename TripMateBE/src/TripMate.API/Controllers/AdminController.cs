@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TripMate.API.Requests;
+using TripMate.Application.DTOs.Admin;
 using TripMate.Application.Features.Admin.Commands.AdminUpdateUser;
 using TripMate.Application.Features.Admin.Commands.ApproveHostVerification;
 using TripMate.Application.Features.Admin.Commands.RejectHostVerification;
@@ -75,7 +75,7 @@ public class AdminController : ControllerBase
     /// Admin từ chối yêu cầu xác thực Host
     /// </summary>
     [HttpPost("host-verifications/{userId:guid}/reject")]
-    public async Task<IActionResult> RejectHostVerification(Guid userId, [FromBody] RejectHostVerificationRequest? request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RejectHostVerification(Guid userId, [FromBody] RejectHostVerificationRequestDto? request, CancellationToken cancellationToken)
     {
         var isSuccess = await _mediator.Send(new RejectHostVerificationCommand(userId, request?.Reason), cancellationToken);
 
@@ -107,7 +107,7 @@ public class AdminController : ControllerBase
     /// Admin cập nhật Vai trò, Trạng thái và Quyền Host của người dùng
     /// </summary>
     [HttpPut("users/{userId:guid}")]
-    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] AdminUpdateUserRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] AdminUpdateUserRequestDto request, CancellationToken cancellationToken)
     {
         var command = new AdminUpdateUserCommand(userId, request.Role, request.Status, request.HostVerificationStatus);
         var isSuccess = await _mediator.Send(command, cancellationToken);
