@@ -20,6 +20,8 @@ public class TripMateDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
 
     public DbSet<Trip> Trips { get; set; } = null!;
     public DbSet<TripCategory> TripCategories { get; set; } = null!;
+    public DbSet<Country> Countries { get; set; } = null!;
+    public DbSet<City> Cities { get; set; } = null!;
     public DbSet<TripImage> TripImages { get; set; } = null!;
     public DbSet<TripRequest> TripRequests { get; set; } = null!;
     public DbSet<TripMember> TripMembers { get; set; } = null!;

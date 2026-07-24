@@ -34,9 +34,19 @@ public class Trip : BaseEntity
     public string StartLocation { get; set; } = string.Empty;
 
     /// <summary>
+    /// FK liên kết tới Thành phố khởi hành (nếu chọn từ danh mục)
+    /// </summary>
+    public Guid? StartCityId { get; set; }
+
+    /// <summary>
     /// Điểm đến của chuyến đi
     /// </summary>
     public string Destination { get; set; } = string.Empty;
+
+    /// <summary>
+    /// FK liên kết tới Thành phố điểm đến (nếu chọn từ danh mục)
+    /// </summary>
+    public Guid? DestinationCityId { get; set; }
 
     /// <summary>
     /// Ảnh bìa chính của chuyến đi
@@ -119,6 +129,16 @@ public class Trip : BaseEntity
     /// Danh mục loại hình của chuyến đi này
     /// </summary>
     public virtual TripCategory Category { get; set; } = null!;
+
+    /// <summary>
+    /// Thành phố khởi hành
+    /// </summary>
+    public virtual City? StartCity { get; set; }
+
+    /// <summary>
+    /// Thành phố điểm đến
+    /// </summary>
+    public virtual City? DestinationCity { get; set; }
 
     /// <summary>
     /// Danh sách các hình ảnh chi tiết của chuyến đi

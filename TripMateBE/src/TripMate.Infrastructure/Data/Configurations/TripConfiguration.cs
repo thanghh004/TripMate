@@ -39,10 +39,16 @@ public class TripConfiguration : BaseEntityConfiguration<Trip>
             .HasMaxLength(200)
             .IsRequired();
 
+        builder.Property(t => t.StartCityId)
+            .HasColumnName("start_city_id");
+
         builder.Property(t => t.Destination)
             .HasColumnName("destination")
             .HasMaxLength(200)
             .IsRequired();
+
+        builder.Property(t => t.DestinationCityId)
+            .HasColumnName("destination_city_id");
 
         builder.Property(t => t.CoverImageUrl)
             .HasColumnName("cover_image_url");
@@ -106,6 +112,16 @@ public class TripConfiguration : BaseEntityConfiguration<Trip>
         builder.HasOne(t => t.Category)
             .WithMany(c => c.Trips)
             .HasForeignKey(t => t.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(t => t.StartCity)
+            .WithMany(c => c.StartTrips)
+            .HasForeignKey(t => t.StartCityId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(t => t.DestinationCity)
+            .WithMany(c => c.DestinationTrips)
+            .HasForeignKey(t => t.DestinationCityId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

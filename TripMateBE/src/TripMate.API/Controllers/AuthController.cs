@@ -1,4 +1,3 @@
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TripMate.Application.Features.Users.Commands.Login;
 using TripMate.Application.Features.Users.Commands.RefreshToken;
@@ -10,24 +9,18 @@ using TripMate.Application.Features.Users.Commands.ResetPassword;
 
 namespace TripMate.API.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+/// <summary>
+/// API Xác thực hệ thống (Đăng ký, Đăng nhập, OTP, Google Login...)
+/// </summary>
+public class AuthController : BaseApiController
 {
-    private readonly IMediator _mediator;
-
-    public AuthController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     /// <summary>
     /// Đăng ký tài khoản người dùng mới bằng Email
     /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
-        var userId = await _mediator.Send(command);
+        var userId = await Mediator.Send(command);
         return Ok(new
         {
             status = 200,
@@ -42,7 +35,7 @@ public class AuthController : ControllerBase
     [HttpPost("verify-otp")]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand command)
     {
-        var isSuccess = await _mediator.Send(command);
+        var isSuccess = await Mediator.Send(command);
         return Ok(new
         {
             status = 200,
@@ -57,7 +50,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
-        var response = await _mediator.Send(command);
+        var response = await Mediator.Send(command);
         return Ok(new
         {
             status = 200,
@@ -72,7 +65,7 @@ public class AuthController : ControllerBase
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command)
     {
-        var response = await _mediator.Send(command);
+        var response = await Mediator.Send(command);
         return Ok(new
         {
             status = 200,
@@ -87,7 +80,7 @@ public class AuthController : ControllerBase
     [HttpPost("google-login")]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginCommand command)
     {
-        var response = await _mediator.Send(command);
+        var response = await Mediator.Send(command);
         return Ok(new
         {
             status = 200,
@@ -102,7 +95,7 @@ public class AuthController : ControllerBase
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
     {
-        var isSuccess = await _mediator.Send(command);
+        var isSuccess = await Mediator.Send(command);
         return Ok(new
         {
             status = 200,
@@ -117,7 +110,7 @@ public class AuthController : ControllerBase
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
     {
-        var isSuccess = await _mediator.Send(command);
+        var isSuccess = await Mediator.Send(command);
         return Ok(new
         {
             status = 200,

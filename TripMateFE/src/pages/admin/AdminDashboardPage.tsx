@@ -16,10 +16,10 @@ import {
 const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStatsResponse>({
-    totalUsers: 1,
+    totalUsers: 0,
     totalOrganizers: 0,
     totalTrips: 0,
-    pendingVerifications: 1,
+    pendingVerifications: 0,
   });
 
   useEffect(() => {

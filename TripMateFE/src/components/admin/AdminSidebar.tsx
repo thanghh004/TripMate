@@ -29,15 +29,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
   useEffect(() => {
     if (pendingCount !== undefined) {
       setInternalPendingCount(pendingCount);
-    } else {
-      adminApi.getPendingVerifications()
-        .then((res) => {
-          setInternalPendingCount(res.data?.length || 0);
-        })
-        .catch(() => {
-          // ignore
-        });
     }
+    adminApi.getPendingVerifications()
+      .then((res) => {
+        const count = Array.isArray(res.data) ? res.data.length : 0;
+        setInternalPendingCount(count);
+      })
+      .catch(() => {
+        // ignore
+      });
   }, [pendingCount]);
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {

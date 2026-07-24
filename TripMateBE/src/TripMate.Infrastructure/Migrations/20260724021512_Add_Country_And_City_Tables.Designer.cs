@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TripMate.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using TripMate.Infrastructure.Data;
 namespace TripMate.Infrastructure.Migrations
 {
     [DbContext(typeof(TripMateDbContext))]
-    partial class TripMateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260724021512_Add_Country_And_City_Tables")]
+    partial class Add_Country_And_City_Tables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

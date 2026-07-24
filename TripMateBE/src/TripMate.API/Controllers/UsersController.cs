@@ -1,8 +1,13 @@
-using System.Security.Claims;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TripMate.Application.DTOs.Admin;
 using TripMate.Application.DTOs.Users;
+using TripMate.Application.Features.Admin.Commands.AdminUpdateUser;
+using TripMate.Application.Features.Admin.Commands.ApproveHostVerification;
+using TripMate.Application.Features.Admin.Commands.RejectHostVerification;
+using TripMate.Application.Features.Admin.Commands.ToggleUserStatus;
+using TripMate.Application.Features.Admin.Queries.GetAllUsers;
+using TripMate.Application.Features.Admin.Queries.GetPendingHostVerifications;
 using TripMate.Application.Features.Users.Commands.RequestHostVerification;
 using TripMate.Application.Features.Users.Commands.UpdateProfile;
 using TripMate.Application.Features.Users.Queries.GetMyProfile;
@@ -10,33 +15,30 @@ using TripMate.Domain.Interfaces;
 
 namespace TripMate.API.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
+/// <summary>
+/// Quản lý người dùng (User & Admin operations)
+/// </summary>
 [Authorize]
-public class UsersController : ControllerBase
+public class UsersController : BaseApiController
 {
-    private readonly IMediator _mediator;
     private readonly IFileStorageService _fileStorageService;
 
-    public UsersController(IMediator mediator, IFileStorageService fileStorageService)
+    public UsersController(IFileStorageService fileStorageService)
     {
-        _mediator = mediator;
         _fileStorageService = fileStorageService;
     }
+
+    #region User Endpoints
 
     /// <summary>
     /// Lấy thông tin hồ sơ cá nhân đầy đủ của người dùng hiện tại
     /// </summary>
     [HttpGet("me")]
+    [ProducesResponseType(typeof(UserProfileResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized(new { status = 401, message = "Thông tin xác thực không hợp lệ. Vui lòng đăng nhập lại." });
-        }
-
-        var profile = await _mediator.Send(new GetMyProfileQuery(userId), cancellationToken);
+        var profile = await Mediator.Send(new GetMyProfileQuery(CurrentUserId), cancellationToken);
 
         return Ok(new
         {
@@ -51,15 +53,15 @@ public class UsersController : ControllerBase
     /// </summary>
     [HttpPost("upload")]
     [RequestSizeLimit(10 * 1024 * 1024)] // Giới hạn 10MB
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UploadFile(IFormFile file, CancellationToken cancellationToken)
     {
-        // 1. Kiểm tra file có được gửi lên không
         if (file == null || file.Length == 0)
         {
             return BadRequest(new { status = 400, message = "Vui lòng chọn file để tải lên." });
         }
 
-        // 2. Chỉ cho phép các định dạng ảnh hợp lệ
         var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/webp" };
         if (!allowedTypes.Contains(file.ContentType.ToLower()))
         {
@@ -70,19 +72,14 @@ public class UsersController : ControllerBase
             });
         }
 
-        // 3. Kiểm tra kích thước tối đa (5MB)
         if (file.Length > 5 * 1024 * 1024)
         {
             return BadRequest(new { status = 400, message = "Kích thước ảnh không được vượt quá 5MB." });
         }
 
-        // 4. Gọi service lưu file và lấy đường dẫn tương đối
         await using var stream = file.OpenReadStream();
         var relativePath = await _fileStorageService.UploadAsync(stream, file.FileName, file.ContentType, cancellationToken);
-
-        // 5. Build URL đầy đủ từ request host hiện tại
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        var fileUrl = $"{baseUrl}{relativePath}";
+        var fileUrl = $"{Request.Scheme}://{Request.Host}{relativePath}";
 
         return Ok(new
         {
@@ -93,25 +90,15 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Cập nhật thông tin cá nhân của người dùng hiện tại (bao gồm cả CCCD mặt trước/sau)
+    /// Cập nhật thông tin cá nhân của người dùng hiện tại
     /// </summary>
     [HttpPut("profile")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequestDto request, CancellationToken cancellationToken)
     {
-        // 1. Lấy UserId từ Claims của JWT Token đã xác thực
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized(new
-            {
-                status = 401,
-                message = "Thông tin xác thực của tài khoản không hợp lệ. Vui lòng đăng nhập lại."
-            });
-        }
-
-        // 2. Gửi Command qua MediatR để xử lý cập nhật
         var command = new UpdateProfileCommand(
-            userId,
+            CurrentUserId,
             request.FullName,
             request.PhoneNumber,
             request.Gender,
@@ -123,7 +110,7 @@ public class UsersController : ControllerBase
             request.IdentityCardNumber
         );
 
-        var isSuccess = await _mediator.Send(command, cancellationToken);
+        var isSuccess = await Mediator.Send(command, cancellationToken);
 
         return Ok(new
         {
@@ -137,19 +124,11 @@ public class UsersController : ControllerBase
     /// Gửi yêu cầu duyệt quyền tạo chuyến/tổ chức chuyến đi cho Admin
     /// </summary>
     [HttpPost("request-host-verification")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RequestHostVerification(CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized(new
-            {
-                status = 401,
-                message = "Thông tin xác thực của tài khoản không hợp lệ. Vui lòng đăng nhập lại."
-            });
-        }
-
-        var isSuccess = await _mediator.Send(new RequestHostVerificationCommand(userId), cancellationToken);
+        var isSuccess = await Mediator.Send(new RequestHostVerificationCommand(CurrentUserId), cancellationToken);
 
         return Ok(new
         {
@@ -158,4 +137,119 @@ public class UsersController : ControllerBase
             data = new { isSuccess }
         });
     }
+
+    #endregion
+
+    #region Admin Management Endpoints
+
+    /// <summary>
+    /// Lấy danh sách toàn bộ người dùng trong CSDL (Admin)
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = "Admin,0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
+    {
+        var users = await Mediator.Send(new GetAllUsersQuery(), cancellationToken);
+
+        return Ok(new
+        {
+            status = 200,
+            message = "Lấy danh sách người dùng thành công.",
+            data = users
+        });
+    }
+
+    /// <summary>
+    /// Lấy danh sách các yêu cầu xác thực Host đang chờ duyệt (Admin)
+    /// </summary>
+    [HttpGet("host-verifications/pending")]
+    [Authorize(Roles = "Admin,0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPendingHostVerifications(CancellationToken cancellationToken)
+    {
+        var requests = await Mediator.Send(new GetPendingHostVerificationsQuery(), cancellationToken);
+
+        return Ok(new
+        {
+            status = 200,
+            message = "Lấy danh sách chờ duyệt Host thành công.",
+            data = requests
+        });
+    }
+
+    /// <summary>
+    /// Admin phê duyệt yêu cầu xác thực Host
+    /// </summary>
+    [HttpPost("host-verifications/{userId:guid}/approve")]
+    [Authorize(Roles = "Admin,0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ApproveHostVerification(Guid userId, CancellationToken cancellationToken)
+    {
+        var isSuccess = await Mediator.Send(new ApproveHostVerificationCommand(userId), cancellationToken);
+
+        return Ok(new
+        {
+            status = 200,
+            message = "Phê duyệt quyền tạo chuyến thành công.",
+            data = new { isSuccess }
+        });
+    }
+
+    /// <summary>
+    /// Admin từ chối yêu cầu xác thực Host
+    /// </summary>
+    [HttpPost("host-verifications/{userId:guid}/reject")]
+    [Authorize(Roles = "Admin,0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> RejectHostVerification(Guid userId, [FromBody] RejectHostVerificationRequestDto? request, CancellationToken cancellationToken)
+    {
+        var isSuccess = await Mediator.Send(new RejectHostVerificationCommand(userId, request?.Reason), cancellationToken);
+
+        return Ok(new
+        {
+            status = 200,
+            message = "Từ chối quyền tạo chuyến thành công.",
+            data = new { isSuccess }
+        });
+    }
+
+    /// <summary>
+    /// Khóa hoặc Mở khóa tài khoản người dùng (Admin)
+    /// </summary>
+    [HttpPost("{userId:guid}/toggle-status")]
+    [Authorize(Roles = "Admin,0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ToggleUserStatus(Guid userId, CancellationToken cancellationToken)
+    {
+        var isSuccess = await Mediator.Send(new ToggleUserStatusCommand(userId), cancellationToken);
+
+        return Ok(new
+        {
+            status = 200,
+            message = "Thay đổi trạng thái tài khoản thành công.",
+            data = new { isSuccess }
+        });
+    }
+
+    /// <summary>
+    /// Admin cập nhật Vai trò, Trạng thái và Quyền Host của người dùng
+    /// </summary>
+    [HttpPut("{userId:guid}")]
+    [Authorize(Roles = "Admin,0")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] AdminUpdateUserRequestDto request, CancellationToken cancellationToken)
+    {
+        var command = new AdminUpdateUserCommand(userId, request.Role, request.Status, request.HostVerificationStatus);
+        var isSuccess = await Mediator.Send(command, cancellationToken);
+
+        return Ok(new
+        {
+            status = 200,
+            message = "Cập nhật thông tin quản trị thành công.",
+            data = new { isSuccess }
+        });
+    }
+
+    #endregion
 }
