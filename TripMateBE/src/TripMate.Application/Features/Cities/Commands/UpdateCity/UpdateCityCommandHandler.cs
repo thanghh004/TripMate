@@ -26,7 +26,7 @@ public class UpdateCityCommandHandler : IRequestHandler<UpdateCityCommand, CityD
 
         if (city.IsDeleted)
         {
-            throw new BusinessRuleException($"Thành phố '{city.Name}' đã bị xóa khỏi hệ thống, không thể chỉnh sửa hoặc thay đổi trạng thái.");
+            throw new BusinessRuleException($"Thành phố '{city.Name}' đã bị xóa khỏi hệ thống, không thể chỉnh sửa.");
         }
 
         var countryRepo = _unitOfWork.Repository<Country>();

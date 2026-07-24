@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Globe,
   MapPin,
+  Tag,
   Settings,
 } from 'lucide-react';
 
@@ -35,7 +36,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
   // Accordion state for System Admin group
   const isSystemPath =
     location.pathname.startsWith('/admin/countries') ||
-    location.pathname.startsWith('/admin/cities');
+    location.pathname.startsWith('/admin/cities') ||
+    location.pathname.startsWith('/admin/categories');
 
   const [isSystemOpen, setIsSystemOpen] = useState<boolean>(isSystemPath);
 
@@ -120,6 +122,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
       to: '/admin/cities',
       label: 'Quản lý thành phố',
       icon: <MapPin size={16} />,
+    },
+    {
+      to: '/admin/categories',
+      label: 'Quản lý loại chuyến đi',
+      icon: <Tag size={16} />,
     },
   ];
 

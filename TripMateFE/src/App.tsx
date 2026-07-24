@@ -17,6 +17,7 @@ import UserManagementPage from './pages/admin/user-manager';
 import TripManagementPage from './pages/admin/TripManagementPage';
 import CountryManagementPage from './pages/admin/country-manager';
 import CityManagementPage from './pages/admin/city-manager';
+import CategoryManagementPage from './pages/admin/category-manager';
 import { MapPin, Calendar, ShieldCheck, Sparkles } from 'lucide-react';
 import './App.css';
 
@@ -133,6 +134,7 @@ function App() {
       <Route path="/admin/trips" element={<TripManagementPage />} />
       <Route path="/admin/countries" element={<CountryManagementPage />} />
       <Route path="/admin/cities" element={<CityManagementPage />} />
+      <Route path="/admin/categories" element={<CategoryManagementPage />} />
       {/* Error & Fallback Routes */}
       <Route path="/403" element={<ForbiddenPage />} />
       <Route path="*" element={<NotFoundPage />} />

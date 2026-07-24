@@ -21,7 +21,7 @@ export const EditCountryModal: React.FC<EditCountryModalProps> = ({ country, onC
   const [name, setName] = useState(country.name);
   const [code, setCode] = useState(country.code || '');
   const [flagIcon, setFlagIcon] = useState(country.flagIcon || '');
-  const [displayOrder, setDisplayOrder] = useState<number>(country.displayOrder || 0);
+  const [displayOrder] = useState<number>(country.displayOrder || 0);
   const [isActive, setIsActive] = useState<boolean>(country.isActive);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -82,18 +82,6 @@ export const EditCountryModal: React.FC<EditCountryModalProps> = ({ country, onC
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Thứ tự hiển thị</label>
-            <input
-              type="number"
-              value={displayOrder}
-              onChange={(e) => setDisplayOrder(Number(e.target.value))}
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Cờ / Biểu tượng Emoji</label>
             <input
               type="text"
@@ -102,15 +90,15 @@ export const EditCountryModal: React.FC<EditCountryModalProps> = ({ country, onC
               className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
             />
           </div>
+        </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Trạng thái hệ thống</label>
-            <Select
-              options={statusOptions}
-              value={isActive ? 'true' : 'false'}
-              onChange={(val) => setIsActive(val === 'true')}
-            />
-          </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Trạng thái hệ thống</label>
+          <Select
+            options={statusOptions}
+            value={isActive ? 'true' : 'false'}
+            onChange={(val) => setIsActive(val === 'true')}
+          />
         </div>
 
         <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end gap-3">

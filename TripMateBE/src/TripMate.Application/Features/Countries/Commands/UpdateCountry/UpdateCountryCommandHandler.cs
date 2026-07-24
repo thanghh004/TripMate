@@ -27,7 +27,7 @@ public class UpdateCountryCommandHandler : IRequestHandler<UpdateCountryCommand,
 
         if (country.IsDeleted)
         {
-            throw new BusinessRuleException($"Quốc gia '{country.Name}' đã bị xóa khỏi hệ thống, không thể chỉnh sửa hoặc thay đổi trạng thái.");
+            throw new BusinessRuleException($"Quốc gia '{country.Name}' đã bị xóa khỏi hệ thống, không thể chỉnh sửa.");
         }
 
         var name = request.Name.Trim();

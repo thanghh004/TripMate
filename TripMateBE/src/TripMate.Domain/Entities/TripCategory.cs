@@ -19,9 +19,9 @@ public class TripCategory : BaseEntity
     public string Slug { get; set; } = string.Empty;
 
     /// <summary>
-    /// Đường dẫn biểu tượng/hình ảnh đại diện cho loại hình
+    /// Biểu tượng/icon đại diện cho loại hình (VD: tên class icon hoặc emoji)
     /// </summary>
-    public string? IconUrl { get; set; }
+    public string? Icon { get; set; }
 
     /// <summary>
     /// Mô tả chi tiết về loại hình chuyến đi

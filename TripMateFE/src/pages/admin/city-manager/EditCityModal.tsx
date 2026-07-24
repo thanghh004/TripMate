@@ -22,7 +22,7 @@ export const EditCityModal: React.FC<EditCityModalProps> = ({ city, countries, o
   const [countryId, setCountryId] = useState(city.countryId);
   const [name, setName] = useState(city.name);
   const [slug, setSlug] = useState(city.slug || '');
-  const [displayOrder, setDisplayOrder] = useState<number>(city.displayOrder || 0);
+  const [displayOrder] = useState<number>(city.displayOrder || 0);
   const [isActive, setIsActive] = useState<boolean>(city.isActive);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -106,26 +106,14 @@ export const EditCityModal: React.FC<EditCityModalProps> = ({ city, countries, o
           </div>
         </div>
 
-        {/* Hàng 3: Thứ tự hiển thị + Trạng thái hệ thống cùng 1 hàng 2 cột */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Thứ tự hiển thị</label>
-            <input
-              type="number"
-              value={displayOrder}
-              onChange={(e) => setDisplayOrder(Number(e.target.value))}
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Trạng thái hệ thống</label>
-            <Select
-              options={statusOptions}
-              value={isActive ? 'true' : 'false'}
-              onChange={(val) => setIsActive(val === 'true')}
-            />
-          </div>
+        {/* Hàng 3: Trạng thái hệ thống */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Trạng thái hệ thống</label>
+          <Select
+            options={statusOptions}
+            value={isActive ? 'true' : 'false'}
+            onChange={(val) => setIsActive(val === 'true')}
+          />
         </div>
 
         {/* Footer */}

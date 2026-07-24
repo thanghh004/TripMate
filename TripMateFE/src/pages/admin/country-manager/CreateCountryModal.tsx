@@ -14,7 +14,6 @@ export const CreateCountryModal: React.FC<CreateCountryModalProps> = ({ onClose,
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [flagIcon, setFlagIcon] = useState('');
-  const [displayOrder, setDisplayOrder] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +29,7 @@ export const CreateCountryModal: React.FC<CreateCountryModalProps> = ({ onClose,
         name: name.trim(),
         code: code.trim().toUpperCase() || undefined,
         flagIcon: flagIcon.trim() || undefined,
-        displayOrder: Number(displayOrder) || 0,
+        displayOrder: 0,
       };
       await locationApi.createCountry(req);
       toast.success(`Đã thêm mới quốc gia "${name.trim()}"!`);
@@ -75,25 +74,15 @@ export const CreateCountryModal: React.FC<CreateCountryModalProps> = ({ onClose,
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Thứ tự hiển thị</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Cờ / Biểu tượng Emoji</label>
             <input
-              type="number"
-              value={displayOrder}
-              onChange={(e) => setDisplayOrder(Number(e.target.value))}
+              type="text"
+              value={flagIcon}
+              onChange={(e) => setFlagIcon(e.target.value)}
+              placeholder="VD: 🆻🇳, 🇯🇵..."
               className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
             />
           </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Cờ / Biểu tượng Emoji</label>
-          <input
-            type="text"
-            value={flagIcon}
-            onChange={(e) => setFlagIcon(e.target.value)}
-            placeholder="VD: 🇻🇳, 🇯🇵..."
-            className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-          />
         </div>
 
         <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end gap-3">

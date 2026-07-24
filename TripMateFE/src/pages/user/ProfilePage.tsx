@@ -100,6 +100,29 @@ const ProfilePage: React.FC = () => {
   const [showReverifyConfirmModal, setShowReverifyConfirmModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Lưu trữ dữ liệu profile gốc tải từ Backend để khi bấm Hủy sẽ khôi phục chính xác 100%
+  const profileDataRef = useRef<{
+    fullName: string;
+    phoneNumber: string;
+    avatarUrl: string;
+    cccdFrontUrl: string;
+    cccdBackUrl: string;
+    identityCardNumber: string;
+    gender: string;
+    birthDate: string;
+    bio: string;
+  }>({
+    fullName: '',
+    phoneNumber: '',
+    avatarUrl: '',
+    cccdFrontUrl: '',
+    cccdBackUrl: '',
+    identityCardNumber: '',
+    gender: '',
+    birthDate: '',
+    bio: '',
+  });
+
   // Form fields state
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -143,15 +166,24 @@ const ProfilePage: React.FC = () => {
         setIsFetchingProfile(true);
         const res = await userApi.getProfile();
         const profile = res.data;
+        const bDate = profile.birthDate ? String(profile.birthDate).substring(0, 10) : '';
+
+        profileDataRef.current = {
+          fullName: profile.fullName,
+          phoneNumber: profile.phoneNumber || '',
+          avatarUrl: profile.avatarUrl || '',
+          cccdFrontUrl: profile.identityCardFrontUrl || '',
+          cccdBackUrl: profile.identityCardBackUrl || '',
+          identityCardNumber: profile.identityCardNumber || '',
+          gender: profile.gender || '',
+          birthDate: bDate,
+          bio: profile.bio || '',
+        };
+
         setFullName(profile.fullName);
         setPhoneNumber(profile.phoneNumber || '');
         setGender(profile.gender || '');
-        if (profile.birthDate) {
-          const dateStr = String(profile.birthDate).substring(0, 10);
-          setBirthDate(dateStr);
-        } else {
-          setBirthDate('');
-        }
+        setBirthDate(bDate);
         setAvatarUrl(profile.avatarUrl || '');
         setCccdFrontUrl(profile.identityCardFrontUrl || '');
         setCccdBackUrl(profile.identityCardBackUrl || '');
@@ -250,6 +282,19 @@ const ProfilePage: React.FC = () => {
         identityCardBackUrl: cccdBackUrl || undefined,
       });
 
+      // Cập nhật lại cache dữ liệu gốc
+      profileDataRef.current = {
+        fullName: fullName.trim(),
+        phoneNumber: phoneNumber.trim(),
+        avatarUrl: avatarUrl || '',
+        cccdFrontUrl: cccdFrontUrl || '',
+        cccdBackUrl: cccdBackUrl || '',
+        identityCardNumber: identityCardNumber.trim(),
+        gender: gender || '',
+        birthDate: birthDate || '',
+        bio: bio.trim(),
+      };
+
       if (isReverificationMode) {
         setHostVerificationStatus(HostVerificationStatus.Pending);
         setIsReverificationMode(false);
@@ -275,12 +320,19 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+
+
   const handleCancel = () => {
-    setFullName(currentUser.fullName);
-    setPhoneNumber(currentUser.phoneNumber || '');
-    setAvatarUrl(currentUser.avatarUrl || '');
-    setCccdFrontUrl(currentUser.identityCardFrontUrl || '');
-    setCccdBackUrl(currentUser.identityCardBackUrl || '');
+    const p = profileDataRef.current;
+    setFullName(p.fullName);
+    setPhoneNumber(p.phoneNumber);
+    setAvatarUrl(p.avatarUrl);
+    setCccdFrontUrl(p.cccdFrontUrl);
+    setCccdBackUrl(p.cccdBackUrl);
+    setIdentityCardNumber(p.identityCardNumber);
+    setGender(p.gender);
+    setBirthDate(p.birthDate);
+    setBio(p.bio);
     setIsEditing(false);
     setIsReverificationMode(false);
   };
