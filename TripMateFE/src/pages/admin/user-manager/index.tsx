@@ -4,6 +4,7 @@ import { adminApi } from '../../../api/adminApi';
 import { useToast } from '../../../context/ToastContext';
 import { type AdminUserListItem } from '../../../types/admin';
 import { Select, type SelectOption } from '../../../components/common/Select';
+import { Pagination } from '../../../components/common/Pagination';
 import { UserDetailModal } from './UserDetailModal';
 import { EditUserModal } from './EditUserModal';
 import {
@@ -30,6 +31,9 @@ const UserManagementPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Suspended'>('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const [detailUser, setDetailUser] = useState<AdminUserListItem | null>(null);
   const [editUser, setEditUser] = useState<AdminUserListItem | null>(null);
 
@@ -73,6 +77,12 @@ const UserManagementPage: React.FC = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredUsers.length / pageSize);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <AdminLayout>
@@ -137,7 +147,7 @@ const UserManagementPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium">
-                {filteredUsers.map((user) => (
+                {paginatedUsers.map((user) => (
                   <tr key={user.userId} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-3.5 px-5">
                       <div className="flex items-center gap-3">
@@ -228,6 +238,21 @@ const UserManagementPage: React.FC = () => {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Pagination */}
+      {!isLoading && filteredUsers.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredUsers.length}
+          pageSize={pageSize}
+          onPageChange={(page) => setCurrentPage(page)}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+        />
       )}
 
       {detailUser && <UserDetailModal user={detailUser} onClose={() => setDetailUser(null)} />}

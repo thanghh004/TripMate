@@ -15,6 +15,8 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import HostVerificationPage from './pages/admin/HostVerificationPage';
 import UserManagementPage from './pages/admin/user-manager';
 import TripManagementPage from './pages/admin/TripManagementPage';
+import CountryManagementPage from './pages/admin/country-manager';
+import CityManagementPage from './pages/admin/city-manager';
 import { MapPin, Calendar, ShieldCheck, Sparkles } from 'lucide-react';
 import './App.css';
 
@@ -129,6 +131,8 @@ function App() {
       <Route path="/admin/host-verifications" element={<HostVerificationPage />} />
       <Route path="/admin/users" element={<UserManagementPage />} />
       <Route path="/admin/trips" element={<TripManagementPage />} />
+      <Route path="/admin/countries" element={<CountryManagementPage />} />
+      <Route path="/admin/cities" element={<CityManagementPage />} />
       {/* Error & Fallback Routes */}
       <Route path="/403" element={<ForbiddenPage />} />
       <Route path="*" element={<NotFoundPage />} />

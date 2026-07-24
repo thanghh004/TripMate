@@ -24,11 +24,21 @@ public class UpdateCityCommandHandler : IRequestHandler<UpdateCityCommand, CityD
             throw new NotFoundException($"Không tìm thấy thành phố với ID: {request.Id}");
         }
 
+        if (city.IsDeleted)
+        {
+            throw new BusinessRuleException($"Thành phố '{city.Name}' đã bị xóa khỏi hệ thống, không thể chỉnh sửa hoặc thay đổi trạng thái.");
+        }
+
         var countryRepo = _unitOfWork.Repository<Country>();
         var country = await countryRepo.GetByIdAsync(request.CountryId);
         if (country == null)
         {
             throw new NotFoundException($"Không tìm thấy quốc gia với ID: {request.CountryId}");
+        }
+
+        if (!country.IsActive)
+        {
+            throw new BusinessRuleException($"Quốc gia '{country.Name}' hiện đang dừng hoạt động, không thể chọn để gắn thành phố.");
         }
 
         var name = request.Name.Trim();
@@ -57,6 +67,7 @@ public class UpdateCityCommandHandler : IRequestHandler<UpdateCityCommand, CityD
             Slug = city.Slug,
             DisplayOrder = city.DisplayOrder,
             IsActive = city.IsActive,
+            IsDeleted = city.IsDeleted,
             CreatedAt = city.CreatedAt,
             UpdatedAt = city.UpdatedAt
         };

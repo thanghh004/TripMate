@@ -24,6 +24,14 @@ public class DeleteCountryCommandHandler : IRequestHandler<DeleteCountryCommand,
             throw new NotFoundException($"Không tìm thấy quốc gia với ID: {request.Id}");
         }
 
+        // Kiểm tra xem có thành phố nào thuộc quốc gia này đang hoạt động hay không
+        var activeCities = await _unitOfWork.Repository<City>().FindAsync(c => c.CountryId == request.Id && c.IsActive);
+        var activeCitiesList = activeCities.ToList();
+        if (activeCitiesList.Any())
+        {
+            throw new BusinessRuleException($"Không thể xóa quốc gia '{country.Name}' vì vẫn còn thành phố/tỉnh đang hoạt động. Vui lòng dừng hoạt động/xóa tất cả thành phố thuộc quốc gia này trước.");
+        }
+
         repo.SoftDelete(country);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { adminApi } from '../../api/adminApi';
 import {
@@ -12,6 +12,10 @@ import {
   UserCheck,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Globe,
+  MapPin,
+  Settings,
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -24,13 +28,29 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
   const authContext = useContext(AuthContext);
   const currentUser = authContext?.user;
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [internalPendingCount, setInternalPendingCount] = useState<number>(pendingCount ?? 0);
+
+  // Accordion state for System Admin group
+  const isSystemPath =
+    location.pathname.startsWith('/admin/countries') ||
+    location.pathname.startsWith('/admin/cities');
+
+  const [isSystemOpen, setIsSystemOpen] = useState<boolean>(isSystemPath);
+
+  useEffect(() => {
+    if (isSystemPath) {
+      setIsSystemOpen(true);
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     if (pendingCount !== undefined) {
       setInternalPendingCount(pendingCount);
     }
-    adminApi.getPendingVerifications()
+    adminApi
+      .getPendingVerifications()
       .then((res) => {
         const count = Array.isArray(res.data) ? res.data.length : 0;
         setInternalPendingCount(count);
@@ -54,7 +74,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
       try {
         localStorage.setItem(SIDEBAR_STORAGE_KEY, next ? '1' : '0');
       } catch {
-        // ignore storage errors (e.g. private mode)
+        // ignore
       }
       return next;
     });
@@ -65,7 +85,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
     navigate('/');
   };
 
-  const navItems = [
+  const mainNavItems = [
     {
       to: '/admin',
       label: 'Tổng quan hệ thống',
@@ -90,6 +110,19 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
     },
   ];
 
+  const systemNavItems = [
+    {
+      to: '/admin/countries',
+      label: 'Quản lý quốc gia',
+      icon: <Globe size={16} />,
+    },
+    {
+      to: '/admin/cities',
+      label: 'Quản lý thành phố',
+      icon: <MapPin size={16} />,
+    },
+  ];
+
   return (
     <>
       <style>{`
@@ -98,8 +131,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
       `}</style>
 
       <aside
-        className={`relative bg-white text-slate-900 flex flex-col h-screen sticky top-0 border-r border-slate-200/80 shrink-0 select-none shadow-xs transition-[width] duration-300 ease-in-out ${collapsed ? 'w-20' : 'w-64'
-          }`}
+        className={`relative bg-white text-slate-900 flex flex-col h-screen sticky top-0 border-r border-slate-200/80 shrink-0 select-none shadow-xs transition-[width] duration-300 ease-in-out ${
+          collapsed ? 'w-20' : 'w-64'
+        }`}
       >
         {/* Nút đóng/mở sidebar */}
         <button
@@ -110,10 +144,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
 
-        {/* 1. Header Sidebar: Logo Satisfy chuẩn như User + Admin Badge */}
+        {/* 1. Header Sidebar */}
         <div
-          className={`p-6 border-b border-slate-100 flex items-center ${collapsed ? 'justify-center px-3' : 'justify-between'
-            }`}
+          className={`p-6 border-b border-slate-100 flex items-center ${
+            collapsed ? 'justify-center px-3' : 'justify-between'
+          }`}
         >
           {collapsed ? (
             <NavLink to="/admin" className="flex items-center justify-center">
@@ -140,17 +175,21 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
               Danh mục quản lý
             </div>
           )}
-          {navItems.map((item) => (
+
+          {/* Main Nav Items */}
+          {mainNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
               title={collapsed ? item.label : undefined}
               className={({ isActive }) =>
-                `relative flex items-center px-3.5 py-3 rounded-2xl text-xs font-bold transition-all border ${collapsed ? 'justify-center' : 'justify-between'
-                } ${isActive
-                  ? 'bg-coral-50 text-coral-600 border-coral-200/80 font-extrabold shadow-xs'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                `relative flex items-center px-3.5 py-3 rounded-2xl text-xs font-bold transition-all border ${
+                  collapsed ? 'justify-center' : 'justify-between'
+                } ${
+                  isActive
+                    ? 'bg-coral-50 text-coral-600 border-coral-200/80 font-extrabold shadow-xs'
+                    : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                 }`
               }
             >
@@ -165,15 +204,74 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
                 </span>
               )}
 
-              {/* Chấm báo hiệu khi thu gọn, thay cho badge số */}
               {item.badge !== undefined && collapsed && (
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-coral-500 animate-pulse" />
               )}
             </NavLink>
           ))}
+
+          {/* Sub Menu: Quản trị hệ thống */}
+          <div className="pt-2">
+            {!collapsed && (
+              <div className="px-3 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                Hệ thống
+              </div>
+            )}
+
+            <button
+              onClick={() => setIsSystemOpen(!isSystemOpen)}
+              title={collapsed ? 'Quản trị hệ thống' : undefined}
+              className={`w-full flex items-center px-3.5 py-3 rounded-2xl text-xs font-bold transition-all border cursor-pointer ${
+                collapsed ? 'justify-center' : 'justify-between'
+              } ${
+                isSystemPath
+                  ? 'text-coral-600 bg-coral-50/50 border-coral-100'
+                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+              }`}
+            >
+              <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
+                <Settings size={18} />
+                {!collapsed && <span className="whitespace-nowrap">Quản trị hệ thống</span>}
+              </div>
+
+              {!collapsed && (
+                <ChevronDown
+                  size={15}
+                  className={`transition-transform duration-200 ${
+                    isSystemOpen ? 'rotate-180 text-coral-600' : 'text-slate-400'
+                  }`}
+                />
+              )}
+            </button>
+
+            {/* Sub items dropdown */}
+            {(isSystemOpen || collapsed) && (
+              <div className={`mt-1 space-y-1 ${collapsed ? '' : 'pl-4 border-l-2 border-slate-100 ml-5'}`}>
+                {systemNavItems.map((subItem) => (
+                  <NavLink
+                    key={subItem.to}
+                    to={subItem.to}
+                    title={collapsed ? subItem.label : undefined}
+                    className={({ isActive }) =>
+                      `flex items-center px-3 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                        collapsed ? 'justify-center' : 'gap-2.5'
+                      } ${
+                        isActive
+                          ? 'bg-coral-50 text-coral-600 border-coral-200/80 font-extrabold shadow-xs'
+                          : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/80'
+                      }`
+                    }
+                  >
+                    {subItem.icon}
+                    {!collapsed && <span className="whitespace-nowrap">{subItem.label}</span>}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
-        {/* 3. Footer Sidebar: Admin Profile & Logout Button */}
+        {/* 3. Footer Sidebar */}
         <div className="p-4 border-t border-slate-100 bg-slate-50/60 space-y-3">
           <div className={`flex items-center gap-3 px-2 py-1 ${collapsed ? 'justify-center' : ''}`}>
             {currentUser?.avatarUrl ? (

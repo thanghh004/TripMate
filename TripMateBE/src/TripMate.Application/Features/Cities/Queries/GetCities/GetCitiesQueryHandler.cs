@@ -22,22 +22,22 @@ public class GetCitiesQueryHandler : IRequestHandler<GetCitiesQuery, List<CityDt
         IEnumerable<City> cities;
         if (request.CountryId.HasValue && request.IsActive.HasValue)
         {
-            cities = await cityRepo.FindAsync(c => c.CountryId == request.CountryId.Value && c.IsActive == request.IsActive.Value);
+            cities = await cityRepo.FindWithDeletedAsync(c => c.CountryId == request.CountryId.Value && c.IsActive == request.IsActive.Value);
         }
         else if (request.CountryId.HasValue)
         {
-            cities = await cityRepo.FindAsync(c => c.CountryId == request.CountryId.Value);
+            cities = await cityRepo.FindWithDeletedAsync(c => c.CountryId == request.CountryId.Value);
         }
         else if (request.IsActive.HasValue)
         {
-            cities = await cityRepo.FindAsync(c => c.IsActive == request.IsActive.Value);
+            cities = await cityRepo.FindWithDeletedAsync(c => c.IsActive == request.IsActive.Value);
         }
         else
         {
-            cities = await cityRepo.GetAllAsync();
+            cities = await cityRepo.GetAllWithDeletedAsync();
         }
 
-        var countries = (await countryRepo.GetAllAsync()).ToDictionary(c => c.Id, c => c.Name);
+        var countries = (await countryRepo.GetAllWithDeletedAsync()).ToDictionary(c => c.Id, c => c.Name);
 
         return cities
             .OrderBy(c => c.DisplayOrder)
@@ -51,6 +51,7 @@ public class GetCitiesQueryHandler : IRequestHandler<GetCitiesQuery, List<CityDt
                 Slug = c.Slug,
                 DisplayOrder = c.DisplayOrder,
                 IsActive = c.IsActive,
+                IsDeleted = c.IsDeleted,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
             })

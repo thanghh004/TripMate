@@ -21,11 +21,11 @@ public class GetAllCountriesQueryHandler : IRequestHandler<GetAllCountriesQuery,
         IEnumerable<Country> countries;
         if (request.IsActive.HasValue)
         {
-            countries = await repo.FindAsync(c => c.IsActive == request.IsActive.Value);
+            countries = await repo.FindWithDeletedAsync(c => c.IsActive == request.IsActive.Value);
         }
         else
         {
-            countries = await repo.GetAllAsync();
+            countries = await repo.GetAllWithDeletedAsync();
         }
 
         return countries
@@ -39,6 +39,7 @@ public class GetAllCountriesQueryHandler : IRequestHandler<GetAllCountriesQuery,
                 FlagIcon = c.FlagIcon,
                 DisplayOrder = c.DisplayOrder,
                 IsActive = c.IsActive,
+                IsDeleted = c.IsDeleted,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
             })

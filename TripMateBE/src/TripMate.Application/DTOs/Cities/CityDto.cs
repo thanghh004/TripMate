@@ -12,6 +12,7 @@ public class CityDto
     public string? Slug { get; set; }
     public int DisplayOrder { get; set; }
     public bool IsActive { get; set; }
+    public bool IsDeleted { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

@@ -13,6 +13,7 @@ interface SelectProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  direction?: 'auto' | 'down' | 'up';
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -22,8 +23,10 @@ export const Select: React.FC<SelectProps> = ({
   placeholder = 'Chọn một tùy chọn',
   className = '',
   disabled = false,
+  direction = 'auto',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -38,17 +41,36 @@ export const Select: React.FC<SelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleToggle = () => {
+    if (disabled) return;
+
+    if (!isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      
+      if (direction === 'up') {
+        setOpenUpwards(true);
+      } else if (direction === 'down') {
+        setOpenUpwards(false);
+      } else {
+        // Auto mode: If space below is less than 200px and space above is enough, open upwards
+        setOpenUpwards(spaceBelow < 210);
+      }
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
       <button
         type="button"
         disabled={disabled}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold text-left flex items-center justify-between cursor-pointer ${
           disabled ? 'opacity-60 cursor-not-allowed bg-slate-100' : ''
         }`}
       >
-        <span className={selectedOption ? 'text-slate-900 font-semibold' : 'text-slate-400'}>
+        <span className={`truncate whitespace-nowrap ${selectedOption ? 'text-slate-900 font-semibold' : 'text-slate-400'}`}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
@@ -58,7 +80,11 @@ export const Select: React.FC<SelectProps> = ({
       </button>
 
       {isOpen && !disabled && (
-        <div className="absolute right-0 left-0 top-full mt-1.5 bg-white border border-slate-200/90 rounded-xl shadow-lg shadow-slate-900/[0.08] z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-150">
+        <div
+          className={`absolute right-0 left-0 bg-white border border-slate-200/90 rounded-xl shadow-lg shadow-slate-900/[0.08] z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-150 ${
+            openUpwards ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
+        >
           {options.map((opt) => (
             <button
               key={opt.value}

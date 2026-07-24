@@ -30,9 +30,19 @@ public class GenericRepository<T> : IRepository<T> where T : class
         return await _dbSet.ToListAsync();
     }
 
+    public async Task<IEnumerable<T>> GetAllWithDeletedAsync()
+    {
+        return await _dbSet.IgnoreQueryFilters().ToListAsync();
+    }
+
     public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
     {
         return await _dbSet.Where(predicate).ToListAsync();
+    }
+
+    public async Task<IEnumerable<T>> FindWithDeletedAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.IgnoreQueryFilters().Where(predicate).ToListAsync();
     }
 
     public async Task AddAsync(T entity)

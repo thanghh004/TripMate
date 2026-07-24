@@ -24,6 +24,11 @@ public class CreateCityCommandHandler : IRequestHandler<CreateCityCommand, CityD
             throw new NotFoundException($"Không tìm thấy quốc gia với ID: {request.CountryId}");
         }
 
+        if (!country.IsActive)
+        {
+            throw new BusinessRuleException($"Quốc gia '{country.Name}' hiện đang dừng hoạt động, không thể chọn để tạo thành phố mới.");
+        }
+
         var cityRepo = _unitOfWork.Repository<City>();
         var name = request.Name.Trim();
 
