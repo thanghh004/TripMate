@@ -1,10 +1,10 @@
 using FluentValidation;
 
-namespace TripMate.Application.Features.Trips.Commands.CreateTrip;
+namespace TripMate.Application.Features.Trips.Commands.UpdateTrip;
 
-public class CreateTripCommandValidator : AbstractValidator<CreateTripCommand>
+public class UpdateTripCommandValidator : AbstractValidator<UpdateTripCommand>
 {
-    public CreateTripCommandValidator()
+    public UpdateTripCommandValidator()
     {
         RuleFor(x => x.Dto.Title)
             .NotEmpty().WithMessage("Tiêu đề chuyến đi không được để trống.")

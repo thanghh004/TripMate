@@ -34,6 +34,11 @@ public class Trip : BaseEntity
     public string StartLocation { get; set; } = string.Empty;
 
     /// <summary>
+    /// FK liên kết tới Quốc gia khởi hành
+    /// </summary>
+    public Guid? StartCountryId { get; set; }
+
+    /// <summary>
     /// FK liên kết tới Thành phố khởi hành (nếu chọn từ danh mục)
     /// </summary>
     public Guid? StartCityId { get; set; }
@@ -42,6 +47,11 @@ public class Trip : BaseEntity
     /// Điểm đến của chuyến đi
     /// </summary>
     public string Destination { get; set; } = string.Empty;
+
+    /// <summary>
+    /// FK liên kết tới Quốc gia điểm đến
+    /// </summary>
+    public Guid? DestinationCountryId { get; set; }
 
     /// <summary>
     /// FK liên kết tới Thành phố điểm đến (nếu chọn từ danh mục)

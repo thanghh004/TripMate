@@ -21,7 +21,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   minDate,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleOpen = () => {
+    if (!isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      // Lịch cao khoảng 320px -> nếu ở dưới không đủ 320px thì nảy lên trên
+      setOpenUpward(spaceBelow < 320);
+    }
+    setIsOpen(!isOpen);
+  };
 
   // Extract initial year, month, day safely
   const initialDate = value ? new Date(value + 'T00:00:00') : new Date();
@@ -106,7 +117,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleOpen}
         className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-9 py-2.5 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold text-left flex items-center justify-between cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
       >
         <span className={value ? 'text-slate-900 font-semibold' : 'text-slate-400'}>
@@ -117,7 +128,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       <Calendar size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1.5 w-72 bg-white border border-slate-200/80 rounded-2xl shadow-xl shadow-slate-900/[0.08] z-50 p-4 animate-in fade-in zoom-in-95 duration-150 text-slate-800">
+        <div
+          className={`absolute left-0 w-72 bg-white border border-slate-200/80 rounded-2xl shadow-xl shadow-slate-900/[0.08] z-50 p-4 animate-in fade-in zoom-in-95 duration-150 text-slate-800 ${
+            openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
+        >
           {/* Calendar Month & Year Controls */}
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
             <button

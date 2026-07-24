@@ -33,5 +33,10 @@ public enum TripStatus
     /// <summary>
     /// Chuyến đi đã bị hủy bỏ
     /// </summary>
-    Cancelled = 5
+    Cancelled = 5,
+
+    /// <summary>
+    /// Chuyến đi thất bại do không gom đủ thành viên khi đến ngày khởi hành
+    /// </summary>
+    Failed = 6
 }

@@ -1,37 +1,36 @@
 using MediatR;
 using TripMate.Application.DTOs.Trips;
+using TripMate.Domain.Entities;
 using TripMate.Domain.Enums;
 using TripMate.Domain.Exceptions;
 using TripMate.Domain.Interfaces;
 
 namespace TripMate.Application.Features.Trips.Commands.CreateTrip;
 
-/// <summary>
-/// Handler xử lý tạo chuyến đi mới và thực thi kiểm tra phân quyền Host 100% tại Backend
-/// </summary>
-public class CreateTripCommandHandler : IRequestHandler<CreateTripCommand, CreateTripResponseDto>
+public class CreateTripCommandHandler : IRequestHandler<CreateTripCommand, TripDto>
 {
+    private readonly ITripRepository _tripRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateTripCommandHandler(IUserRepository userRepository)
+    public CreateTripCommandHandler(
+        ITripRepository tripRepository,
+        IUserRepository userRepository,
+        IUnitOfWork unitOfWork)
     {
+        _tripRepository = tripRepository;
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<CreateTripResponseDto> Handle(CreateTripCommand request, CancellationToken cancellationToken)
+    public async Task<TripDto> Handle(CreateTripCommand request, CancellationToken cancellationToken)
     {
-        // 1. Tìm thông tin người dùng trong CSDL Backend theo UserId từ Token Claims
-        var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+        var user = await _userRepository.GetByIdAsync(request.OrganizerId, cancellationToken);
         if (user == null)
-        {
             throw new NotFoundException("Không tìm thấy thông tin tài khoản người dùng.");
-        }
 
-        // 2. XÉT QUYỀN VÀ NGHỆP VỤ BẢO MẬT 100% TẠI BACKEND:
-        // Chỉ Admin hoặc User đã được Admin phê duyệt (HostVerificationStatus == Approved) mới có quyền tạo chuyến đi.
-        var isHostAllowed = user.Role == UserRole.Admin || user.HostVerificationStatus == HostVerificationStatus.Approved;
-
-        if (!isHostAllowed)
+        // Rule: Kiểm tra chi tiết trạng thái duyệt quyền tạo chuyến (HostVerificationStatus)
+        if (user.HostVerificationStatus != HostVerificationStatus.Approved)
         {
             if (user.HostVerificationStatus == HostVerificationStatus.Pending)
             {
@@ -51,12 +50,87 @@ public class CreateTripCommandHandler : IRequestHandler<CreateTripCommand, Creat
             throw new BusinessRuleException("Bạn chưa đăng ký quyền Tạo chuyến. Vui lòng gửi yêu cầu trong phần cài đặt!");
         }
 
-        // 3. Trả về kết quả khởi tạo chuyến đi công khai thành công
-        return new CreateTripResponseDto
+        var dto = request.Dto;
+
+        var trip = new Trip
         {
-            TripId = Guid.NewGuid(),
-            Title = string.IsNullOrWhiteSpace(request.Title) ? "Chuyến đi mới" : request.Title.Trim(),
-            Message = "Khởi tạo chuyến đi mới thành công! Bạn có đầy đủ quyền Organizer để đăng chuyến."
+            OrganizerId = request.OrganizerId,
+            CategoryId = dto.CategoryId,
+            Title = dto.Title.Trim(),
+            Description = dto.Description?.Trim(),
+            StartLocation = dto.StartLocation.Trim(),
+            StartCountryId = dto.StartCountryId,
+            StartCityId = dto.StartCityId,
+            Destination = dto.Destination.Trim(),
+            DestinationCountryId = dto.DestinationCountryId,
+            DestinationCityId = dto.DestinationCityId,
+            CoverImageUrl = dto.CoverImageUrl?.Trim(),
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            RegistrationDeadline = dto.RegistrationDeadline,
+            MaxMembers = dto.MaxMembers,
+            CurrentMembers = 1, // Mặc định Organizer là 1 thành viên
+            EstimatedCost = dto.EstimatedCost,
+            CostNote = dto.CostNote?.Trim(),
+            Requirements = dto.Requirements?.Trim(),
+            MinAge = dto.MinAge,
+            MaxAge = dto.MaxAge,
+            PreferredGender = dto.PreferredGender?.Trim(),
+            Status = TripStatus.PendingReview
+        };
+
+        if (dto.ImageUrls != null && dto.ImageUrls.Count > 0)
+        {
+            foreach (var url in dto.ImageUrls)
+            {
+                if (!string.IsNullOrWhiteSpace(url))
+                {
+                    trip.Images.Add(new TripImage
+                    {
+                        ImageUrl = url.Trim()
+                    });
+                }
+            }
+        }
+
+        await _tripRepository.AddAsync(trip, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var createdTrip = await _tripRepository.GetByIdWithDetailsAsync(trip.Id, cancellationToken);
+
+        return new TripDto
+        {
+            Id = createdTrip!.Id,
+            OrganizerId = createdTrip.OrganizerId,
+            OrganizerName = createdTrip.Organizer?.FullName ?? string.Empty,
+            OrganizerAvatarUrl = createdTrip.Organizer?.AvatarUrl,
+            CategoryId = createdTrip.CategoryId,
+            CategoryName = createdTrip.Category?.Name ?? string.Empty,
+            Title = createdTrip.Title,
+            Description = createdTrip.Description,
+            StartLocation = createdTrip.StartLocation,
+            StartCityId = createdTrip.StartCityId,
+            StartCityName = createdTrip.StartCity?.Name,
+            Destination = createdTrip.Destination,
+            DestinationCityId = createdTrip.DestinationCityId,
+            DestinationCityName = createdTrip.DestinationCity?.Name,
+            CoverImageUrl = createdTrip.CoverImageUrl,
+            StartDate = createdTrip.StartDate,
+            EndDate = createdTrip.EndDate,
+            RegistrationDeadline = createdTrip.RegistrationDeadline,
+            MaxMembers = createdTrip.MaxMembers,
+            CurrentMembers = createdTrip.CurrentMembers,
+            EstimatedCost = createdTrip.EstimatedCost,
+            CostNote = createdTrip.CostNote,
+            Requirements = createdTrip.Requirements,
+            MinAge = createdTrip.MinAge,
+            MaxAge = createdTrip.MaxAge,
+            PreferredGender = createdTrip.PreferredGender,
+            Status = createdTrip.Status,
+            ModerationNote = createdTrip.ModerationNote,
+            ImageUrls = createdTrip.Images?.Select(i => i.ImageUrl).ToList() ?? new(),
+            CreatedAt = createdTrip.CreatedAt,
+            UpdatedAt = createdTrip.UpdatedAt
         };
     }
 }

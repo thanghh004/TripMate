@@ -2,7 +2,8 @@ import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { tripApi } from '../../api/tripApi';
+import { userApi } from '../../api/userApi';
+import { HostVerificationStatus } from '../../types/auth';
 import { LogOut, Search, MessageSquare, Bell, Plus, Settings, Compass, Loader2 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -19,27 +20,26 @@ export const Header: React.FC = () => {
     setShowDropdown(false);
     setIsCheckingHostPermission(true);
     try {
-      // Gửi API Backend POST /api/trips kiểm tra phân quyền bảo mật 100% tại CSDL Backend
-      const res = await tripApi.createTrip({ title: 'Chuyến đi mới' });
-      if (res.status === 200) {
-        // Đã duyệt (Approved) / Admin: Chuyển thẳng sang trang tạo chuyến luôn, không hiện thông báo
-        navigate('/create-trip');
-      }
-    } catch (err: any) {
-      const errorMsg =
-        err.response?.data?.message ||
-        'Tài khoản của bạn không có đủ thẩm quyền để tạo chuyến đi mới.';
-      
-      // Bật Toast Notification chuẩn UI/UX của dự án
-      if (errorMsg.includes('chờ Admin xét duyệt')) {
-        toast.warning(errorMsg);
-      } else {
-        toast.error(errorMsg);
-      }
+      // Gọi API lấy hồ sơ chính xác từ Backend CSDL
+      const res = await userApi.getProfile();
+      const profile = res.data;
+      const status = profile.hostVerificationStatus;
 
-      if (errorMsg.includes('chưa đăng ký') || errorMsg.includes('Chưa đăng ký')) {
+      // HostVerificationStatus: Unverified=0, Pending=1, Approved=2, Rejected=3, Blocked=4
+      if (status === HostVerificationStatus.Approved) {
+        navigate('/create-trip');
+      } else if (status === HostVerificationStatus.Pending) {
+        toast.warning('Tài khoản của bạn đang chờ Admin xét duyệt quyền tạo chuyến. Vui lòng quay lại sau!');
+      } else if (status === HostVerificationStatus.Rejected) {
+        toast.error('Yêu cầu cấp quyền tạo chuyến của bạn đã bị từ chối. Vui lòng quay lại sau!');
+      } else if (status === HostVerificationStatus.Blocked) {
+        toast.error('Quyền tạo chuyến đi của bạn đã bị khóa vĩnh viễn bởi Quản trị viên.');
+      } else {
+        toast.error('Bạn chưa đăng ký quyền Tạo chuyến. Vui lòng gửi yêu cầu trong phần cài đặt!');
         navigate('/profile');
       }
+    } catch {
+      toast.error('Không thể xác thực thông tin quyền tạo chuyến. Vui lòng thử lại.');
     } finally {
       setIsCheckingHostPermission(false);
     }

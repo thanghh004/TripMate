@@ -51,7 +51,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={id}
             type={inputType}
-            className={`w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-300 transition-all ${
+            className={`w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-300 transition-all ${
               effectiveLeftIcon ? 'pl-11' : ''
             } ${isPassword || rightIcon ? 'pr-11' : ''} ${
               error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''

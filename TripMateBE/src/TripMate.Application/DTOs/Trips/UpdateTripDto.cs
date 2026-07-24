@@ -1,9 +1,9 @@
 namespace TripMate.Application.DTOs.Trips;
 
 /// <summary>
-/// DTO yêu cầu Tạo mới Chuyến đi
+/// DTO yêu cầu Cập nhật Chuyến đi
 /// </summary>
-public class CreateTripDto
+public class UpdateTripDto
 {
     public Guid CategoryId { get; set; }
     public string Title { get; set; } = string.Empty;

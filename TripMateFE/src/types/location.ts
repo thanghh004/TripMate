@@ -6,6 +6,7 @@ export interface Country {
   displayOrder: number;
   isActive: boolean;
   isDeleted: boolean;
+  cities?: City[];
   createdAt: string;
   updatedAt?: string;
 }

@@ -17,8 +17,9 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
 
-        // 2. Đăng ký Repository quản lý User
+        // 2. Đăng ký Repository quản lý User & Trip
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ITripRepository, TripRepository>();
 
         // 3. Đăng ký Dịch vụ xác thực mã OTP
         services.AddScoped<IOtpService, OtpService>();
