@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../../components/common/Modal';
+import Input from '../../../components/common/Input';
+import Button from '../../../components/common/Button';
 import { Select, type SelectOption } from '../../../components/common/Select';
 import { tripCategoryApi } from '../../../api/tripCategoryApi';
 import { useToast } from '../../../context/ToastContext';
@@ -60,46 +62,34 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ category, 
   };
 
   return (
-    <Modal isOpen onClose={onClose} title={`Chỉnh sửa — ${category.name}`} maxWidth="lg" position="top">
+    <Modal isOpen onClose={onClose} title={`Chỉnh sửa — ${category.name}`} maxWidth="lg">
       <form onSubmit={handleSubmit} className="space-y-4 text-left">
-        {/* Hàng 1: Tên + Slug */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Tên loại chuyến đi <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-            />
-          </div>
+          <Input
+            label="Tên loại chuyến đi *"
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Slug URL</label>
-            <input
-              type="text"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-            />
-          </div>
+          <Input
+            label="Slug URL"
+            type="text"
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            className="font-mono"
+          />
         </div>
 
-        {/* Hàng 2: Icon + Trạng thái */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Icon biểu tượng</label>
-            <input
-              type="text"
-              value={icon}
-              onChange={(e) => setIcon(e.target.value)}
-              placeholder="VD: 🏔️"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-            />
-          </div>
+          <Input
+            label="Icon biểu tượng"
+            type="text"
+            value={icon}
+            onChange={(e) => setIcon(e.target.value)}
+            placeholder="VD: 🏔️"
+          />
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Trạng thái hệ thống</label>
@@ -107,11 +97,11 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ category, 
               options={statusOptions}
               value={isActive ? 'true' : 'false'}
               onChange={(val) => setIsActive(val === 'true')}
+              searchable={false}
             />
           </div>
         </div>
 
-        {/* Hàng 3: Mô tả */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">Mô tả</label>
           <textarea
@@ -123,20 +113,25 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ category, 
         </div>
 
         <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-          <button
+          <Button
+            size="sm"
+            variant="outline"
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition cursor-pointer"
+            className="px-5 py-2 border-slate-300 text-slate-700 font-semibold"
           >
             Hủy
-          </button>
-          <button
+          </Button>
+          <Button
+            size="sm"
+            variant="warning"
             type="submit"
+            isLoading={isLoading}
             disabled={isLoading}
-            className="px-5 py-2 rounded-lg bg-coral-500 hover:bg-coral-600 text-white font-semibold text-xs transition cursor-pointer"
+            className="px-5 py-2 font-semibold disabled:opacity-60"
           >
-            {isLoading ? 'Đang xử lý...' : 'Lưu thay đổi'}
-          </button>
+            Lưu thay đổi
+          </Button>
         </div>
       </form>
     </Modal>

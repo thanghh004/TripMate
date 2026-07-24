@@ -1,3 +1,17 @@
+export const TripStatus = {
+  PendingReview: 0,
+  Open: 1,
+  Approved: 1,
+  Full: 2,
+  Ongoing: 3,
+  Completed: 4,
+  Cancelled: 5,
+  Failed: 6,
+  Rejected: 7,
+} as const;
+
+export type TripStatus = number;
+
 export interface CreateTripRequest {
   categoryId: string;
   title: string;
@@ -50,7 +64,7 @@ export interface Trip {
   maxAge?: number;
   preferredGender?: string;
   status: number;
-  statusName: string;
+  statusName?: string;
   moderationNote?: string;
   imageUrls: string[];
   createdAt: string;

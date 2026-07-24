@@ -71,7 +71,7 @@ public class TripsController : BaseApiController
     /// [Admin] Lấy danh sách chuyến đi chờ duyệt (PendingReview)
     /// </summary>
     [HttpGet("admin/pending")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,0")]
     public async Task<ActionResult<List<TripDto>>> GetPendingTrips()
     {
         var result = await Mediator.Send(new GetPendingTripsQuery());
@@ -82,7 +82,7 @@ public class TripsController : BaseApiController
     /// [Admin] Phê duyệt chuyến đi
     /// </summary>
     [HttpPatch("admin/{id:guid}/approve")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,0")]
     public async Task<ActionResult<TripDto>> ApproveTrip(Guid id)
     {
         var result = await Mediator.Send(new ApproveTripCommand(id));
@@ -93,7 +93,7 @@ public class TripsController : BaseApiController
     /// [Admin] Từ chối chuyến đi kèm lý do
     /// </summary>
     [HttpPatch("admin/{id:guid}/reject")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,0")]
     public async Task<ActionResult<TripDto>> RejectTrip(Guid id, [FromBody] RejectTripDto dto)
     {
         var result = await Mediator.Send(new RejectTripCommand(id, dto));

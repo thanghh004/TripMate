@@ -92,12 +92,12 @@ export const Select: React.FC<SelectProps> = ({
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
-      {/* Button kích thước khớp 100% với Input.tsx (px-4 py-3 text-sm rounded-xl) */}
+      {/* Button kích thước nhỏ gọn bo nhẹ góc (px-4 py-2 text-xs rounded-lg) */}
       <button
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={`w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-slate-300 transition-all font-semibold text-left flex items-center justify-between cursor-pointer ${
+        className={`w-full bg-slate-50 border border-slate-200/90 rounded-lg px-4 py-2 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-coral-500/10 transition-all font-semibold text-left flex items-center justify-between cursor-pointer ${
           disabled ? 'opacity-60 cursor-not-allowed bg-slate-100' : ''
         }`}
       >
@@ -105,27 +105,27 @@ export const Select: React.FC<SelectProps> = ({
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown
-          size={16}
+          size={15}
           className={`text-slate-400 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {isOpen && !disabled && (
         <div
-          className={`absolute right-0 left-0 bg-white border border-slate-300 rounded-xl shadow-lg shadow-slate-900/[0.08] z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute right-0 left-0 bg-white border border-slate-200/90 rounded-lg shadow-lg shadow-slate-900/[0.08] z-50 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-150 ${
             openUpwards ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
           }`}
         >
           {/* Ô Nhập Tìm Kiếm Tinh Gọn */}
           {searchable && options.length > 5 && (
-            <div className="p-2 border-b border-slate-100 sticky top-0 bg-white z-10">
+            <div className="p-1.5 border-b border-slate-100 sticky top-0 bg-white z-10">
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm kiếm..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
+                className="w-full bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white focus:border-coral-400 transition"
               />
             </div>
           )}
@@ -142,7 +142,7 @@ export const Select: React.FC<SelectProps> = ({
                     setIsOpen(false);
                     setSearchQuery('');
                   }}
-                  className={`w-full px-4 py-2.5 text-xs font-semibold text-left flex items-center justify-between transition-colors cursor-pointer ${
+                  className={`w-full px-4 py-2 text-xs font-semibold text-left flex items-center justify-between transition-colors cursor-pointer ${
                     value === opt.value
                       ? 'bg-coral-50 text-coral-600 font-bold'
                       : 'text-slate-700 hover:bg-slate-50'

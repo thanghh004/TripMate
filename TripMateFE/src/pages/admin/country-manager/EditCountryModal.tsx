@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../../../components/common/Modal';
+import Input from '../../../components/common/Input';
+import Button from '../../../components/common/Button';
 import { Select, type SelectOption } from '../../../components/common/Select';
 import { locationApi } from '../../../api/locationApi';
 import { useToast } from '../../../context/ToastContext';
@@ -54,42 +56,35 @@ export const EditCountryModal: React.FC<EditCountryModalProps> = ({ country, onC
   };
 
   return (
-    <Modal isOpen onClose={onClose} title={`Chỉnh sửa quốc gia — ${country.name}`} maxWidth="lg" position="top">
+    <Modal isOpen onClose={onClose} title={`Chỉnh sửa quốc gia — ${country.name}`} maxWidth="lg">
       <form onSubmit={handleSubmit} className="space-y-4 text-left">
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Tên quốc gia <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-          />
-        </div>
+        <Input
+          label="Tên quốc gia *"
+          type="text"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Tên quốc gia..."
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Mã ISO (Viết hoa)</label>
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              maxLength={10}
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono uppercase font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-            />
-          </div>
+          <Input
+            label="Mã ISO (Viết hoa)"
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            maxLength={10}
+            className="font-mono uppercase"
+            placeholder="VD: VN, JP..."
+          />
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Cờ / Biểu tượng Emoji</label>
-            <input
-              type="text"
-              value={flagIcon}
-              onChange={(e) => setFlagIcon(e.target.value)}
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-            />
-          </div>
+          <Input
+            label="Cờ / Biểu tượng Emoji"
+            type="text"
+            value={flagIcon}
+            onChange={(e) => setFlagIcon(e.target.value)}
+            placeholder="VD: 🇻🇳, 🇯🇵..."
+          />
         </div>
 
         <div>
@@ -98,24 +93,30 @@ export const EditCountryModal: React.FC<EditCountryModalProps> = ({ country, onC
             options={statusOptions}
             value={isActive ? 'true' : 'false'}
             onChange={(val) => setIsActive(val === 'true')}
+            searchable={false}
           />
         </div>
 
         <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-          <button
+          <Button
+            size="sm"
+            variant="outline"
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition cursor-pointer"
+            className="px-5 py-2 border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold"
           >
             Hủy
-          </button>
-          <button
+          </Button>
+          <Button
+            size="sm"
+            variant="warning"
             type="submit"
+            isLoading={isLoading}
             disabled={isLoading}
-            className="px-5 py-2 rounded-lg bg-coral-500 hover:bg-coral-600 text-white font-semibold text-xs transition cursor-pointer"
+            className="px-5 py-2 font-semibold disabled:opacity-60"
           >
-            {isLoading ? 'Đang xử lý...' : 'Lưu thay đổi'}
-          </button>
+            Lưu thay đổi
+          </Button>
         </div>
       </form>
     </Modal>

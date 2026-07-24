@@ -9,6 +9,7 @@ import VerifyOtpPage from './pages/auth/VerifyOtpPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import ProfilePage from './pages/user/ProfilePage';
 import CreateTripPage from './pages/trip/CreateTripPage';
+import MyTripsPage from './pages/trip/MyTripsPage';
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -126,6 +127,7 @@ function App() {
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/create-trip" element={<CreateTripPage />} />
       <Route path="/trips/create" element={<CreateTripPage />} />
+      <Route path="/my-trips" element={<MyTripsPage />} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminDashboardPage />} />

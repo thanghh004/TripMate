@@ -4,6 +4,8 @@ import { adminApi } from '../../api/adminApi';
 import { useToast } from '../../context/ToastContext';
 import { type PendingHostVerification } from '../../types/adminHost';
 import { Modal } from '../../components/common/Modal';
+import Button from '../../components/common/Button';
+import SearchInput from '../../components/common/SearchInput';
 import { formatDate } from '../../utils/formatters';
 import {
   ShieldCheck,
@@ -15,7 +17,6 @@ import {
   Mail,
   CreditCard,
   UserCheck,
-  Search,
 } from 'lucide-react';
 
 const PRESET_REASON_OPTIONS = [
@@ -97,7 +98,7 @@ const HostVerificationPage: React.FC = () => {
   return (
     <AdminLayout pendingCount={requests.length}>
       {/* Title & Top Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
         <div className="space-y-0.5 text-left">
           <h1 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
             <ShieldCheck size={20} className="text-amber-500" />
@@ -108,26 +109,22 @@ const HostVerificationPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo Tên, Email, SĐT, CCCD..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-          />
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        </div>
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Tìm theo Tên, Email, SĐT, CCCD..."
+          containerClassName="w-full sm:w-72"
+        />
       </div>
 
       {/* Content Cards */}
       {isLoading ? (
-        <div className="bg-white p-12 rounded-xl border border-slate-200/80 flex flex-col items-center justify-center gap-3">
+        <div className="bg-white p-12 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-3">
           <Loader2 size={24} className="animate-spin text-coral-500" />
           <p className="text-slate-500 font-semibold text-xs">Đang tải danh sách yêu cầu chờ duyệt...</p>
         </div>
       ) : filteredRequests.length === 0 ? (
-        <div className="bg-white p-12 rounded-xl border border-slate-200/80 text-center space-y-3">
+        <div className="bg-white p-12 rounded-2xl border border-slate-200/80 text-center space-y-3">
           <CheckCircle2 size={40} className="mx-auto text-emerald-500/80" />
           <h3 className="text-sm font-bold text-slate-800">Không có yêu cầu nào chờ duyệt</h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -139,7 +136,7 @@ const HostVerificationPage: React.FC = () => {
           {filteredRequests.map((user) => (
             <div
               key={user.userId}
-              className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs transition-all flex flex-col justify-between space-y-4"
             >
               <div className="space-y-3">
                 {/* Header User info */}
@@ -148,10 +145,10 @@ const HostVerificationPage: React.FC = () => {
                     <img
                       src={user.avatarUrl}
                       alt={user.fullName}
-                      className="w-11 h-11 rounded-lg object-cover border border-slate-200 shrink-0"
+                      className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0"
                     />
                   ) : (
-                    <div className="w-11 h-11 rounded-lg bg-coral-50 text-coral-600 font-bold text-base flex items-center justify-center shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-coral-50 text-coral-600 font-bold text-base flex items-center justify-center shrink-0">
                       {user.fullName.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -165,7 +162,7 @@ const HostVerificationPage: React.FC = () => {
                 </div>
 
                 {/* Info Pills */}
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/80 text-xs space-y-1.5">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs space-y-1.5">
                   <div className="flex items-center justify-between text-slate-600 font-medium">
                     <span className="flex items-center gap-1.5 text-slate-400">
                       <Phone size={13} /> SĐT:
@@ -182,33 +179,35 @@ const HostVerificationPage: React.FC = () => {
               </div>
 
               {/* Action */}
-              <button
+              <Button
+                size="sm"
+                variant="info"
+                leftIcon={<Eye size={15} />}
                 onClick={() => setSelectedUser(user)}
-                className="w-full py-2 px-4 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                className="text-xs font-bold py-2 px-4 rounded-lg cursor-pointer shadow-2xs"
               >
-                <Eye size={15} /> Soi hồ sơ & Duyệt
-              </button>
+                Soi hồ sơ & Duyệt
+              </Button>
             </div>
           ))}
         </div>
       )}
 
-      {/* 1. Modal Chi Tiết Soi Hồ Sơ CCCD (Thêm Giới tính, Ngày sinh, Bio, Đánh giá, Số chuyến đi) */}
+      {/* 1. Modal Chi Tiết Soi Hồ Sơ CCCD */}
       {selectedUser && (
         <Modal
           isOpen={Boolean(selectedUser)}
           onClose={() => setSelectedUser(null)}
           title={`Xét duyệt quyền Host - ${selectedUser.fullName}`}
           maxWidth="3xl"
-          position="top"
         >
           <div className="space-y-4">
             {/* Header User Status */}
-            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200/80">
+            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
               {selectedUser.avatarUrl ? (
-                <img src={selectedUser.avatarUrl} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                <img src={selectedUser.avatarUrl} alt="" className="w-10 h-10 rounded-xl object-cover" />
               ) : (
-                <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 font-bold flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 font-bold flex items-center justify-center">
                   <UserCheck size={20} />
                 </div>
               )}
@@ -220,67 +219,67 @@ const HostVerificationPage: React.FC = () => {
               </div>
             </div>
 
-            {/* User Details Grid (Cập nhật 8 trường chi tiết) */}
+            {/* User Details Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Họ và tên</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
                   {selectedUser.fullName}
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 truncate">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 truncate">
                   {selectedUser.email}
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Số điện thoại</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
                   {selectedUser.phoneNumber || 'Chưa cập nhật'}
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Giới tính</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
                   {selectedUser.gender || 'Chưa chọn'}
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Ngày sinh</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
                   {formatDate(selectedUser.birthDate) || 'Chưa nhập'}
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Số CCCD</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono font-semibold text-slate-800">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-800">
                   {selectedUser.identityCardNumber || 'Chưa đăng ký'}
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Đánh giá trung bình</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
                   {selectedUser.avgRating?.toFixed(1) || '0.0'} / 5.0
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Tổng số chuyến đi</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
                   {selectedUser.totalTrips || 0} chuyến
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Ngày gửi yêu cầu</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
                   {formatDate(selectedUser.requestDate) || 'Chưa có'}
                 </div>
               </div>
@@ -290,7 +289,7 @@ const HostVerificationPage: React.FC = () => {
             {selectedUser.bio && (
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Bio cá nhân</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs font-medium text-slate-700 min-h-[50px]">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-700 min-h-[50px]">
                   {selectedUser.bio}
                 </div>
               </div>
@@ -306,10 +305,10 @@ const HostVerificationPage: React.FC = () => {
                     <img
                       src={selectedUser.identityCardFrontUrl}
                       alt="CCCD Mặt trước"
-                      className="w-full h-44 object-cover rounded-lg border border-slate-200 shadow-xs"
+                      className="w-full h-44 object-cover rounded-xl border border-slate-200 shadow-2xs"
                     />
                   ) : (
-                    <div className="w-full h-44 rounded-lg bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 font-semibold">
+                    <div className="w-full h-44 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 font-semibold">
                       Thiếu ảnh mặt trước
                     </div>
                   )}
@@ -321,10 +320,10 @@ const HostVerificationPage: React.FC = () => {
                     <img
                       src={selectedUser.identityCardBackUrl}
                       alt="CCCD Mặt sau"
-                      className="w-full h-44 object-cover rounded-lg border border-slate-200 shadow-xs"
+                      className="w-full h-44 object-cover rounded-xl border border-slate-200 shadow-2xs"
                     />
                   ) : (
-                    <div className="w-full h-44 rounded-lg bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 font-semibold">
+                    <div className="w-full h-44 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 font-semibold">
                       Thiếu ảnh mặt sau
                     </div>
                   )}
@@ -332,47 +331,56 @@ const HostVerificationPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons trong Modal */}
             <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-              <button
+              {/* Nút Đóng (Nền trắng viền xám) */}
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setSelectedUser(null)}
-                className="px-5 py-2 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-100 font-semibold text-xs transition cursor-pointer"
+                className="px-5 py-2 text-xs font-bold rounded-xl border-slate-300 hover:bg-slate-100 text-slate-700 cursor-pointer shadow-2xs"
               >
                 Đóng
-              </button>
+              </Button>
 
-              <button
+              {/* Nút Từ chối (Màu Đỏ Tươi) */}
+              <Button
+                size="sm"
+                variant="danger"
+                leftIcon={<XCircle size={15} />}
                 onClick={() => {
                   setRejectReason('');
                   setShowRejectModal(true);
                 }}
                 disabled={isProcessing}
-                className="px-5 py-2 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
+                className="px-5 py-2 text-xs font-bold rounded-xl cursor-pointer shadow-2xs"
               >
-                <XCircle size={15} /> Từ chối
-              </button>
+                Từ chối
+              </Button>
 
-              <button
+              {/* Nút Phê duyệt tạo chuyến (Màu Xanh Lá Tươi) */}
+              <Button
+                size="sm"
+                variant="success"
+                isLoading={isProcessing}
+                leftIcon={<CheckCircle2 size={15} />}
                 onClick={() => handleApprove(selectedUser.userId)}
                 disabled={isProcessing}
-                className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                className="px-5 py-2 text-xs font-bold rounded-xl cursor-pointer shadow-2xs disabled:opacity-60"
               >
-                {isProcessing ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
                 Phê duyệt tạo chuyến
-              </button>
+              </Button>
             </div>
           </div>
         </Modal>
       )}
 
-      {/* 2. Modal Nhập lý do Từ chối (Có thêm danh sách mẫu lý do chọn nhanh) */}
+      {/* 2. Modal Nhập lý do Từ chối */}
       {showRejectModal && (
         <Modal
           isOpen={showRejectModal}
           onClose={() => setShowRejectModal(false)}
           title="Lý do từ chối hồ sơ"
-          maxWidth="lg"
-          position="center"
         >
           <div className="space-y-4">
             {/* Quick preset options */}
@@ -380,18 +388,20 @@ const HostVerificationPage: React.FC = () => {
               <span className="text-xs font-semibold text-slate-700 block">Gợi ý lý do từ chối nhanh:</span>
               <div className="flex flex-wrap gap-2">
                 {PRESET_REASON_OPTIONS.map((option) => (
-                  <button
+                  <Button
                     key={option}
+                    size="sm"
+                    variant="outline"
                     type="button"
                     onClick={() => setRejectReason(option)}
-                    className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition cursor-pointer text-left ${
+                    className={`text-xs font-medium text-left ${
                       rejectReason === option
                         ? 'bg-rose-50 border-rose-300 text-rose-700 font-bold'
                         : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     {option}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -409,19 +419,25 @@ const HostVerificationPage: React.FC = () => {
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <button
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setShowRejectModal(false)}
-                className="px-4 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold rounded-xl border-slate-300 text-slate-700 hover:bg-slate-100 cursor-pointer"
               >
                 Đóng
-              </button>
-              <button
+              </Button>
+
+              <Button
+                size="sm"
+                variant="danger"
+                isLoading={isProcessing}
                 onClick={handleReject}
                 disabled={isProcessing}
-                className="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold cursor-pointer disabled:opacity-60"
+                className="px-5 py-2 text-xs font-bold rounded-xl cursor-pointer disabled:opacity-60"
               >
-                {isProcessing ? <Loader2 size={14} className="animate-spin" /> : 'Xác nhận từ chối'}
-              </button>
+                Xác nhận từ chối
+              </Button>
             </div>
           </div>
         </Modal>

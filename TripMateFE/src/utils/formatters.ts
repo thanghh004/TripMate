@@ -14,3 +14,26 @@ export const formatDate = (dateInput?: string | Date | null): string => {
 
   return str;
 };
+
+/**
+ * Loại bỏ dấu tiếng Việt, đưa về viết thường và trim khoảng trắng thừa
+ */
+export const removeAccents = (str: string = ''): string => {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .trim();
+};
+
+/**
+ * Kiểm tra targetText có chứa query (không phân biệt dấu, hoa thường, khoảng trắng thừa)
+ */
+export const matchSearch = (targetText: string = '', query: string = ''): boolean => {
+  const normalizedQuery = removeAccents(query);
+  if (!normalizedQuery) return true;
+  const normalizedTarget = removeAccents(targetText);
+  return normalizedTarget.includes(normalizedQuery);
+};

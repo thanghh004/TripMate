@@ -4,6 +4,7 @@ import { tripCategoryApi } from '../../../api/tripCategoryApi';
 import { useToast } from '../../../context/ToastContext';
 import type { TripCategory } from '../../../types/tripCategory';
 import Button from '../../../components/common/Button';
+import SearchInput, { matchSearchText } from '../../../components/common/SearchInput';
 import { Modal } from '../../../components/common/Modal';
 import { Pagination } from '../../../components/common/Pagination';
 import { CategoryDetailModal } from './CategoryDetailModal';
@@ -12,7 +13,6 @@ import { EditCategoryModal } from './EditCategoryModal';
 import {
   Tag,
   Plus,
-  Search,
   Edit3,
   Trash2,
   Loader2,
@@ -30,7 +30,6 @@ const CategoryManagementPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Modals state
   const [detailCategory, setDetailCategory] = useState<TripCategory | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editCategory, setEditCategory] = useState<TripCategory | null>(null);
@@ -70,11 +69,10 @@ const CategoryManagementPage: React.FC = () => {
   };
 
   const filteredCategories = categories.filter((c) => {
-    const q = searchQuery.toLowerCase();
     return (
-      c.name.toLowerCase().includes(q) ||
-      c.slug.toLowerCase().includes(q) ||
-      (c.description && c.description.toLowerCase().includes(q))
+      matchSearchText(c.name, searchQuery) ||
+      matchSearchText(c.slug, searchQuery) ||
+      matchSearchText(c.description || '', searchQuery)
     );
   });
 
@@ -87,7 +85,7 @@ const CategoryManagementPage: React.FC = () => {
   return (
     <AdminLayout>
       {/* Header Panel */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
         <div className="space-y-0.5 text-left">
           <h1 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
             <Tag size={20} className="text-coral-500" />
@@ -99,24 +97,22 @@ const CategoryManagementPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative w-full sm:w-56">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Tìm theo tên, slug..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition"
-            />
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={(val) => {
+              setSearchQuery(val);
+              setCurrentPage(1);
+            }}
+            placeholder="Tìm theo tên, slug..."
+            containerClassName="w-full sm:w-56"
+          />
 
           <Button
-            onClick={() => setCreateModalOpen(true)}
+            size="sm"
+            variant="warning"
             leftIcon={<Plus size={16} />}
-            className="bg-coral-500 hover:bg-coral-600 text-white font-bold rounded-xl px-4 py-2 text-xs shrink-0 cursor-pointer shadow-xs"
+            onClick={() => setCreateModalOpen(true)}
+            className="shrink-0 font-bold px-4 py-2 text-xs cursor-pointer shadow-2xs"
           >
             Thêm loại chuyến đi
           </Button>
@@ -125,18 +121,18 @@ const CategoryManagementPage: React.FC = () => {
 
       {/* Content Table */}
       {isLoading ? (
-        <div className="bg-white p-12 rounded-xl border border-slate-200/80 flex flex-col items-center justify-center gap-3">
+        <div className="bg-white p-12 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-3">
           <Loader2 size={24} className="animate-spin text-coral-500" />
           <p className="text-slate-500 font-semibold text-xs">Đang tải dữ liệu...</p>
         </div>
       ) : filteredCategories.length === 0 ? (
-        <div className="bg-white p-12 rounded-xl border border-slate-200/80 text-center space-y-3">
+        <div className="bg-white p-12 rounded-2xl border border-slate-200/80 text-center space-y-3">
           <AlertCircle size={36} className="mx-auto text-slate-300" />
           <h3 className="text-sm font-bold text-slate-800">Không tìm thấy loại chuyến đi nào</h3>
           <p className="text-xs text-slate-500">Thử tìm kiếm khác hoặc bấm Thêm loại.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden text-left">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden text-left">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -164,6 +160,7 @@ const CategoryManagementPage: React.FC = () => {
 
                     <td className="py-3.5 px-5">
                       <button
+                        type="button"
                         onClick={() => setDetailCategory(c)}
                         className="text-sky-600 hover:text-sky-800 font-semibold hover:underline cursor-pointer text-left"
                         title="Bấm để xem thông tin chi tiết"
@@ -204,32 +201,31 @@ const CategoryManagementPage: React.FC = () => {
 
                     <td className="py-3.5 px-5 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => setEditCategory(c)}
                           disabled={c.isDeleted}
-                          className={`p-1.5 rounded-lg border transition ${
-                            c.isDeleted
-                              ? 'border-slate-200 text-slate-300 opacity-40 cursor-not-allowed'
-                              : 'border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer'
-                          }`}
+                          className="p-1.5 rounded-lg border-slate-300 hover:bg-slate-100 text-slate-700"
                           title={c.isDeleted ? 'Mục này đã bị xóa, không thể chỉnh sửa' : 'Chỉnh sửa'}
                         >
                           <Edit3 size={14} />
-                        </button>
+                        </Button>
 
-                        <button
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          leftIcon={<Trash2 size={13} />}
                           onClick={() => setDeleteCategory(c)}
                           disabled={c.isDeleted}
-                          className={`px-2.5 py-1 rounded-lg border text-xs font-semibold transition flex items-center gap-1 ${
-                            c.isDeleted
-                              ? 'border-slate-200 bg-slate-50 text-slate-400 opacity-40 cursor-not-allowed'
-                              : 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 cursor-pointer'
-                          }`}
+                          className={c.isDeleted
+                            ? 'border-slate-200 bg-slate-50 text-slate-400 opacity-40 cursor-not-allowed px-2.5 py-1'
+                            : 'border-rose-300 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 font-bold px-2.5 py-1 transition'
+                          }
                           title={c.isDeleted ? 'Mục này đã bị xóa' : 'Xóa loại chuyến đi'}
                         >
-                          <Trash2 size={13} />
-                          <span>Xóa</span>
-                        </button>
+                          Xóa
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -282,26 +278,30 @@ const CategoryManagementPage: React.FC = () => {
           onClose={() => setDeleteCategory(null)}
           title="Xác nhận xóa loại chuyến đi"
           maxWidth="sm"
-          position="top"
         >
           <div className="space-y-4 text-left">
             <p className="text-xs text-slate-600 leading-relaxed">
               Bạn có chắc chắn muốn xóa loại chuyến đi <strong className="text-slate-900">{deleteCategory.name}</strong> khỏi hệ thống?
             </p>
             <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-              <button
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setDeleteCategory(null)}
-                className="px-5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-xs transition cursor-pointer"
+                className="px-5 py-2 border-slate-300 text-slate-700 font-semibold"
               >
                 Hủy
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                isLoading={isDeleting}
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="px-5 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition cursor-pointer"
+                className="px-5 py-2 font-semibold disabled:opacity-60"
               >
-                {isDeleting ? 'Đang xóa...' : 'Xác nhận Xóa'}
-              </button>
+                Xác nhận Xóa
+              </Button>
             </div>
           </div>
         </Modal>

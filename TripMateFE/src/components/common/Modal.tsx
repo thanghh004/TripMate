@@ -22,7 +22,7 @@ export const Modal: React.FC<ModalProps> = ({
   maxWidth = 'md',
   showCloseButton = true,
   closeOnBackdrop = true,
-  position = 'center',
+  position = 'top',
 }) => {
   // Đóng khi nhấn phím ESC
   useEffect(() => {
@@ -56,7 +56,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   const alignClass =
     position === 'top'
-      ? 'items-start pt-12 pb-6'
+      ? 'items-start pt-4 pb-6'
       : 'items-center';
 
   return (

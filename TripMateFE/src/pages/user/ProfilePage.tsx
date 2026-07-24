@@ -4,6 +4,8 @@ import { AuthContext } from '../../context/AuthContext';
 import { Header } from '../../components/common/Header';
 import ScrollToTop from '../../components/common/ScrollToTop';
 import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import { Select } from '../../components/common/Select';
 import { useToast } from '../../context/ToastContext';
 import { userApi } from '../../api/userApi';
 import { DatePicker } from '../../components/common/DatePicker';
@@ -11,74 +13,17 @@ import { Modal } from '../../components/common/Modal';
 import { HostVerificationStatus } from '../../types/auth';
 import {
   ShieldCheck, Star, Award,
-  AlignLeft, Camera, Loader2, ImagePlus, X, Phone, UserCheck, ChevronDown, Check, CreditCard, Clock, AlertCircle, Send, RefreshCw, Lock
+  AlignLeft, Camera, Loader2, ImagePlus, X, Phone, CreditCard, Clock, AlertCircle, Send, RefreshCw, Lock
 } from 'lucide-react';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE_MB = 5;
 
-// Custom Gender Select Dropdown Component
-const GenderSelect: React.FC<{
-  value: string;
-  onChange: (val: string) => void;
-  disabled?: boolean;
-}> = ({ value, onChange, disabled }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const options = ['Nam', 'Nữ', 'Khác'];
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div ref={containerRef} className="relative w-full">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full border rounded-xl pl-10 pr-9 py-2.5 text-sm transition-all font-semibold text-left flex items-center justify-between ${
-          disabled
-            ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed select-none'
-            : 'bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 cursor-pointer'
-        }`}
-      >
-        <span className={value ? (disabled ? 'text-slate-500 font-semibold' : 'text-slate-900 font-semibold') : 'text-slate-400'}>
-          {value || 'Chọn giới tính'}
-        </span>
-        {!disabled && <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
-      </button>
-      <UserCheck size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-
-      {isOpen && (
-        <div className="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/80 rounded-2xl shadow-xl shadow-slate-900/[0.08] z-50 overflow-hidden py-1.5 animate-in fade-in zoom-in-95 duration-150">
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => {
-                onChange(opt);
-                setIsOpen(false);
-              }}
-              className={`w-full px-4 py-2.5 text-xs font-bold text-left flex items-center justify-between transition-colors cursor-pointer ${value === opt ? 'bg-coral-50 text-coral-600' : 'text-slate-700 hover:bg-slate-50'
-                }`}
-            >
-              <span>{opt}</span>
-              {value === opt && <Check size={14} className="text-coral-500" />}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+const GENDER_OPTIONS = [
+  { label: 'Nam', value: 'Nam' },
+  { label: 'Nữ', value: 'Nữ' },
+  { label: 'Khác', value: 'Khác' },
+];
 
 
 
@@ -496,11 +441,10 @@ const ProfilePage: React.FC = () => {
               {isEditing ? (
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Họ và Tên</label>
-                  <input
+                  <Input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all font-semibold"
                     placeholder="Nhập họ và tên..."
                   />
                 </div>
@@ -536,7 +480,7 @@ const ProfilePage: React.FC = () => {
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Email</label>
                 )}
                 <div className={isEditing
-                  ? 'w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-400 font-semibold flex items-center gap-2 select-none cursor-not-allowed'
+                  ? 'w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-400 font-semibold flex items-center gap-2 select-none cursor-not-allowed'
                   : 'text-slate-500 text-sm font-medium'
                 }>
                   <span>{currentUser.email}</span>
@@ -553,20 +497,14 @@ const ProfilePage: React.FC = () => {
                   </label>
                 )}
                 {isEditing ? (
-                  <div className="relative">
-                    <input
-                      type="text"
-                      disabled={isIdentityLocked}
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className={isIdentityLocked
-                        ? 'w-full bg-slate-100 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-500 font-semibold cursor-not-allowed select-none'
-                        : 'w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold'
-                      }
-                      placeholder="0912345678"
-                    />
-                    <Phone size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  </div>
+                  <Input
+                    type="text"
+                    disabled={isIdentityLocked}
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="0912345678"
+                    leftIcon={<Phone size={15} />}
+                  />
                 ) : (
                   <p className="text-slate-500 text-sm font-medium">
                     {phoneNumber || currentUser.phoneNumber || 'Chưa cập nhật số điện thoại'}
@@ -582,7 +520,14 @@ const ProfilePage: React.FC = () => {
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Giới tính</label>
                   )}
                   {isEditing ? (
-                    <GenderSelect value={gender} onChange={setGender} disabled={isIdentityLocked} />
+                    <Select
+                      options={GENDER_OPTIONS}
+                      value={gender}
+                      onChange={(val) => setGender(val as string)}
+                      placeholder="Chọn giới tính"
+                      disabled={isIdentityLocked}
+                      searchable={false}
+                    />
                   ) : (
                     <p className="text-slate-500 text-sm font-medium">
                       {gender ? `Giới tính: ${gender}` : 'Chưa cập nhật giới tính'}
@@ -622,8 +567,8 @@ const ProfilePage: React.FC = () => {
                   variant="outline"
                   title={hasActiveTrips ? 'Bạn không thể chỉnh sửa hồ sơ khi đang tạo hoặc tham gia chuyến đi đang hoạt động' : undefined}
                   className={hasActiveTrips
-                    ? 'border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs px-4 py-2.5 rounded-xl cursor-not-allowed opacity-60 flex items-center gap-1.5'
-                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer'
+                    ? 'border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs px-3.5 py-2 rounded-xl cursor-not-allowed opacity-60 flex items-center gap-1.5'
+                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold text-xs px-3.5 py-2 rounded-xl cursor-pointer'
                   }
                 >
                   {hasActiveTrips && <Lock size={13} className="text-slate-400" />}
@@ -641,8 +586,8 @@ const ProfilePage: React.FC = () => {
                     leftIcon={hasActiveTrips ? <Lock size={13} className="text-slate-400 shrink-0" /> : <RefreshCw size={14} className="text-amber-600 shrink-0" />}
                     title={hasActiveTrips ? 'Bạn không thể yêu cầu cập nhật khi đang tạo hoặc tham gia chuyến đi đang hoạt động' : undefined}
                     className={hasActiveTrips
-                      ? 'border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs px-4 py-2.5 rounded-xl cursor-not-allowed opacity-60'
-                      : 'border-amber-200 bg-amber-50/60 text-amber-800 hover:bg-amber-100/70 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer'
+                      ? 'border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs px-3.5 py-2 rounded-xl cursor-not-allowed opacity-60'
+                      : 'border-amber-200 bg-amber-50/60 text-amber-800 hover:bg-amber-100/70 font-bold text-xs px-3.5 py-2 rounded-xl cursor-pointer'
                     }
                   >
                     Yêu cầu cập nhật lại thông tin xác thực
@@ -724,21 +669,15 @@ const ProfilePage: React.FC = () => {
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Số CCCD</label>
               )}
               {isEditing ? (
-                <div className="relative">
-                  <input
-                    type="text"
-                    disabled={isIdentityLocked}
-                    value={identityCardNumber}
-                    onChange={(e) => setIdentityCardNumber(e.target.value)}
-                    maxLength={12}
-                    className={isIdentityLocked
-                      ? 'w-full bg-slate-100 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-500 font-semibold cursor-not-allowed select-none'
-                      : 'w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-slate-400 transition-all font-semibold'
-                    }
-                    placeholder="012345678901"
-                  />
-                  <CreditCard size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                </div>
+                <Input
+                  type="text"
+                  disabled={isIdentityLocked}
+                  value={identityCardNumber}
+                  onChange={(e) => setIdentityCardNumber(e.target.value)}
+                  maxLength={12}
+                  placeholder="012345678901"
+                  leftIcon={<CreditCard size={15} />}
+                />
               ) : (
                 <p className="text-slate-500 text-sm font-medium">
                   {identityCardNumber ? `Số CCCD: ${identityCardNumber}` : 'Chưa cập nhật số CCCD'}
@@ -845,14 +784,14 @@ const ProfilePage: React.FC = () => {
                 onClick={handleCancel}
                 disabled={isSaving}
                 variant="outline"
-                className="border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer"
+                className="border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer"
               >
                 Hủy bỏ
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl cursor-pointer shadow-sm disabled:opacity-60 flex items-center gap-2"
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2 rounded-xl cursor-pointer shadow-sm disabled:opacity-60 flex items-center gap-2"
               >
                 {isSaving && <Loader2 size={15} className="animate-spin" />}
                 Lưu thay đổi
