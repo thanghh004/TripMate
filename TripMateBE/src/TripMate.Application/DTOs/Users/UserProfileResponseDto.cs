@@ -25,4 +25,5 @@ public class UserProfileResponseDto
     public decimal AvgRating { get; set; }
     public int TotalReviews { get; set; }
     public int TotalTrips { get; set; }
+    public bool HasActiveTrips { get; set; }
 }

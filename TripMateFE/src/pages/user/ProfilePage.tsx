@@ -143,6 +143,7 @@ const ProfilePage: React.FC = () => {
   const [avgRating, setAvgRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
   const [totalTrips, setTotalTrips] = useState(0);
+  const [hasActiveTrips, setHasActiveTrips] = useState(false);
 
   // Upload loading state per field
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -194,6 +195,7 @@ const ProfilePage: React.FC = () => {
         setAvgRating(profile.avgRating || 0);
         setTotalReviews(profile.totalReviews || 0);
         setTotalTrips(profile.totalTrips || 0);
+        setHasActiveTrips(profile.hasActiveTrips || false);
 
         // Đồng bộ dữ liệu mới nhất từ DB vào AuthContext & LocalStorage
         authContext?.updateUser({
@@ -612,21 +614,36 @@ const ProfilePage: React.FC = () => {
               <div className="self-start shrink-0 flex flex-col items-stretch sm:items-end gap-2.5">
                 <Button
                   onClick={() => {
+                    if (hasActiveTrips) return;
                     setIsReverificationMode(false);
                     setIsEditing(true);
                   }}
+                  disabled={hasActiveTrips}
                   variant="outline"
-                  className="border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
+                  title={hasActiveTrips ? 'Bạn không thể chỉnh sửa hồ sơ khi đang tạo hoặc tham gia chuyến đi đang hoạt động' : undefined}
+                  className={hasActiveTrips
+                    ? 'border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs px-4 py-2.5 rounded-xl cursor-not-allowed opacity-60 flex items-center gap-1.5'
+                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer'
+                  }
                 >
+                  {hasActiveTrips && <Lock size={13} className="text-slate-400" />}
                   Chỉnh sửa hồ sơ
                 </Button>
 
                 {isApproved && (
                   <Button
-                    onClick={() => setShowReverifyConfirmModal(true)}
+                    onClick={() => {
+                      if (hasActiveTrips) return;
+                      setShowReverifyConfirmModal(true);
+                    }}
+                    disabled={hasActiveTrips}
                     variant="outline"
-                    leftIcon={<RefreshCw size={14} className="text-amber-600 shrink-0" />}
-                    className="border-amber-200 bg-amber-50/60 text-amber-800 hover:bg-amber-100/70 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
+                    leftIcon={hasActiveTrips ? <Lock size={13} className="text-slate-400 shrink-0" /> : <RefreshCw size={14} className="text-amber-600 shrink-0" />}
+                    title={hasActiveTrips ? 'Bạn không thể yêu cầu cập nhật khi đang tạo hoặc tham gia chuyến đi đang hoạt động' : undefined}
+                    className={hasActiveTrips
+                      ? 'border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs px-4 py-2.5 rounded-xl cursor-not-allowed opacity-60'
+                      : 'border-amber-200 bg-amber-50/60 text-amber-800 hover:bg-amber-100/70 font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer'
+                    }
                   >
                     Yêu cầu cập nhật lại thông tin xác thực
                   </Button>
@@ -635,6 +652,19 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Cảnh báo khi người dùng có chuyến đi đang hoạt động */}
+        {hasActiveTrips && (
+          <div className="mt-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-left space-y-1">
+            <p className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+              <Lock size={16} className="text-amber-600 shrink-0" />
+              Hồ sơ đang tạm khóa chỉnh sửa
+            </p>
+            <p className="text-xs text-amber-800 font-medium leading-relaxed">
+              Bạn đang tạo hoặc tham gia vào chuyến đi đang hoạt động. Để đảm bảo an toàn & minh bạch cho tất cả thành viên trong đoàn, thông tin cá nhân và CCCD của bạn sẽ tạm thời không thể thay đổi cho đến khi các chuyến đi kết thúc hoặc bị hủy.
+            </p>
+          </div>
+        )}
 
         {/* ─── Quick Stats ─── */}
         <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-8 pt-6 text-center">

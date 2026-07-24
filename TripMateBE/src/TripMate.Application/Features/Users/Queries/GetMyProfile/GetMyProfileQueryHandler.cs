@@ -26,6 +26,7 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserP
         }
 
         var totalTrips = (user.OrganizedTrips?.Count ?? 0) + (user.JoinedTrips?.Count ?? 0);
+        var hasActiveTrips = await _userRepository.HasActiveTripsAsync(user.Id, cancellationToken);
 
         return new UserProfileResponseDto
         {
@@ -46,7 +47,8 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserP
             HostRejectReason = user.HostRejectReason,
             AvgRating = user.AvgRating,
             TotalReviews = user.TotalReviews,
-            TotalTrips = totalTrips
+            TotalTrips = totalTrips,
+            HasActiveTrips = hasActiveTrips
         };
     }
 }

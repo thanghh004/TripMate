@@ -57,4 +57,8 @@ public interface IUserRepository
     /// Lấy danh sách yêu cầu xác thực Host đang chờ duyệt (Pending)
     /// </summary>
     Task<List<User>> GetPendingHostVerificationsAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// Kiểm tra người dùng có chuyến đi nào đang hoạt động (là Organizer hoặc Member) hay không
+    /// </summary>
+    Task<bool> HasActiveTripsAsync(Guid userId, CancellationToken cancellationToken);
 }

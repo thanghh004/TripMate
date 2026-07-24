@@ -26,6 +26,13 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
             throw new NotFoundException("Không tìm thấy thông tin tài khoản người dùng.");
         }
 
+        // 2. Kiểm tra xem người dùng có chuyến đi đang hoạt động hay không
+        var hasActiveTrips = await _userRepository.HasActiveTripsAsync(user.Id, cancellationToken);
+        if (hasActiveTrips)
+        {
+            throw new BusinessRuleException("Bạn không thể chỉnh sửa thông tin cá nhân khi đang tạo hoặc tham gia vào chuyến đi đang hoạt động.");
+        }
+
         // 2. Kiểm tra trùng lặp số điện thoại nếu có thay đổi
         if (!string.IsNullOrWhiteSpace(request.PhoneNumber) && request.PhoneNumber != user.PhoneNumber)
         {

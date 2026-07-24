@@ -115,4 +115,5 @@ export interface UserProfileResponse {
   avgRating: number;
   totalReviews: number;
   totalTrips: number;
+  hasActiveTrips?: boolean;
 }

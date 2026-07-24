@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TripMate.Domain.Entities;
 using TripMate.Domain.Interfaces;
+using TripMate.Infrastructure.Data;
 
 namespace TripMate.Infrastructure.Repositories;
 
@@ -11,10 +12,12 @@ namespace TripMate.Infrastructure.Repositories;
 public class UserRepository : IUserRepository
 {
     private readonly UserManager<User> _userManager;
+    private readonly TripMateDbContext _context;
 
-    public UserRepository(UserManager<User> userManager)
+    public UserRepository(UserManager<User> userManager, TripMateDbContext context)
     {
         _userManager = userManager;
+        _context = context;
     }
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
@@ -80,5 +83,28 @@ public class UserRepository : IUserRepository
             .Where(u => u.HostVerificationStatus == Domain.Enums.HostVerificationStatus.Pending && u.EmailConfirmed)
             .OrderByDescending(u => u.UpdatedAt)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> HasActiveTripsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var activeStatuses = new[]
+        {
+            Domain.Enums.TripStatus.PendingReview,
+            Domain.Enums.TripStatus.Open,
+            Domain.Enums.TripStatus.Full,
+            Domain.Enums.TripStatus.Ongoing
+        };
+
+        // 1. Kiểm tra xem người dùng có là Organizer của chuyến đi đang active nào không
+        var isOrganizerOfActiveTrip = await _context.Trips
+            .AnyAsync(t => t.OrganizerId == userId && activeStatuses.Contains(t.Status), cancellationToken);
+
+        if (isOrganizerOfActiveTrip) return true;
+
+        // 2. Kiểm tra xem người dùng có là thành viên (đã được duyệt/Joined) của chuyến đi đang active nào không
+        var isMemberOfActiveTrip = await _context.TripMembers
+            .AnyAsync(m => m.UserId == userId && activeStatuses.Contains(m.Trip.Status), cancellationToken);
+
+        return isMemberOfActiveTrip;
     }
 }
