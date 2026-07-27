@@ -9,4 +9,4 @@ namespace TripMate.Application.Features.Users.Commands.RefreshToken;
 public record RefreshTokenCommand(
     string AccessToken, 
     string RefreshToken
-) : IRequest<RefreshTokenResponseDto>;
+) : IRequest<RefreshTokenDto>;

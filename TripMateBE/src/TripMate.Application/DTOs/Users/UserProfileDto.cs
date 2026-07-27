@@ -5,7 +5,7 @@ namespace TripMate.Application.DTOs.Users;
 /// <summary>
 /// DTO chứa thông tin kết quả trả về của Hồ sơ người dùng
 /// </summary>
-public class UserProfileResponseDto
+public class UserProfileDto
 {
     public Guid UserId { get; set; }
     public string FullName { get; set; } = string.Empty;

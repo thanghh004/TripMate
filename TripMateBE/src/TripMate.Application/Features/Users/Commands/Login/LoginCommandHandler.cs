@@ -8,7 +8,7 @@ namespace TripMate.Application.Features.Users.Commands.Login;
 /// <summary>
 /// Handler xử lý đăng nhập và cấp phát mã Token JWT + Refresh Token
 /// </summary>
-public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponseDto>
+public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginDto>
 {
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
@@ -19,7 +19,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponseDt
         _tokenService = tokenService;
     }
 
-    public async Task<LoginResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<LoginDto> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var email = request.Email.Trim().ToLower();
 
@@ -61,7 +61,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponseDt
         await _userRepository.UpdateAsync(user);
 
         // 6. Trả về kết quả xác thực dưới dạng LoginResponseDto
-        return new LoginResponseDto
+        return new LoginDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,

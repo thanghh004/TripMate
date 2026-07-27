@@ -1,9 +1,9 @@
 namespace TripMate.Application.DTOs.Auth;
 
 /// <summary>
-/// DTO chứa thông tin kết quả trả về sau khi Đăng nhập thành công
+/// DTO chứa thông tin kết quả trả về sau khi Đăng nhập bằng Google thành công
 /// </summary>
-public class LoginResponseDto
+public class GoogleLoginDto
 {
     public string AccessToken { get; set; } = string.Empty;
     public string RefreshToken { get; set; } = string.Empty;

@@ -34,7 +34,7 @@ public class UsersController : BaseApiController
     /// Lấy thông tin hồ sơ cá nhân đầy đủ của người dùng hiện tại
     /// </summary>
     [HttpGet("me")]
-    [ProducesResponseType(typeof(UserProfileResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserProfileDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMe(CancellationToken cancellationToken)
     {
@@ -95,7 +95,7 @@ public class UsersController : BaseApiController
     [HttpPut("profile")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequestDto request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto request, CancellationToken cancellationToken)
     {
         var command = new UpdateProfileCommand(
             CurrentUserId,
@@ -202,7 +202,7 @@ public class UsersController : BaseApiController
     [HttpPost("host-verifications/{userId:guid}/reject")]
     [Authorize(Roles = "Admin,0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> RejectHostVerification(Guid userId, [FromBody] RejectHostVerificationRequestDto? request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RejectHostVerification(Guid userId, [FromBody] RejectHostVerificationDto? request, CancellationToken cancellationToken)
     {
         var isSuccess = await Mediator.Send(new RejectHostVerificationCommand(userId, request?.Reason), cancellationToken);
 
@@ -238,7 +238,7 @@ public class UsersController : BaseApiController
     [HttpPut("{userId:guid}")]
     [Authorize(Roles = "Admin,0")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] AdminUpdateUserRequestDto request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] AdminUpdateUserDto request, CancellationToken cancellationToken)
     {
         var command = new AdminUpdateUserCommand(userId, request.Role, request.Status, request.HostVerificationStatus);
         var isSuccess = await Mediator.Send(command, cancellationToken);

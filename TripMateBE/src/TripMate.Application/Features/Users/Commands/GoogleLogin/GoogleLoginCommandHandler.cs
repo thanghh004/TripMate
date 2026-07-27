@@ -9,7 +9,7 @@ namespace TripMate.Application.Features.Users.Commands.GoogleLogin;
 /// <summary>
 /// Handler xử lý xác thực Google ID Token và trả về Access Token + Refresh Token
 /// </summary>
-public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, GoogleLoginResponseDto>
+public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, GoogleLoginDto>
 {
     private readonly IUserRepository _userRepository;
     private readonly IGoogleAuthService _googleAuthService;
@@ -25,7 +25,7 @@ public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, Goo
         _tokenService = tokenService;
     }
 
-    public async Task<GoogleLoginResponseDto> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
+    public async Task<GoogleLoginDto> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
     {
         // 1. Xác minh mã ID Token với Google API
         var googleUser = await _googleAuthService.ValidateIdTokenAsync(request.IdToken);
@@ -97,7 +97,7 @@ public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, Goo
         await _userRepository.UpdateAsync(user);
 
         // 7. Trả về kết quả xác thực dưới dạng GoogleLoginResponseDto
-        return new GoogleLoginResponseDto
+        return new GoogleLoginDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,

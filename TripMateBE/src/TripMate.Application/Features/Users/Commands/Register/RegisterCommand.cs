@@ -11,4 +11,4 @@ public record RegisterCommand(
     string Email, 
     string? PhoneNumber, 
     string Password
-) : IRequest<RegisterResponseDto>;
+) : IRequest<RegisterDto>;

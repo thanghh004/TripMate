@@ -57,7 +57,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
-          className={`w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-transparent focus:border-slate-300 rounded-lg pl-9 pr-8 py-2 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all ${className}`}
+          className={`w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-transparent focus:border-slate-300 rounded-lg pl-9 pr-8 py-2.5 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all ${className}`}
           {...props}
         />
         {value && (

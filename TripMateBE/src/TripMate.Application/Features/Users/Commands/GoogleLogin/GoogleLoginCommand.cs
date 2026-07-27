@@ -8,4 +8,4 @@ namespace TripMate.Application.Features.Users.Commands.GoogleLogin;
 /// </summary>
 public record GoogleLoginCommand(
     string IdToken
-) : IRequest<GoogleLoginResponseDto>;
+) : IRequest<GoogleLoginDto>;

@@ -17,13 +17,28 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Validate Email đúng định dạng
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const handleStandardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate Email
+    if (!EMAIL_REGEX.test(email.trim())) {
+      toast.error('Địa chỉ email không đúng định dạng.');
+      return;
+    }
+
+    // Validate Password tối thiểu 6 ký tự
+    if (password.length < 6) {
+      toast.error('Mật khẩu phải có ít nhất 6 ký tự.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const res = await authApi.login({ email, password });
-      setIsLoading(false);
+      const res = await authApi.login({ email: email.trim(), password });
 
       if (authContext) {
         authContext.saveAuthSession(res.data);
@@ -36,12 +51,13 @@ const LoginPage: React.FC = () => {
         navigate('/');
       }
     } catch (err: any) {
-      setIsLoading(false);
       if (err.response?.data) {
         toast.error(err.response.data.message || 'Đăng nhập thất bại.');
       } else {
         toast.error('Không thể kết nối đến máy chủ Backend.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -171,7 +187,10 @@ const LoginPage: React.FC = () => {
             <div className="flex justify-center w-full [&_*]:focus:outline-none [&_*]:focus:ring-0 [&_iframe]:outline-none">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                onError={() => toast.error('Đăng nhập bằng Google không thành công.')}
+                onError={() => {
+                  setIsLoading(false);
+                  toast.error('Đăng nhập bằng Google không thành công.');
+                }}
                 theme="filled_blue"
                 size="large"
                 shape="pill"

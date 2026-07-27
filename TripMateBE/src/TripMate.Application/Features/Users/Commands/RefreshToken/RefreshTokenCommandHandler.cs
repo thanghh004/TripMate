@@ -9,7 +9,7 @@ namespace TripMate.Application.Features.Users.Commands.RefreshToken;
 /// <summary>
 /// Handler xử lý làm mới mã Access Token
 /// </summary>
-public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenResponseDto>
+public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenDto>
 {
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
@@ -20,7 +20,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         _tokenService = tokenService;
     }
 
-    public async Task<RefreshTokenResponseDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+    public async Task<RefreshTokenDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         // 1. Trích xuất Claims từ Access Token đã hết hạn
         var principal = _tokenService.GetPrincipalFromExpiredToken(request.AccessToken);
@@ -54,7 +54,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         await _userRepository.UpdateAsync(user);
 
         // 5. Trả về kết quả dưới dạng RefreshTokenResponseDto
-        return new RefreshTokenResponseDto
+        return new RefreshTokenDto
         {
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken,

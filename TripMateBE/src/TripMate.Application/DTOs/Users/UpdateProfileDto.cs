@@ -3,7 +3,7 @@ namespace TripMate.Application.DTOs.Users;
 /// <summary>
 /// DTO chứa thông tin cập nhật hồ sơ cá nhân từ Client gửi lên
 /// </summary>
-public class UpdateProfileRequestDto
+public class UpdateProfileDto
 {
     public string FullName { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }

@@ -9,4 +9,4 @@ namespace TripMate.Application.Features.Users.Commands.Login;
 public record LoginCommand(
     string Email, 
     string Password
-) : IRequest<LoginResponseDto>;
+) : IRequest<LoginDto>;

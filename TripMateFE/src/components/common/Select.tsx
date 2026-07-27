@@ -92,12 +92,11 @@ export const Select: React.FC<SelectProps> = ({
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
-      {/* Button kích thước nhỏ gọn bo nhẹ góc (px-4 py-2 text-xs rounded-lg) */}
       <button
         type="button"
         disabled={disabled}
         onClick={handleToggle}
-        className={`w-full bg-slate-50 border border-slate-200/90 rounded-lg px-4 py-2 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-coral-500/10 transition-all font-semibold text-left flex items-center justify-between cursor-pointer ${
+        className={`w-full bg-slate-50 border border-slate-200/90 rounded-lg px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-coral-500/10 transition-all font-semibold text-left flex items-center justify-between cursor-pointer ${
           disabled ? 'opacity-60 cursor-not-allowed bg-slate-100' : ''
         }`}
       >

@@ -9,7 +9,7 @@ namespace TripMate.Application.Features.Users.Commands.Register;
 /// <summary>
 /// Handler xử lý đăng ký tài khoản người dùng mới bằng Email
 /// </summary>
-public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterResponseDto>
+public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterDto>
 {
     private readonly IUserRepository _userRepository;
     private readonly IOtpService _otpService;
@@ -20,7 +20,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         _otpService = otpService;
     }
 
-    public async Task<RegisterResponseDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<RegisterDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         var email = request.Email.Trim().ToLower();
         var phone = request.PhoneNumber?.Trim();
@@ -64,7 +64,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterR
         // 5. Sinh mã OTP xác thực và tự động gửi tới Email của người đăng ký
         await _otpService.GenerateOtpAsync(email, "Register");
 
-        return new RegisterResponseDto
+        return new RegisterDto
         {
             UserId = newUser.Id
         };

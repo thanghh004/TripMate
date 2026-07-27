@@ -52,8 +52,8 @@ export const Button: React.FC<ButtonProps> = ({
 
   const sizeStyles = {
     sm: 'px-3.5 py-2 text-xs rounded-lg gap-1.5',
-    md: 'px-4 py-2 text-xs rounded-lg gap-2',
-    lg: 'px-5 py-2.5 text-sm rounded-lg gap-2',
+    md: 'px-4 py-2.5 text-xs rounded-lg gap-2',
+    lg: 'px-5 py-3 text-sm rounded-lg gap-2',
   };
 
   const widthStyle = fullWidth ? 'w-full' : '';

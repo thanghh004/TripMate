@@ -8,7 +8,7 @@ namespace TripMate.Application.Features.Users.Queries.GetMyProfile;
 /// <summary>
 /// Handler xử lý truy vấn lấy hồ sơ cá nhân đầy đủ từ cơ sở dữ liệu
 /// </summary>
-public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserProfileResponseDto>
+public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserProfileDto>
 {
     private readonly IUserRepository _userRepository;
 
@@ -17,7 +17,7 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserP
         _userRepository = userRepository;
     }
 
-    public async Task<UserProfileResponseDto> Handle(GetMyProfileQuery request, CancellationToken cancellationToken)
+    public async Task<UserProfileDto> Handle(GetMyProfileQuery request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetProfileByIdAsync(request.UserId, cancellationToken);
         if (user == null)
@@ -28,7 +28,7 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserP
         var totalTrips = (user.OrganizedTrips?.Count ?? 0) + (user.JoinedTrips?.Count ?? 0);
         var hasActiveTrips = await _userRepository.HasActiveTripsAsync(user.Id, cancellationToken);
 
-        return new UserProfileResponseDto
+        return new UserProfileDto
         {
             UserId = user.Id,
             FullName = user.FullName,

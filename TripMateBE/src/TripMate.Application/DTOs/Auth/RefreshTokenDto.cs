@@ -3,7 +3,7 @@ namespace TripMate.Application.DTOs.Auth;
 /// <summary>
 /// DTO chứa thông tin kết quả trả về sau khi Làm mới Token thành công
 /// </summary>
-public class RefreshTokenResponseDto
+public class RefreshTokenDto
 {
     public string AccessToken { get; set; } = string.Empty;
     public string RefreshToken { get; set; } = string.Empty;
