@@ -100,16 +100,17 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ pendingCount }) => {
       icon: <ShieldCheck size={18} />,
       badge: internalPendingCount > 0 ? internalPendingCount : undefined,
     },
+        {
+      to: '/admin/trips',
+      label: 'Quản lý chuyến đi',
+      icon: <Compass size={18} />,
+    },
     {
       to: '/admin/users',
       label: 'Quản lý người dùng',
       icon: <Users size={18} />,
     },
-    {
-      to: '/admin/trips',
-      label: 'Quản lý chuyến đi',
-      icon: <Compass size={18} />,
-    },
+
   ];
 
   const systemNavItems = [

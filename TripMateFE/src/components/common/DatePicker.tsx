@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 export interface DatePickerProps {
   value: string; // ISO or "YYYY-MM-DD"
   onChange: (val: string) => void;
+  onClear?: () => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
@@ -14,6 +15,7 @@ export interface DatePickerProps {
 export const DatePicker: React.FC<DatePickerProps> = ({
   value,
   onChange,
+  onClear,
   placeholder = 'Chọn ngày',
   className = '',
   disabled = false,
@@ -118,12 +120,24 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         type="button"
         disabled={disabled}
         onClick={toggleOpen}
-        className="w-full bg-slate-50/70 border border-slate-200/90 rounded-lg pl-10 pr-9 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-coral-500/10 transition-all font-semibold text-left flex items-center justify-between cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full bg-slate-50/70 border border-slate-200/90 rounded-lg pl-10 pr-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-coral-500/10 transition-all font-semibold text-left flex items-center gap-1.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        <span className={value ? 'text-slate-900 font-semibold' : 'text-slate-400'}>
+        <span className={`flex-1 truncate ${value ? 'text-slate-900 font-semibold' : 'text-slate-400'}`}>
           {displayFormatted}
         </span>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        {value && onClear && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => { e.stopPropagation(); onClear(); }}
+            onKeyDown={(e) => e.key === 'Enter' && (e.stopPropagation(), onClear())}
+            className="p-0.5 text-slate-400 hover:text-slate-600 transition shrink-0 cursor-pointer"
+            title="Xóa ngày"
+          >
+            <X size={12} />
+          </span>
+        )}
+        <ChevronDown size={15} className={`text-slate-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       <Calendar size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
 

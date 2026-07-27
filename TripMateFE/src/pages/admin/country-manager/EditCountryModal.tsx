@@ -58,14 +58,28 @@ export const EditCountryModal: React.FC<EditCountryModalProps> = ({ country, onC
   return (
     <Modal isOpen onClose={onClose} title={`Chỉnh sửa quốc gia — ${country.name}`} maxWidth="lg">
       <form onSubmit={handleSubmit} className="space-y-4 text-left">
-        <Input
-          label="Tên quốc gia *"
-          type="text"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Tên quốc gia..."
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Tên quốc gia *"
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Tên quốc gia..."
+          />
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Trạng thái hệ thống
+            </label>
+            <Select
+              options={statusOptions}
+              value={isActive ? 'true' : 'false'}
+              onChange={(val) => setIsActive(val === 'true')}
+              searchable={false}
+            />
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
@@ -84,16 +98,6 @@ export const EditCountryModal: React.FC<EditCountryModalProps> = ({ country, onC
             value={flagIcon}
             onChange={(e) => setFlagIcon(e.target.value)}
             placeholder="VD: 🇻🇳, 🇯🇵..."
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Trạng thái hệ thống</label>
-          <Select
-            options={statusOptions}
-            value={isActive ? 'true' : 'false'}
-            onChange={(val) => setIsActive(val === 'true')}
-            searchable={false}
           />
         </div>
 

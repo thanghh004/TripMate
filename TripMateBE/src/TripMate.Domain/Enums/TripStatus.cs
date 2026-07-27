@@ -36,7 +36,12 @@ public enum TripStatus
     Cancelled = 5,
 
     /// <summary>
+    /// Chuyến đi đã bị từ chối bởi Admin (Host không đủ điều kiện tổ chức)
+    /// </summary>
+    Rejected = 6,
+
+    /// <summary>
     /// Chuyến đi thất bại do không gom đủ thành viên khi đến ngày khởi hành
     /// </summary>
-    Failed = 6
+    Failed = 7
 }

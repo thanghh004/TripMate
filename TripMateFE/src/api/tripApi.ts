@@ -15,8 +15,8 @@ export const tripApi = {
   },
 
   // API Hủy chuyến đi
-  cancelTrip: async (id: string): Promise<{ message: string }> => {
-    const res = await axiosClient.patch<{ message: string }>(`/api/trips/${id}/cancel`);
+  cancelTrip: async (id: string, reason?: string): Promise<{ message: string }> => {
+    const res = await axiosClient.patch<{ message: string }>(`/api/trips/${id}/cancel`, { reason });
     return res.data;
   },
 

@@ -12,8 +12,8 @@ import { DatePicker } from '../../components/common/DatePicker';
 import { Modal } from '../../components/common/Modal';
 import { HostVerificationStatus } from '../../types/auth';
 import {
-  ShieldCheck, Star, Award,
-  AlignLeft, Camera, Loader2, ImagePlus, X, Phone, CreditCard, Clock, AlertCircle, Send, RefreshCw, Lock
+  ShieldCheck, Star,
+  AlignLeft, Camera, Loader2, ImagePlus, X, Phone, CreditCard, Clock, AlertCircle, Send, RefreshCw, Lock, Mail
 } from 'lucide-react';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -25,7 +25,8 @@ const GENDER_OPTIONS = [
   { label: 'Khác', value: 'Khác' },
 ];
 
-
+const VIETNAM_PHONE_REGEX = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
+const CCCD_REGEX = /^\d{12}$/;
 
 const ProfilePage: React.FC = () => {
   const authContext = useContext(AuthContext);
@@ -34,18 +35,15 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Refs cho file inputs ẩn
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const cccdFrontInputRef = useRef<HTMLInputElement>(null);
   const cccdBackInputRef = useRef<HTMLInputElement>(null);
 
-  // Edit Mode state
   const [isEditing, setIsEditing] = useState(false);
   const [isReverificationMode, setIsReverificationMode] = useState(false);
   const [showReverifyConfirmModal, setShowReverifyConfirmModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Lưu trữ dữ liệu profile gốc tải từ Backend để khi bấm Hủy sẽ khôi phục chính xác 100%
   const profileDataRef = useRef<{
     fullName: string;
     phoneNumber: string;
@@ -68,7 +66,6 @@ const ProfilePage: React.FC = () => {
     bio: '',
   });
 
-  // Form fields state
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [gender, setGender] = useState('');
@@ -84,27 +81,23 @@ const ProfilePage: React.FC = () => {
   const isApproved = hostVerificationStatus === HostVerificationStatus.Approved;
   const isIdentityLocked = isApproved && !isReverificationMode;
 
-  // Profile Stats from DB
   const [avgRating, setAvgRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
   const [totalTrips, setTotalTrips] = useState(0);
   const [hasActiveTrips, setHasActiveTrips] = useState(false);
 
-  // Upload loading state per field
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingFront, setUploadingFront] = useState(false);
   const [uploadingBack, setUploadingBack] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
 
-  // Route Guard: nếu chưa đăng nhập hoặc đăng xuất thì về Trang chủ
   useEffect(() => {
     if (authContext && !authContext.isLoading && !isAuthenticated) {
       navigate('/');
     }
   }, [authContext, isAuthenticated, navigate]);
 
-  // Fetch hồ sơ đầy đủ từ DB khi trang load (để lấy bio và các trường mới nhất)
   useEffect(() => {
     if (!isAuthenticated) return;
     const fetchProfile = async () => {
@@ -142,14 +135,12 @@ const ProfilePage: React.FC = () => {
         setTotalTrips(profile.totalTrips || 0);
         setHasActiveTrips(profile.hasActiveTrips || false);
 
-        // Đồng bộ dữ liệu mới nhất từ DB vào AuthContext & LocalStorage
         authContext?.updateUser({
           fullName: profile.fullName,
           phoneNumber: profile.phoneNumber,
           avatarUrl: profile.avatarUrl,
         });
       } catch {
-        // Fallback to local state nếu API lỗi
         if (currentUser) {
           setFullName(currentUser.fullName);
           setPhoneNumber(currentUser.phoneNumber || '');
@@ -174,7 +165,6 @@ const ProfilePage: React.FC = () => {
     );
   }
 
-  // Validate và upload 1 file ảnh lên server
   const handleFileUpload = async (
     file: File,
     setLoading: (v: boolean) => void,
@@ -201,42 +191,54 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!fullName.trim()) {
-      toast.error('Họ tên không được để trống.');
+    const cleanName = fullName.trim();
+    const cleanPhone = phoneNumber.trim();
+    const cleanCccd = identityCardNumber.trim();
+
+    if (!cleanName) {
+      toast.error('Họ và tên không được để trống.');
+      return;
+    }
+
+    if (cleanPhone && !VIETNAM_PHONE_REGEX.test(cleanPhone)) {
+      toast.error('Số điện thoại không đúng định dạng mạng Việt Nam.');
+      return;
+    }
+
+    if (cleanCccd && !CCCD_REGEX.test(cleanCccd)) {
+      toast.error('Số CCCD phải gồm đúng 12 chữ số.');
       return;
     }
 
     try {
       setIsSaving(true);
       await userApi.updateProfile({
-        fullName: fullName.trim(),
-        phoneNumber: phoneNumber.trim() || undefined,
+        fullName: cleanName,
+        phoneNumber: cleanPhone || undefined,
         gender: gender || undefined,
         birthDate: birthDate ? `${birthDate}T00:00:00Z` : undefined,
         bio: bio.trim() || undefined,
         avatarUrl: avatarUrl || undefined,
         identityCardFrontUrl: cccdFrontUrl || undefined,
         identityCardBackUrl: cccdBackUrl || undefined,
-        identityCardNumber: identityCardNumber.trim() || undefined,
+        identityCardNumber: cleanCccd || undefined,
       });
 
-      // Cập nhật lại state cục bộ trong AuthContext
       authContext?.updateUser({
-        fullName: fullName.trim(),
-        phoneNumber: phoneNumber.trim() || undefined,
+        fullName: cleanName,
+        phoneNumber: cleanPhone || undefined,
         avatarUrl: avatarUrl || undefined,
         identityCardFrontUrl: cccdFrontUrl || undefined,
         identityCardBackUrl: cccdBackUrl || undefined,
       });
 
-      // Cập nhật lại cache dữ liệu gốc
       profileDataRef.current = {
-        fullName: fullName.trim(),
-        phoneNumber: phoneNumber.trim(),
+        fullName: cleanName,
+        phoneNumber: cleanPhone,
         avatarUrl: avatarUrl || '',
         cccdFrontUrl: cccdFrontUrl || '',
         cccdBackUrl: cccdBackUrl || '',
-        identityCardNumber: identityCardNumber.trim(),
+        identityCardNumber: cleanCccd,
         gender: gender || '',
         birthDate: birthDate || '',
         bio: bio.trim(),
@@ -266,8 +268,6 @@ const ProfilePage: React.FC = () => {
       setIsSaving(false);
     }
   };
-
-
 
   const handleCancel = () => {
     const p = profileDataRef.current;
@@ -301,7 +301,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // Component hiển thị ô upload ảnh CCCD
   const CccdUploadBox = ({
     label,
     url,
@@ -339,6 +338,7 @@ const ProfilePage: React.FC = () => {
           {isEditing && !disabled && (
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <button
+                type="button"
                 onClick={() => inputRef.current?.click()}
                 className="p-2 bg-white/90 rounded-full text-slate-700 hover:bg-white transition cursor-pointer"
                 title="Thay ảnh"
@@ -346,6 +346,7 @@ const ProfilePage: React.FC = () => {
                 <ImagePlus size={16} />
               </button>
               <button
+                type="button"
                 onClick={onClear}
                 className="p-2 bg-white/90 rounded-full text-red-500 hover:bg-white transition cursor-pointer"
                 title="Xóa ảnh"
@@ -362,6 +363,7 @@ const ProfilePage: React.FC = () => {
         </div>
       ) : (
         <button
+          type="button"
           onClick={() => inputRef.current?.click()}
           disabled={isUploading || !isEditing || disabled}
           className="w-full aspect-video rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-slate-300 hover:bg-slate-100 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
@@ -388,11 +390,8 @@ const ProfilePage: React.FC = () => {
 
         {/* Profile Card */}
         <div className="p-8 sm:p-10">
-
-          {/* ─── Header: Avatar + Details + Edit Button ─── */}
+          {/* Header Avatar & Summary */}
           <div className="flex flex-col sm:flex-row items-start gap-6 border-b border-slate-100 pb-8">
-
-            {/* Avatar with edit overlay */}
             <div className="relative shrink-0 group">
               <input
                 ref={avatarInputRef}
@@ -405,7 +404,7 @@ const ProfilePage: React.FC = () => {
                   e.target.value = '';
                 }}
               />
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-coral-500 text-white font-extrabold text-3xl sm:text-4xl flex items-center justify-center border-4 border-slate-100 shadow-sm overflow-hidden select-none">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-coral-500 text-white font-extrabold text-3xl sm:text-4xl flex items-center justify-center border-4 border-slate-100 shadow-xs overflow-hidden select-none">
                 {(isEditing ? avatarUrl : currentUser.avatarUrl) ? (
                   <img
                     src={isEditing ? avatarUrl : currentUser.avatarUrl}
@@ -417,37 +416,34 @@ const ProfilePage: React.FC = () => {
                 )}
               </div>
 
-              {/* Camera overlay – chỉ hiển thị khi đang edit */}
               {isEditing && (
                 <button
+                  type="button"
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={uploadingAvatar}
                   className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer disabled:cursor-wait"
                   title="Đổi ảnh đại diện"
                 >
-                  {uploadingAvatar
-                    ? <Loader2 size={20} className="text-white animate-spin" />
-                    : <Camera size={20} className="text-white" />
-                  }
+                  {uploadingAvatar ? (
+                    <Loader2 size={20} className="text-white animate-spin" />
+                  ) : (
+                    <Camera size={20} className="text-white" />
+                  )}
                 </button>
               )}
-              {/* Online dot */}
               <span className="absolute bottom-0.5 right-0.5 w-4 h-4 rounded-full bg-green-500 border-2 border-white" />
             </div>
 
-            {/* Identity info */}
+            {/* Form Fields */}
             <div className="flex-1 space-y-3 w-full">
-              {/* Họ và Tên */}
               {isEditing ? (
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Họ và Tên</label>
-                  <Input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Nhập họ và tên..."
-                  />
-                </div>
+                <Input
+                  label="Họ và Tên *"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Nhập họ và tên..."
+                />
               ) : (
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-2xl font-black text-slate-900 tracking-tight">{currentUser.fullName}</h1>
@@ -474,36 +470,34 @@ const ProfilePage: React.FC = () => {
                 </div>
               )}
 
-              {/* Email (Hàng riêng) */}
+              {/* Email */}
               <div className="space-y-1">
-                {isEditing && (
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Email</label>
-                )}
-                <div className={isEditing
-                  ? 'w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-400 font-semibold flex items-center gap-2 select-none cursor-not-allowed'
-                  : 'text-slate-500 text-sm font-medium'
-                }>
-                  <span>{currentUser.email}</span>
-                  {isEditing && <span className="ml-auto text-[10px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-bold">Không thể sửa</span>}
-                </div>
-              </div>
-
-              {/* Số điện thoại (Hàng riêng) */}
-              <div className="space-y-1">
-                {isEditing && (
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                    <span>Số điện thoại</span>
-                    {isIdentityLocked && <span className="text-[10px] text-sky-700 font-bold flex items-center gap-1"><Lock size={11} /> Đã duyệt (Đã khóa)</span>}
-                  </label>
-                )}
                 {isEditing ? (
                   <Input
+                    label="Địa chỉ Email"
+                    type="email"
+                    value={currentUser.email}
+                    disabled
+                    leftIcon={<Mail size={15} />}
+                    helperText="Địa chỉ email không thể chỉnh sửa"
+                  />
+                ) : (
+                  <p className="text-slate-500 text-sm font-medium">{currentUser.email}</p>
+                )}
+              </div>
+
+              {/* Số điện thoại */}
+              <div className="space-y-1">
+                {isEditing ? (
+                  <Input
+                    label="Số điện thoại"
                     type="text"
                     disabled={isIdentityLocked}
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="0912345678"
                     leftIcon={<Phone size={15} />}
+                    helperText={isIdentityLocked ? 'Thông tin đã duyệt chính chủ, bị khóa không thể sửa' : undefined}
                   />
                 ) : (
                   <p className="text-slate-500 text-sm font-medium">
@@ -512,22 +506,21 @@ const ProfilePage: React.FC = () => {
                 )}
               </div>
 
-              {/* Giới tính & Ngày sinh (Hàng 2 Cột) */}
+              {/* Giới tính & Ngày sinh */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Giới tính */}
                 <div className="space-y-1">
-                  {isEditing && (
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Giới tính</label>
-                  )}
                   {isEditing ? (
-                    <Select
-                      options={GENDER_OPTIONS}
-                      value={gender}
-                      onChange={(val) => setGender(val as string)}
-                      placeholder="Chọn giới tính"
-                      disabled={isIdentityLocked}
-                      searchable={false}
-                    />
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Giới tính</label>
+                      <Select
+                        options={GENDER_OPTIONS}
+                        value={gender}
+                        onChange={(val) => setGender(val as string)}
+                        placeholder="Chọn giới tính"
+                        disabled={isIdentityLocked}
+                        searchable={false}
+                      />
+                    </div>
                   ) : (
                     <p className="text-slate-500 text-sm font-medium">
                       {gender ? `Giới tính: ${gender}` : 'Chưa cập nhật giới tính'}
@@ -535,13 +528,12 @@ const ProfilePage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Ngày sinh */}
                 <div className="space-y-1">
-                  {isEditing && (
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Ngày sinh</label>
-                  )}
                   {isEditing ? (
-                    <DatePicker value={birthDate} onChange={setBirthDate} placeholder="Chọn ngày sinh" disabled={isIdentityLocked} />
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Ngày sinh</label>
+                      <DatePicker value={birthDate} onChange={setBirthDate} placeholder="Chọn ngày sinh" disabled={isIdentityLocked} />
+                    </div>
                   ) : (
                     <p className="text-slate-500 text-sm font-medium">
                       {birthDate ? (() => {
@@ -554,41 +546,37 @@ const ProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Action buttons ở góc trên khi xem */}
+            {/* Actions */}
             {!isEditing && (
               <div className="self-start shrink-0 flex flex-col items-stretch sm:items-end gap-2.5">
                 <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => {
                     if (hasActiveTrips) return;
                     setIsReverificationMode(false);
                     setIsEditing(true);
                   }}
                   disabled={hasActiveTrips}
-                  variant="outline"
                   title={hasActiveTrips ? 'Bạn không thể chỉnh sửa hồ sơ khi đang tạo hoặc tham gia chuyến đi đang hoạt động' : undefined}
-                  className={hasActiveTrips
-                    ? 'border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs px-3.5 py-2 rounded-xl cursor-not-allowed opacity-60 flex items-center gap-1.5'
-                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-bold text-xs px-3.5 py-2 rounded-xl cursor-pointer'
-                  }
+                  className="font-bold text-xs"
                 >
-                  {hasActiveTrips && <Lock size={13} className="text-slate-400" />}
+                  {hasActiveTrips && <Lock size={13} className="text-slate-400 mr-1" />}
                   Chỉnh sửa hồ sơ
                 </Button>
 
                 {isApproved && (
                   <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => {
                       if (hasActiveTrips) return;
                       setShowReverifyConfirmModal(true);
                     }}
                     disabled={hasActiveTrips}
-                    variant="outline"
                     leftIcon={hasActiveTrips ? <Lock size={13} className="text-slate-400 shrink-0" /> : <RefreshCw size={14} className="text-amber-600 shrink-0" />}
                     title={hasActiveTrips ? 'Bạn không thể yêu cầu cập nhật khi đang tạo hoặc tham gia chuyến đi đang hoạt động' : undefined}
-                    className={hasActiveTrips
-                      ? 'border-slate-200 bg-slate-100 text-slate-400 font-bold text-xs px-3.5 py-2 rounded-xl cursor-not-allowed opacity-60'
-                      : 'border-amber-200 bg-amber-50/60 text-amber-800 hover:bg-amber-100/70 font-bold text-xs px-3.5 py-2 rounded-xl cursor-pointer'
-                    }
+                    className="border-amber-200 bg-amber-50/60 text-amber-800 hover:bg-amber-100/70 font-bold text-xs"
                   >
                     Yêu cầu cập nhật lại thông tin xác thực
                   </Button>
@@ -598,7 +586,7 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Cảnh báo khi người dùng có chuyến đi đang hoạt động */}
+        {/* Cảnh báo khi có chuyến đi hoạt động */}
         {hasActiveTrips && (
           <div className="mt-4 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-left space-y-1">
             <p className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
@@ -611,8 +599,8 @@ const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        {/* ─── Quick Stats ─── */}
-        <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-8 pt-6 text-center">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-4 gap-4 border-b border-slate-100 pb-8 pt-6 text-center">
           <div className="space-y-1">
             <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Đánh giá</p>
             <div className="flex items-center justify-center gap-1">
@@ -621,18 +609,21 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
           <div className="space-y-1 border-x border-slate-100">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Lượt Review</p>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Lượt Đánh Giá</p>
             <p className="text-base font-black text-slate-900">{totalReviews}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chuyến đi</p>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chuyến đi đã tạo</p>
+            <p className="text-base font-black text-slate-900">{totalTrips}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chuyến đi đã tham gia</p>
             <p className="text-base font-black text-slate-900">{totalTrips}</p>
           </div>
         </div>
 
-        {/* ─── Profile Details ─── */}
+        {/* Details & CCCD */}
         <div className="space-y-6 pt-8">
-
           {isEditing && isIdentityLocked && (
             <div className="p-3.5 rounded-2xl bg-sky-50 border border-sky-200 text-left text-xs font-semibold text-sky-900 flex items-start gap-2">
               <Lock size={16} className="text-sky-600 shrink-0 mt-0.5" />
@@ -657,19 +648,16 @@ const ProfilePage: React.FC = () => {
             </div>
           )}
 
-          {/* ─── CCCD Section ─── */}
+          {/* CCCD Section */}
           <div className="text-left space-y-3">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Xác minh danh tính (CCCD)
             </h3>
 
-            {/* Ô nhập/hiển thị Số CCCD */}
             <div className="space-y-1">
-              {isEditing && (
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Số CCCD</label>
-              )}
               {isEditing ? (
                 <Input
+                  label="Số CCCD (12 chữ số)"
                   type="text"
                   disabled={isIdentityLocked}
                   value={identityCardNumber}
@@ -705,11 +693,8 @@ const ProfilePage: React.FC = () => {
                 disabled={isIdentityLocked}
               />
             </div>
-            {!isEditing && !cccdFrontUrl && !cccdBackUrl && !identityCardNumber && (
-              <p className="text-xs text-slate-400 mt-2 italic">Chưa cung cấp thông tin CCCD. Nhấn chỉnh sửa hồ sơ để thêm.</p>
-            )}
 
-            {/* Cảnh báo lý do bị từ chối khi HostVerificationStatus === Rejected */}
+            {/* Rejection Alert */}
             {hostVerificationStatus === HostVerificationStatus.Rejected && (
               <div className="mt-4 p-4 rounded-2xl bg-rose-50 border border-rose-200/80 text-left space-y-1">
                 <p className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
@@ -722,7 +707,7 @@ const ProfilePage: React.FC = () => {
               </div>
             )}
 
-            {/* Cảnh báo khi bị khóa quyền tạo chuyến vĩnh viễn (HostVerificationStatus === Blocked) */}
+            {/* Blocked Alert */}
             {hostVerificationStatus === HostVerificationStatus.Blocked && (
               <div className="mt-4 p-4 rounded-2xl bg-rose-100 border border-rose-300 text-left space-y-1">
                 <p className="text-xs font-bold text-rose-950 flex items-center gap-1.5">
@@ -735,7 +720,7 @@ const ProfilePage: React.FC = () => {
               </div>
             )}
 
-            {/* Nút gửi yêu cầu duyệt tạo chuyến khi không trong chế độ chỉnh sửa */}
+            {/* Request Host Button */}
             {!isEditing && (hostVerificationStatus === HostVerificationStatus.Unverified || hostVerificationStatus === HostVerificationStatus.Rejected) && (
               <div className="mt-4 p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
@@ -748,9 +733,11 @@ const ProfilePage: React.FC = () => {
                   </p>
                 </div>
                 <Button
+                  size="sm"
+                  variant="warning"
                   onClick={handleRequestVerification}
                   isLoading={isSubmittingRequest}
-                  className="w-full sm:w-auto shrink-0 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer shadow-xs flex items-center gap-2"
+                  className="w-full sm:w-auto shrink-0 font-bold text-xs px-4 py-2 cursor-pointer shadow-xs flex items-center gap-2"
                 >
                   <Send size={14} /> Gửi yêu cầu duyệt
                 </Button>
@@ -758,7 +745,7 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
 
-          {/* Tiểu sử */}
+          {/* Bio Section */}
           <div className="text-left">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <AlignLeft size={14} /> Tiểu sử cá nhân
@@ -769,7 +756,7 @@ const ProfilePage: React.FC = () => {
                 onChange={(e) => setBio(e.target.value)}
                 rows={3}
                 maxLength={500}
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all font-medium resize-none leading-relaxed"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition-all font-semibold resize-none leading-relaxed"
                 placeholder="Giới thiệu bản thân..."
               />
             ) : (
@@ -777,89 +764,79 @@ const ProfilePage: React.FC = () => {
             )}
           </div>
 
-          {/* Action Bar ngay bên dưới phần tiểu sử cá nhân khi chỉnh sửa */}
+          {/* Action Bar */}
           {isEditing && (
             <div className="pt-4 flex items-center justify-end gap-3">
               <Button
+                size="sm"
+                variant="outline"
                 onClick={handleCancel}
                 disabled={isSaving}
-                variant="outline"
-                className="border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs px-4 py-2 rounded-xl cursor-pointer"
+                className="font-bold text-xs px-4 py-2 border-slate-300 text-slate-700"
               >
                 Hủy bỏ
               </Button>
               <Button
+                size="sm"
+                variant="warning"
                 onClick={handleSave}
+                isLoading={isSaving}
                 disabled={isSaving}
-                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-2 rounded-xl cursor-pointer shadow-sm disabled:opacity-60 flex items-center gap-2"
+                className="font-bold text-xs px-5 py-2 cursor-pointer shadow-xs disabled:opacity-60"
               >
-                {isSaving && <Loader2 size={15} className="animate-spin" />}
                 Lưu thay đổi
               </Button>
             </div>
           )}
-
-          {/* Vai trò + Danh hiệu */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left">
-            <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Vai trò tài khoản</h3>
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-teal-50/50 border border-teal-100">
-                <ShieldCheck size={18} className="text-teal-600" />
-                <div>
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-teal-700">
-                    {currentUser.role === 'Admin' ? 'Quản trị viên' : 'Thành viên'}
-                  </span>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Xác thực chính chủ bởi hệ thống TripMate</p>
-                </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Danh hiệu đạt được</h3>
-              <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-amber-50/50 border border-amber-100">
-                <Award size={18} className="text-amber-600" />
-                <div>
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-amber-700">Thành viên tích cực</span>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Hoàn thành hơn 5 chuyến đi xuất sắc</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </main>
 
-      {/* Modal Xác nhận cập nhật thông tin xác thực */}
+      {/* Reverification Modal */}
       {showReverifyConfirmModal && (
         <Modal
           isOpen
           onClose={() => setShowReverifyConfirmModal(false)}
-          title="Xác nhận cập nhật thông tin xác thực"
+          title="Xác nhận yêu cầu cập nhật lại thông tin"
           maxWidth="md"
         >
-          <div className="space-y-4 text-slate-700 text-sm font-medium">
-            <p className="leading-relaxed">
-              Khi cập nhật lại thông tin xác thực mới (Số điện thoại, Số CCCD, Ảnh CCCD...), quyền tạo chuyến của bạn sẽ được <span className="font-bold text-amber-700">tạm chuyển về trạng thái Chờ duyệt (Pending)</span> để Admin xét duyệt lại bộ hồ sơ mới.
-            </p>
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 font-semibold">
-              ⚠️ Bạn có đồng ý mở khóa thông tin xác thực để chỉnh sửa không?
+          <div className="space-y-4 text-left">
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium space-y-2">
+              <p className="font-bold text-amber-950 flex items-center gap-1.5">
+                <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                Lưu ý quan trọng trước khi mở sửa thông tin xác thực:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-[11px] text-amber-800">
+                <li>Tài khoản của bạn đã được duyệt chính chủ trước đó.</li>
+                <li>Khi mở sửa và bấm <strong>Lưu thay đổi</strong>, trạng thái duyệt Host sẽ tạm dừng và chuyển sang <strong>Chờ duyệt (Pending)</strong>.</li>
+                <li>Bạn sẽ tạm thời không thể tạo chuyến đi mới cho đến khi Admin phê duyệt lại thông tin mới.</li>
+              </ul>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <p className="text-xs text-slate-600 font-semibold">
+              Bạn có chắc chắn muốn mở chỉnh sửa thông tin xác thực (SĐT, Ngày sinh, CCCD) không?
+            </p>
+
+            <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
               <Button
+                size="sm"
                 variant="outline"
                 onClick={() => setShowReverifyConfirmModal(false)}
-                className="text-xs font-bold px-4 py-2 rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer"
+                className="px-4 py-2 border-slate-300 text-slate-700 font-semibold"
               >
                 Hủy bỏ
               </Button>
               <Button
+                size="sm"
+                variant="warning"
                 onClick={() => {
                   setShowReverifyConfirmModal(false);
                   setIsReverificationMode(true);
                   setIsEditing(true);
+                  toast.info('Đã mở chỉnh sửa thông tin xác thực. Hãy bấm Lưu thay đổi sau khi cập nhật xong.');
                 }}
-                className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs cursor-pointer"
+                className="px-4 py-2 font-semibold"
               >
-                Đồng ý & Mở khóa
+                Đồng ý & Mở chỉnh sửa
               </Button>
             </div>
           </div>

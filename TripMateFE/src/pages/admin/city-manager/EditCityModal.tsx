@@ -63,14 +63,18 @@ export const EditCityModal: React.FC<EditCityModalProps> = ({ city, countries, o
   return (
     <Modal isOpen onClose={onClose} title={`Chỉnh sửa thành phố — ${city.name}`} maxWidth="lg">
       <form onSubmit={handleSubmit} className="space-y-4 text-left">
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Quốc gia thuộc về <span className="text-rose-500">*</span>
-          </label>
-          <Select options={countryOptions} value={countryId} onChange={(val) => setCountryId(val)} />
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Quốc gia thuộc về <span className="text-rose-500">*</span>
+            </label>
+            <Select
+              options={countryOptions}
+              value={countryId}
+              onChange={(val) => setCountryId(val)}
+            />
+          </div>
+
           <Input
             label="Tên Thành phố / Tỉnh *"
             type="text"
@@ -79,6 +83,21 @@ export const EditCityModal: React.FC<EditCityModalProps> = ({ city, countries, o
             onChange={(e) => setName(e.target.value)}
             placeholder="Tên thành phố..."
           />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Trạng thái hệ thống
+            </label>
+            <Select
+              options={statusOptions}
+              value={isActive ? 'true' : 'false'}
+              onChange={(val) => setIsActive(val === 'true')}
+              searchable={false}
+            />
+          </div>
+
           <Input
             label="Slug URL (Viết thường)"
             type="text"
@@ -86,16 +105,6 @@ export const EditCityModal: React.FC<EditCityModalProps> = ({ city, countries, o
             onChange={(e) => setSlug(e.target.value)}
             placeholder="VD: ha-noi..."
             className="font-mono"
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Trạng thái hệ thống</label>
-          <Select
-            options={statusOptions}
-            value={isActive ? 'true' : 'false'}
-            onChange={(val) => setIsActive(val === 'true')}
-            searchable={false}
           />
         </div>
 

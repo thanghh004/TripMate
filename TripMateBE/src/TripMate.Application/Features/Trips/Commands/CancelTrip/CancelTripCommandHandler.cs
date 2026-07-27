@@ -33,7 +33,12 @@ public class CancelTripCommandHandler : IRequestHandler<CancelTripCommand, bool>
         if (trip.Status == TripStatus.Cancelled)
             throw new BusinessRuleException("Chuyến đi này đã ở trạng thái bị hủy từ trước.");
 
+        // Rule: Bắt buộc phải có lý do hủy
+        if (string.IsNullOrWhiteSpace(request.Reason))
+            throw new BusinessRuleException("Vui lòng cung cấp lý do hủy chuyến đi.");
+
         trip.Status = TripStatus.Cancelled;
+        trip.CancellationReason = request.Reason;
         trip.UpdatedAt = DateTime.UtcNow;
 
         _tripRepository.Update(trip);

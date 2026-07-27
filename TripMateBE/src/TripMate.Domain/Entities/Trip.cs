@@ -128,6 +128,11 @@ public class Trip : BaseEntity
     /// </summary>
     public string? ModerationNote { get; set; }
 
+    /// <summary>
+    /// Lý do hủy chuyến đi 
+    /// </summary>
+    public string? CancellationReason { get; set; }
+
     #region Navigation Properties
 
     /// <summary>

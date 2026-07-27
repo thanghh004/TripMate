@@ -46,10 +46,10 @@ public class TripsController : BaseApiController
     /// </summary>
     [HttpPatch("{id:guid}/cancel")]
     [Authorize]
-    public async Task<IActionResult> CancelTrip(Guid id)
+    public async Task<IActionResult> CancelTrip(Guid id, [FromBody] CancelTripDto? dto)
     {
         var isAdmin = User.IsInRole("Admin");
-        var command = new CancelTripCommand(id, CurrentUserId, isAdmin);
+        var command = new CancelTripCommand(id, CurrentUserId, isAdmin, dto?.Reason);
         await Mediator.Send(command);
         return Ok(new { message = "Đã hủy chuyến đi thành công." });
     }
