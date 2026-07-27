@@ -28,7 +28,7 @@ public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, Goo
     public async Task<GoogleLoginDto> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
     {
         // 1. Xác minh mã ID Token với Google API
-        var googleUser = await _googleAuthService.ValidateIdTokenAsync(request.IdToken);
+        var googleUser = await _googleAuthService.ValidateIdTokenAsync(request.IdToken, request.Nonce);
         var email = googleUser.Email.Trim().ToLower();
 
         // 2. Tìm kiếm thông tin người dùng trong CSDL

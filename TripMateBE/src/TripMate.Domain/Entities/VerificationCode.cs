@@ -31,4 +31,9 @@ public class VerificationCode : BaseEntity
     /// Đánh dấu mã này đã được sử dụng hay chưa
     /// </summary>
     public bool IsUsed { get; set; } = false;
+
+    /// <summary>
+    /// Số lần nhập sai mã OTP
+    /// </summary>
+    public int FailedAttempts { get; set; } = 0;
 }

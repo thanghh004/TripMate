@@ -6,6 +6,8 @@ import { authApi } from '../../api/authApi';
 import { useToast } from '../../context/ToastContext';
 import { Mail, KeyRound, Lock, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const ForgotPasswordPage: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -13,30 +15,29 @@ const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // Bước 1: Gửi yêu cầu OTP quên mật khẩu
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) {
-      toast.error('Vui lòng nhập địa chỉ Email.');
+    if (!EMAIL_REGEX.test(email.trim())) {
+      toast.error('Vui lòng nhập địa chỉ Email đúng định dạng.');
       return;
     }
 
     setIsLoading(true);
     try {
       await authApi.forgotPassword({ email: email.trim() });
-      setIsLoading(false);
       toast.success('Mã OTP khôi phục mật khẩu đã được gửi về hòm thư Email của bạn!');
       setStep(2);
     } catch (err: any) {
-      setIsLoading(false);
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);
       } else {
         toast.error('Không thể gửi yêu cầu quên mật khẩu. Vui lòng thử lại.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -53,11 +54,6 @@ const ForgotPasswordPage: React.FC = () => {
       return;
     }
 
-    if (newPassword !== confirmPassword) {
-      toast.error('Mật khẩu xác nhận không trùng khớp.');
-      return;
-    }
-
     setIsLoading(true);
     try {
       await authApi.resetPassword({
@@ -65,29 +61,27 @@ const ForgotPasswordPage: React.FC = () => {
         code: code.trim(),
         newPassword,
       });
-      setIsLoading(false);
       toast.success('Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay bằng mật khẩu mới.');
       navigate('/login');
     } catch (err: any) {
-      setIsLoading(false);
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);
       } else {
         toast.error('Đặt lại mật khẩu thất bại. Vui lòng kiểm tra lại mã OTP.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col relative overflow-hidden items-center justify-center px-4 py-12">
-      {/* Font display serif & JetBrains Mono */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700&family=JetBrains+Mono:wght@500;600&display=swap');
         .font-display { font-family: 'Fraunces', ui-serif, Georgia, serif; }
         .font-ticket { font-family: 'JetBrains Mono', ui-monospace, monospace; }
       `}</style>
 
-      {/* Vệt sáng nền nhẹ */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -97,9 +91,7 @@ const ForgotPasswordPage: React.FC = () => {
       />
 
       <div className="w-full max-w-[440px] relative z-10">
-        {/* Thẻ dạng boarding pass */}
         <div className="bg-white rounded-[28px] shadow-xl shadow-slate-900/[0.06] border border-slate-200/70 relative">
-          {/* Phần đầu vé: thương hiệu + tiêu đề */}
           <div className="px-8 sm:px-10 pt-8 pb-7">
             <div className="flex items-center justify-end mb-6">
               <span className="font-ticket text-[10px] tracking-[0.2em] text-slate-400 uppercase">
@@ -132,14 +124,12 @@ const ForgotPasswordPage: React.FC = () => {
             )}
           </div>
 
-          {/* Đường chia kiểu vé, có 2 lỗ khuyết */}
           <div className="relative">
             <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-100" />
             <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-100" />
             <div className="border-t-2 border-dashed border-amber-200 mx-6" />
           </div>
 
-          {/* Thân vé: Form nhập liệu */}
           <div className="p-8 sm:p-10 pt-7">
             {step === 1 ? (
               <form onSubmit={handleRequestOtp} className="space-y-4">
@@ -191,21 +181,11 @@ const ForgotPasswordPage: React.FC = () => {
                 />
 
                 <Input
-                  label="Mật khẩu mới"
+                  label="Mật khẩu mới (tối thiểu 6 ký tự)"
                   type="password"
                   placeholder="••••••••"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  icon={<Lock size={18} />}
-                  required
-                />
-
-                <Input
-                  label="Xác nhận mật khẩu mới"
-                  type="password"
-                  placeholder="••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
                   icon={<Lock size={18} />}
                   required
                 />
@@ -224,7 +204,6 @@ const ForgotPasswordPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Chân trang kiểu cuống vé */}
         <p className="font-ticket text-center text-[10px] tracking-[0.2em] text-slate-400 uppercase mt-4">
           Đã nhớ mật khẩu?{' '}
           <Link to="/login" className="text-coral-500 font-bold hover:underline">

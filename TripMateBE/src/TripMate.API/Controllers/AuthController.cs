@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using TripMate.Application.Features.Users.Commands.ForgotPassword;
+using TripMate.Application.Features.Users.Commands.GoogleLogin;
 using TripMate.Application.Features.Users.Commands.Login;
 using TripMate.Application.Features.Users.Commands.RefreshToken;
 using TripMate.Application.Features.Users.Commands.Register;
-using TripMate.Application.Features.Users.Commands.VerifyOtp;
-using TripMate.Application.Features.Users.Commands.GoogleLogin;
-using TripMate.Application.Features.Users.Commands.ForgotPassword;
 using TripMate.Application.Features.Users.Commands.ResetPassword;
+using TripMate.Application.Features.Users.Commands.VerifyOtp;
 
 namespace TripMate.API.Controllers;
 
@@ -16,8 +17,10 @@ public class AuthController : BaseApiController
 {
     /// <summary>
     /// Đăng ký tài khoản người dùng mới bằng Email
+    /// Giới hạn: 5 lượt/phút/IP
     /// </summary>
     [HttpPost("register")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> Register([FromBody] RegisterCommand command)
     {
         var userId = await Mediator.Send(command);
@@ -31,8 +34,10 @@ public class AuthController : BaseApiController
 
     /// <summary>
     /// Xác thực mã OTP gửi về Email để kích hoạt tài khoản
+    /// Giới hạn: 5 lượt/phút/IP
     /// </summary>
     [HttpPost("verify-otp")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpCommand command)
     {
         var isSuccess = await Mediator.Send(command);
@@ -46,8 +51,10 @@ public class AuthController : BaseApiController
 
     /// <summary>
     /// Đăng nhập hệ thống bằng Email và Mật khẩu
+    /// Giới hạn: 5 lượt/phút/IP — Chống Brute-force Attack
     /// </summary>
     [HttpPost("login")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
         var response = await Mediator.Send(command);
@@ -61,8 +68,10 @@ public class AuthController : BaseApiController
 
     /// <summary>
     /// Cấp mới Access Token bằng Refresh Token
+    /// Giới hạn: Theo GeneralPolicy (60 lượt/phút/IP)
     /// </summary>
     [HttpPost("refresh-token")]
+    [EnableRateLimiting("GeneralPolicy")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command)
     {
         var response = await Mediator.Send(command);
@@ -76,8 +85,10 @@ public class AuthController : BaseApiController
 
     /// <summary>
     /// Đăng nhập hệ thống bằng Google ID Token
+    /// Giới hạn: 5 lượt/phút/IP
     /// </summary>
     [HttpPost("google-login")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginCommand command)
     {
         var response = await Mediator.Send(command);
@@ -91,8 +102,10 @@ public class AuthController : BaseApiController
 
     /// <summary>
     /// Gửi mã OTP khôi phục mật khẩu về Email người dùng
+    /// Giới hạn: 5 lượt/phút/IP — Chống spam gửi OTP
     /// </summary>
     [HttpPost("forgot-password")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
     {
         var isSuccess = await Mediator.Send(command);
@@ -106,8 +119,10 @@ public class AuthController : BaseApiController
 
     /// <summary>
     /// Xác thực mã OTP và cập nhật mật khẩu mới
+    /// Giới hạn: 5 lượt/phút/IP
     /// </summary>
     [HttpPost("reset-password")]
+    [EnableRateLimiting("AuthPolicy")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
     {
         var isSuccess = await Mediator.Send(command);

@@ -7,5 +7,6 @@ namespace TripMate.Application.Features.Users.Commands.GoogleLogin;
 /// Command đăng nhập hệ thống bằng Google ID Token
 /// </summary>
 public record GoogleLoginCommand(
-    string IdToken
+    string IdToken,
+    string? Nonce = null
 ) : IRequest<GoogleLoginDto>;

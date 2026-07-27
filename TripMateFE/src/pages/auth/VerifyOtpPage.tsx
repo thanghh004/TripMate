@@ -5,7 +5,7 @@ import Button from '../../components/common/Button';
 import { authApi } from '../../api/authApi';
 import { AuthContext } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { KeyRound, CheckCircle2 } from 'lucide-react';
+import { KeyRound, CheckCircle2, RotateCw } from 'lucide-react';
 
 const VerifyOtpPage: React.FC = () => {
   const authContext = useContext(AuthContext);
@@ -14,7 +14,17 @@ const VerifyOtpPage: React.FC = () => {
   const email = authContext?.registeredEmail || '';
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [isSuccessState, setIsSuccessState] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+
+  // Đếm ngược 60s để cho phép gửi lại mã OTP
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   // Nếu không có email để xác thực (người dùng tự ý truy cập URL), chuyển hướng về trang đăng ký
   useEffect(() => {
@@ -25,25 +35,45 @@ const VerifyOtpPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!code.trim() || code.trim().length !== 6) {
+      toast.error('Vui lòng nhập đủ 6 chữ số mã OTP.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await authApi.verifyOtp({ email, code });
-      setIsLoading(false);
+      await authApi.verifyOtp({ email, code: code.trim() });
       setIsSuccessState(true);
       toast.success('Xác thực tài khoản thành công!');
 
       setTimeout(() => {
         setIsSuccessState(false);
-        navigate('/login'); // Xác thực xong, chuyển đến đăng nhập
+        navigate('/login');
       }, 1500);
     } catch (err: any) {
-      setIsLoading(false);
       if (err.response?.data) {
-        toast.error(err.response.data.message || 'Mã OTP không chính xác.');
+        toast.error(err.response.data.message || 'Mã OTP không chính xác hoặc đã hết hạn.');
       } else {
         toast.error('Không thể kết nối đến máy chủ Backend.');
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Gửi lại mã OTP
+  const handleResendOtp = async () => {
+    if (countdown > 0 || isResending) return;
+    setIsResending(true);
+    try {
+      await authApi.forgotPassword({ email });
+      toast.success('Đã gửi lại mã OTP mới về hòm thư Email của bạn!');
+      setCountdown(60);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại sau.');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -53,14 +83,12 @@ const VerifyOtpPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col relative overflow-hidden items-center justify-center px-4 py-12">
-      {/* Font: display serif cho tiêu đề, mono cho các nhãn kiểu "vé" */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700&family=JetBrains+Mono:wght@500;600&display=swap');
         .font-display { font-family: 'Fraunces', ui-serif, Georgia, serif; }
         .font-ticket { font-family: 'JetBrains Mono', ui-monospace, monospace; }
       `}</style>
 
-      {/* Vệt sáng nhẹ phía trên, thay cho các quả cầu mờ màu sắc rập khuôn */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -70,9 +98,7 @@ const VerifyOtpPage: React.FC = () => {
       />
 
       <div className="w-full max-w-[440px] relative z-10">
-        {/* Thẻ dạng boarding pass */}
         <div className="bg-white rounded-[28px] shadow-xl shadow-slate-900/[0.06] border border-slate-200/70 relative">
-          {/* Phần đầu vé: thương hiệu + tiêu đề */}
           <div className="px-8 sm:px-10 pt-8 pb-7">
             <div className="flex items-center justify-end mb-6">
               <span className="font-ticket text-[10px] tracking-[0.2em] text-slate-400 uppercase">
@@ -92,14 +118,12 @@ const VerifyOtpPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Đường chia kiểu vé, có 2 lỗ khuyết */}
           <div className="relative">
             <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-100" />
             <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-100" />
             <div className="border-t-2 border-dashed border-amber-200 mx-6" />
           </div>
 
-          {/* Phần thân vé: form */}
           <div className="px-8 sm:px-10 pt-7 pb-8">
             {isSuccessState ? (
               <div className="text-center py-6 space-y-3">
@@ -126,12 +150,27 @@ const VerifyOtpPage: React.FC = () => {
                 <Button type="submit" isLoading={isLoading} fullWidth className="mt-6 py-3">
                   Xác nhận mã OTP
                 </Button>
+
+                <div className="text-center mt-4 text-xs text-slate-500">
+                  {countdown > 0 ? (
+                    <span>Gửi lại mã sau <strong className="text-slate-700">{countdown}s</strong></span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={isResending}
+                      className="text-coral-500 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    >
+                      <RotateCw size={13} className={isResending ? 'animate-spin' : ''} />
+                      Gửi lại mã OTP mới
+                    </button>
+                  )}
+                </div>
               </form>
             )}
           </div>
         </div>
 
-        {/* Chân trang kiểu cuống vé */}
         <p className="font-ticket text-center text-[10px] tracking-[0.2em] text-slate-400 uppercase mt-4">
           Giữ vé này để lên chuyến tiếp theo của bạn
         </p>

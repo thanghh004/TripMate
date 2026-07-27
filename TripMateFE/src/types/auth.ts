@@ -17,6 +17,7 @@ export interface LoginRequest {
 
 export interface GoogleLoginRequest {
   idToken: string;
+  nonce?: string;
 }
 
 export interface RefreshTokenRequest {

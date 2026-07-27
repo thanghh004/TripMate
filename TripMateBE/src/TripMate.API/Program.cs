@@ -1,6 +1,9 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TripMate.API.Middleware;
@@ -62,7 +65,49 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// 5. Cấu hình CORS cho kết nối Frontend (Next.js)
+// 5a. Cấu hình ForwardedHeaders — Đọc IP thực của client khi đứng sau Nginx/Cloudflare/Load Balancer
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Cho phép tất cả proxy (production nên giới hạn KnownProxies cụ thể)
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// 5b. Cấu hình Rate Limiting — Chống Brute-force & DDoS cho các endpoint Auth
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Policy "AuthPolicy": Tối đa 5 request/phút trên mỗi IP — SlidingWindow mịn hơn FixedWindow
+    // Tránh "double hit": cuối cửa sổ cũ + đầu cửa sổ mới gửi dồn 10 request trong 2 giây
+    options.AddPolicy("AuthPolicy", httpContext =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                SegmentsPerWindow = 6, // Chia thành 6 đoạn = mỗi đoạn 10 giây
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            }));
+
+    // Policy "GeneralPolicy": Tối đa 60 request/phút cho các API thông thường
+    options.AddPolicy("GeneralPolicy", httpContext =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                SegmentsPerWindow = 6,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 2
+            }));
+});
+
+// 6. Cấu hình CORS cho kết nối Frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -94,12 +139,17 @@ if (app.Environment.IsDevelopment())
 // Bắt lỗi toàn cục tự động chuyển thành JSON phản hồi chuẩn
 app.UseMiddleware<ExceptionMiddleware>();
 
+// Đọc IP thực của client từ header X-Forwarded-For (khi đứng sau Nginx/Cloudflare)
+app.UseForwardedHeaders();
+
 app.UseHttpsRedirection();
 
 // Phục vụ file tĩnh (ảnh upload) từ thư mục wwwroot
 app.UseStaticFiles();
 
 app.UseCors("AllowAll");
+
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseMiddleware<UserStatusMiddleware>();

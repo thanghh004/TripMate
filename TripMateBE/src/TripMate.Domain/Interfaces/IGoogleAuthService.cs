@@ -19,6 +19,7 @@ public interface IGoogleAuthService
     /// Xác minh mã Google ID Token gửi từ Client
     /// </summary>
     /// <param name="idToken">Chuỗi ID Token của Google</param>
+    /// <param name="nonce">Chuỗi nonce gốc (chưa hash) để kiểm tra chống Replay Attack</param>
     /// <returns>Thông tin người dùng Google nếu mã hợp lệ</returns>
-    Task<GoogleUserInfo> ValidateIdTokenAsync(string idToken);
+    Task<GoogleUserInfo> ValidateIdTokenAsync(string idToken, string? nonce = null);
 }

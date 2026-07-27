@@ -27,7 +27,7 @@ public class TokenService : ITokenService
                         ?? "TripMate_Super_Secret_Key_For_Jwt_Token_Generation_2026_Must_Be_Long_Enough";
         var issuer = _configuration["JwtSettings:Issuer"] ?? "TripMateApi";
         var audience = _configuration["JwtSettings:Audience"] ?? "TripMateClient";
-        var expiryMinutesStr = _configuration["JwtSettings:ExpiryMinutes"] ?? "1440"; // Mặc định 1 ngày
+        var expiryMinutesStr = _configuration["JwtSettings:ExpiryMinutes"] ?? "30"; // Mặc định 30 phút
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

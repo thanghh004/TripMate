@@ -23,9 +23,8 @@ public class OtpService : IOtpService
     {
         var email = targetEmail.Trim().ToLower();
 
-        // 1. Sinh mã OTP ngẫu nhiên 6 chữ số
-        var random = new Random();
-        var otpCode = random.Next(100000, 999999).ToString();
+        // 1. Sinh mã OTP ngẫu nhiên 6 chữ số bằng RandomNumberGenerator bảo mật cao (CSPRNG)
+        var otpCode = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
 
         // 2. Vô hiệu hóa các mã OTP cũ chưa sử dụng của Email này để tránh spam
         var oldOtps = await _dbContext.VerificationCodes
@@ -75,19 +74,36 @@ public class OtpService : IOtpService
         var email = targetEmail.Trim().ToLower();
         var cleanCode = code.Trim();
 
-        // 1. Tìm mã OTP mới nhất phù hợp theo Email, Loại xác thực và Mã 6 số
+        // 1. Tìm mã OTP mới nhất chưa dùng và chưa hết hạn của Email theo loại xác thực
         var activeOtp = await _dbContext.VerificationCodes
             .IgnoreQueryFilters()
-            .Where(vc => vc.Target == email && vc.VerificationType == type && vc.Code == cleanCode)
+            .Where(vc => vc.Target == email && vc.VerificationType == type && !vc.IsUsed && !vc.IsDeleted)
             .OrderByDescending(vc => vc.CreatedAt)
             .FirstOrDefaultAsync();
 
-        if (activeOtp == null || activeOtp.IsUsed || activeOtp.IsDeleted || activeOtp.ExpiryTime < DateTime.UtcNow)
+        // Nếu không có mã hoặc mã đã hết hạn
+        if (activeOtp == null || activeOtp.ExpiryTime < DateTime.UtcNow)
         {
             return false;
         }
 
-        // 2. Đánh dấu mã đã sử dụng thành công
+        // 2. Kiểm tra mã OTP nhập vào có khớp không
+        if (activeOtp.Code != cleanCode)
+        {
+            activeOtp.FailedAttempts += 1;
+            activeOtp.UpdatedAt = DateTime.UtcNow;
+
+            // Nếu nhập sai từ 5 lần trở lên -> Tự động vô hiệu hóa mã OTP này (Xóa mềm)
+            if (activeOtp.FailedAttempts >= 5)
+            {
+                activeOtp.IsDeleted = true;
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return false;
+        }
+
+        // 3. Đánh dấu mã đã sử dụng thành công khi nhập đúng
         activeOtp.IsUsed = true;
         activeOtp.UpdatedAt = DateTime.UtcNow;
         

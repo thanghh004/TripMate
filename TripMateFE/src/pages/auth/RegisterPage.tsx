@@ -7,10 +7,13 @@ import { AuthContext } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { User, Mail, Lock } from 'lucide-react';
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const RegisterPage: React.FC = () => {
   const authContext = useContext(AuthContext);
   const { toast } = useToast();
   const navigate = useNavigate();
+  
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,24 +23,39 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
+
+    // Client-side Validations
+    if (!fullName.trim()) {
+      toast.error('Họ và tên không được để trống.');
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(email.trim())) {
+      toast.error('Địa chỉ email không đúng định dạng.');
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error('Mật khẩu phải có ít nhất 6 ký tự.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       await authApi.register({
-        fullName,
-        email,
+        fullName: fullName.trim(),
+        email: email.trim(),
         password,
       });
 
       if (authContext) {
-        authContext.setRegisteredEmail(email);
+        authContext.setRegisteredEmail(email.trim());
       }
 
-      setIsLoading(false);
       toast.success('Đăng ký tài khoản thành công! Vui lòng nhập mã OTP.');
       navigate('/verify-otp');
     } catch (err: any) {
-      setIsLoading(false);
       if (err.response?.data) {
         const resData = err.response.data;
         if (resData.errors) {
@@ -47,6 +65,8 @@ const RegisterPage: React.FC = () => {
       } else {
         toast.error('Không thể kết nối đến máy chủ Backend.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -59,7 +79,7 @@ const RegisterPage: React.FC = () => {
         .font-ticket { font-family: 'JetBrains Mono', ui-monospace, monospace; }
       `}</style>
 
-      {/* Vệt sáng nhẹ phía trên, thay cho các quả cầu mờ màu sắc rập khuôn */}
+      {/* Vệt sáng nhẹ phía trên */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -127,7 +147,7 @@ const RegisterPage: React.FC = () => {
               placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              error={fieldErrors['Password']?.[0] || fieldErrors['password']?.[0]}
+              error={fieldErrors['Password']?.[0] || fieldErrors['Password']?.[0] || fieldErrors['password']?.[0]}
               icon={<Lock size={18} />}
               required
             />

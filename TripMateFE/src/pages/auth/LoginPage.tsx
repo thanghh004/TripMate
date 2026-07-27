@@ -61,6 +61,8 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const [googleNonce] = useState(() => Math.random().toString(36).substring(2) + Date.now().toString(36));
+
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
       setIsLoading(true);
@@ -70,7 +72,7 @@ const LoginPage: React.FC = () => {
         throw new Error('Không nhận được ID Token từ Google.');
       }
 
-      const res = await authApi.googleLogin({ idToken });
+      const res = await authApi.googleLogin({ idToken, nonce: googleNonce });
       setIsLoading(false);
 
       if (authContext) {
