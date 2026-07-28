@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using TripMate.API.Middleware;
 using TripMate.Application;
 using TripMate.Domain.Entities;
@@ -120,7 +121,35 @@ builder.Services.AddCors(options =>
 
 // 6. Đăng ký Controllers & Swagger/OpenAPI
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "TripMate API",
+        Version = "v1",
+        Description = "API cho hệ thống ghép chuyến đi du lịch TripMate"
+    });
+
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Nhập token theo định dạng: Bearer {token}"
+    };
+
+    c.AddSecurityDefinition("Bearer", securityScheme);
+    c.AddSecurityRequirement((doc) => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer"),
+            new List<string>()
+        }
+    });
+});
 
 // 7. Cấu hình giới hạn kích thước file upload (tối đa 10MB)
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
@@ -130,11 +159,13 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Bật Swagger UI ở tất cả môi trường (kể cả Production Render)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.MapOpenApi();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TripMate API v1");
+    c.RoutePrefix = "swagger";
+});
 
 // Bắt lỗi toàn cục tự động chuyển thành JSON phản hồi chuẩn
 app.UseMiddleware<ExceptionMiddleware>();
@@ -142,12 +173,13 @@ app.UseMiddleware<ExceptionMiddleware>();
 // Đọc IP thực của client từ header X-Forwarded-For (khi đứng sau Nginx/Cloudflare)
 app.UseForwardedHeaders();
 
+// Bật CORS cho tất cả nguồn (Vercel, Localhost...)
+app.UseCors("AllowAll");
+
 app.UseHttpsRedirection();
 
 // Phục vụ file tĩnh (ảnh upload) từ thư mục wwwroot
 app.UseStaticFiles();
-
-app.UseCors("AllowAll");
 
 app.UseRateLimiter();
 
