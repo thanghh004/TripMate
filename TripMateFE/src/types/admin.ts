@@ -20,7 +20,13 @@ export interface AdminUserListItem {
   hostVerificationStatus: number;
   avgRating: number;
   totalTrips: number;
+  createdCompletedTripsCount?: number;
+  createdUncompletedTripsCount?: number;
+  joinedCompletedTripsCount?: number;
+  joinedUncompletedTripsCount?: number;
 }
+
+
 
 /// <summary>
 /// Request body cho Admin cập nhật cài đặt quản trị người dùng.

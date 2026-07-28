@@ -19,7 +19,18 @@ public interface ITokenService
     string GenerateRefreshToken();
 
     /// <summary>
+    /// Băm chuỗi Refresh Token bằng SHA-256 trước khi lưu DB
+    /// </summary>
+    string HashToken(string token);
+
+    /// <summary>
+    /// Lấy thời gian sống của Access Token tính theo giây từ cấu hình JwtSettings:ExpiryMinutes
+    /// </summary>
+    int GetAccessTokenExpirySeconds();
+
+    /// <summary>
     /// Giải mã một Access Token đã hết hạn để lấy lại danh sách Claims của User
     /// </summary>
     ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
 }
+

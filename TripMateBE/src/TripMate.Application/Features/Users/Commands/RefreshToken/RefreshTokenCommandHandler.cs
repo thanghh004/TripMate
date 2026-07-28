@@ -35,9 +35,10 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             throw new UnauthorizedException("Thông tin người dùng trong Token không hợp lệ.");
         }
 
-        // 2. Kiểm tra thông tin người dùng trong CSDL
+        // 2. Kiểm tra thông tin người dùng trong CSDL (so sánh chuỗi Refresh Token đã băm SHA-256)
+        var hashedRefreshToken = _tokenService.HashToken(request.RefreshToken);
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
-        if (user == null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+        if (user == null || user.RefreshToken != hashedRefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
             throw new UnauthorizedException("Refresh Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
         }
@@ -46,19 +47,19 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var newAccessToken = _tokenService.GenerateAccessToken(user);
         var newRefreshToken = _tokenService.GenerateRefreshToken();
 
-        // 4. Cập nhật mã Refresh Token mới vào CSDL
-        user.RefreshToken = newRefreshToken;
+        // 4. Cập nhật mã Refresh Token băm mới vào CSDL
+        user.RefreshToken = _tokenService.HashToken(newRefreshToken);
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         user.UpdatedAt = DateTime.UtcNow;
 
         await _userRepository.UpdateAsync(user);
 
-        // 5. Trả về kết quả dưới dạng RefreshTokenResponseDto
+        // 5. Trả về kết quả dưới dạng RefreshTokenDto với Refresh Token nguyên bản
         return new RefreshTokenDto
         {
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken,
-            ExpiresIn = 86400,
+            ExpiresIn = _tokenService.GetAccessTokenExpirySeconds(),
             UserId = user.Id,
             FullName = user.FullName,
             Email = user.Email!,

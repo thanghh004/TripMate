@@ -89,19 +89,19 @@ public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, Goo
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
-        // 6. Cập nhật mã Refresh Token xuống CSDL (hạn 7 ngày)
-        user.RefreshToken = refreshToken;
+        // 6. Cập nhật mã Refresh Token (băm SHA-256) xuống CSDL (hạn 7 ngày)
+        user.RefreshToken = _tokenService.HashToken(refreshToken);
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         user.UpdatedAt = DateTime.UtcNow;
 
         await _userRepository.UpdateAsync(user);
 
-        // 7. Trả về kết quả xác thực dưới dạng GoogleLoginResponseDto
+        // 7. Trả về kết quả xác thực với Refresh Token nguyên bản (plaintext) cho Client
         return new GoogleLoginDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
-            ExpiresIn = 86400,
+            ExpiresIn = _tokenService.GetAccessTokenExpirySeconds(),
             UserId = user.Id,
             FullName = user.FullName,
             Email = user.Email!,

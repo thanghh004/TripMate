@@ -53,19 +53,19 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginDto>
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
-        // 5. Lưu Refresh Token mới xuống CSDL (hạn dùng 7 ngày)
-        user.RefreshToken = refreshToken;
+        // 5. Lưu SHA-256 Hash của Refresh Token mới xuống CSDL (hạn dùng 7 ngày)
+        user.RefreshToken = _tokenService.HashToken(refreshToken);
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
         user.UpdatedAt = DateTime.UtcNow;
 
         await _userRepository.UpdateAsync(user);
 
-        // 6. Trả về kết quả xác thực dưới dạng LoginResponseDto
+        // 6. Trả về kết quả xác thực với Refresh Token nguyên bản (plaintext) cho Client
         return new LoginDto
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
-            ExpiresIn = 86400, // 24 giờ tính theo giây
+            ExpiresIn = _tokenService.GetAccessTokenExpirySeconds(),
             UserId = user.Id,
             FullName = user.FullName,
             Email = user.Email!,

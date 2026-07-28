@@ -70,8 +70,31 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose 
         <InfoField label="Trạng thái tài khoản" value={user.status === 1 ? 'Tạm khóa' : 'Đang hoạt động'} />
         <InfoField label="Trạng thái Host" value={getHostStatusLabel(user.hostVerificationStatus)} />
         <InfoField label="Đánh giá trung bình" value={`${user.avgRating.toFixed(1)} / 5.0`} />
-        <InfoField label="Tổng số chuyến đi" value={`${user.totalTrips} chuyến`} />
+        <InfoField 
+          label="Số chuyến đi tạo" 
+          value={(() => {
+            const created = (user.createdCompletedTripsCount ?? 0) + (user.createdUncompletedTripsCount ?? 0);
+            const createdUncomplete = user.createdUncompletedTripsCount ?? 0;
+            return createdUncomplete > 0
+              ? `${created} chuyến (${createdUncomplete} không hoàn thành)`
+              : `${created} chuyến`;
+          })()} 
+        />
+        <InfoField 
+          label="Số chuyến đi tham gia" 
+          value={(() => {
+            const joined = (user.joinedCompletedTripsCount ?? 0) + (user.joinedUncompletedTripsCount ?? 0);
+            const joinedUncomplete = user.joinedUncompletedTripsCount ?? 0;
+            return joinedUncomplete > 0
+              ? `${joined} chuyến (${joinedUncomplete} không hoàn thành)`
+              : `${joined} chuyến`;
+          })()} 
+        />
       </div>
+
+
+
+
 
       {/* Bio */}
       {user.bio && (

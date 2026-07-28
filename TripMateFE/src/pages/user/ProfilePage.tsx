@@ -83,8 +83,13 @@ const ProfilePage: React.FC = () => {
 
   const [avgRating, setAvgRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
-  const [totalTrips, setTotalTrips] = useState(0);
+  const [createdCompletedTripsCount, setCreatedCompletedTripsCount] = useState(0);
+  const [createdUncompletedTripsCount, setCreatedUncompletedTripsCount] = useState(0);
+  const [joinedCompletedTripsCount, setJoinedCompletedTripsCount] = useState(0);
+  const [joinedUncompletedTripsCount, setJoinedUncompletedTripsCount] = useState(0);
   const [hasActiveTrips, setHasActiveTrips] = useState(false);
+
+
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingFront, setUploadingFront] = useState(false);
@@ -130,10 +135,21 @@ const ProfilePage: React.FC = () => {
         setHostVerificationStatus(profile.hostVerificationStatus ?? HostVerificationStatus.Unverified);
         setHostRejectReason(profile.hostRejectReason || '');
         setBio(profile.bio || '');
+        const createdCompleted = profile.createdCompletedTripsCount ?? 0;
+        const createdUncompleted = profile.createdUncompletedTripsCount ?? 0;
+        const joinedCompleted = profile.joinedCompletedTripsCount ?? 0;
+        const joinedUncompleted = profile.joinedUncompletedTripsCount ?? 0;
+
+        setCreatedCompletedTripsCount(createdCompleted);
+        setCreatedUncompletedTripsCount(createdUncompleted);
+        setJoinedCompletedTripsCount(joinedCompleted);
+        setJoinedUncompletedTripsCount(joinedUncompleted);
+
         setAvgRating(profile.avgRating || 0);
         setTotalReviews(profile.totalReviews || 0);
-        setTotalTrips(profile.totalTrips || 0);
         setHasActiveTrips(profile.hasActiveTrips || false);
+
+
 
         authContext?.updateUser({
           fullName: profile.fullName,
@@ -614,13 +630,22 @@ const ProfilePage: React.FC = () => {
           </div>
           <div className="space-y-1">
             <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chuyến đi đã tạo</p>
-            <p className="text-base font-black text-slate-900">{totalTrips}</p>
+            <p className="text-base font-black text-slate-900">
+              {createdUncompletedTripsCount > 0
+                ? `${createdCompletedTripsCount + createdUncompletedTripsCount}`
+                : createdCompletedTripsCount}
+            </p>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 border-l border-slate-100">
             <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Chuyến đi đã tham gia</p>
-            <p className="text-base font-black text-slate-900">{totalTrips}</p>
+            <p className="text-base font-black text-slate-900">
+              {joinedUncompletedTripsCount > 0
+                ? `${joinedCompletedTripsCount + joinedUncompletedTripsCount}`
+                : joinedCompletedTripsCount}
+            </p>
           </div>
         </div>
+
 
         {/* Details & CCCD */}
         <div className="space-y-6 pt-8">

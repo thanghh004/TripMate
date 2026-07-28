@@ -86,8 +86,20 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onS
             { label: 'Ngày sinh', value: formatDate(user.birthDate) || 'Chưa nhập' },
             { label: 'Số CCCD', value: user.identityCardNumber || 'Chưa đăng ký', mono: true },
             { label: 'Đánh giá trung bình', value: `${user.avgRating.toFixed(1)} / 5.0` },
-            { label: 'Tổng số chuyến đi', value: `${user.totalTrips} chuyến` },
+            { 
+              label: 'Số chuyến đi tạo', 
+              value: user.createdUncompletedTripsCount && user.createdUncompletedTripsCount > 0
+                ? `${(user.createdCompletedTripsCount ?? 0) + user.createdUncompletedTripsCount} chuyến (${user.createdUncompletedTripsCount} không hoàn thành)`
+                : `${(user.createdCompletedTripsCount ?? 0) + (user.createdUncompletedTripsCount ?? 0)} chuyến`
+            },
+            { 
+              label: 'Số chuyến đi tham gia', 
+              value: user.joinedUncompletedTripsCount && user.joinedUncompletedTripsCount > 0
+                ? `${(user.joinedCompletedTripsCount ?? 0) + user.joinedUncompletedTripsCount} chuyến (${user.joinedUncompletedTripsCount} không hoàn thành)`
+                : `${(user.joinedCompletedTripsCount ?? 0) + (user.joinedUncompletedTripsCount ?? 0)} chuyến`
+            },
           ].map(({ label, value, mono }) => (
+
             <div key={label}>
               <label className="block text-xs font-semibold text-slate-700 mb-1">{label}</label>
               <input

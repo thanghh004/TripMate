@@ -64,6 +64,7 @@ public class UserRepository : IUserRepository
         return await _userManager.Users
             .Include(u => u.OrganizedTrips)
             .Include(u => u.JoinedTrips)
+                .ThenInclude(m => m.Trip)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
@@ -73,6 +74,7 @@ public class UserRepository : IUserRepository
             .Where(u => u.Role == Domain.Enums.UserRole.User && u.EmailConfirmed)
             .Include(u => u.OrganizedTrips)
             .Include(u => u.JoinedTrips)
+                .ThenInclude(m => m.Trip)
             .OrderByDescending(u => u.CreatedAt)
             .ToListAsync(cancellationToken);
     }

@@ -63,6 +63,24 @@ public class TokenService : ITokenService
         return Convert.ToBase64String(randomNumber);
     }
 
+    public string HashToken(string token)
+    {
+        if (string.IsNullOrEmpty(token)) return string.Empty;
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(bytes);
+    }
+
+    public int GetAccessTokenExpirySeconds()
+    {
+        var expiryMinutesStr = _configuration["JwtSettings:ExpiryMinutes"] ?? "30";
+        if (int.TryParse(expiryMinutesStr, out var minutes))
+        {
+            return minutes * 60;
+        }
+        return 1800; // Mặc định 30 phút = 1800 giây
+    }
+
+
     public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
     {
         var secretKey = _configuration["JwtSettings:Secret"] 

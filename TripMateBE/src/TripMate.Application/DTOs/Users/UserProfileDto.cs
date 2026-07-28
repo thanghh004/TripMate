@@ -25,5 +25,10 @@ public class UserProfileDto
     public decimal AvgRating { get; set; }
     public int TotalReviews { get; set; }
     public int TotalTrips { get; set; }
+    public int CreatedCompletedTripsCount { get; set; }
+    public int CreatedUncompletedTripsCount { get; set; }
+    public int JoinedCompletedTripsCount { get; set; }
+    public int JoinedUncompletedTripsCount { get; set; }
     public bool HasActiveTrips { get; set; }
 }
+

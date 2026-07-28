@@ -116,5 +116,10 @@ export interface UserProfileResponse {
   avgRating: number;
   totalReviews: number;
   totalTrips: number;
+  createdCompletedTripsCount?: number;
+  createdUncompletedTripsCount?: number;
+  joinedCompletedTripsCount?: number;
+  joinedUncompletedTripsCount?: number;
   hasActiveTrips?: boolean;
 }
+

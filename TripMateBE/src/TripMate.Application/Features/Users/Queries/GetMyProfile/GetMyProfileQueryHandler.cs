@@ -48,7 +48,18 @@ public class GetMyProfileQueryHandler : IRequestHandler<GetMyProfileQuery, UserP
             AvgRating = user.AvgRating,
             TotalReviews = user.TotalReviews,
             TotalTrips = totalTrips,
+            CreatedCompletedTripsCount = user.OrganizedTrips?.Count(t => t.Status == TripMate.Domain.Enums.TripStatus.Completed) ?? 0,
+            CreatedUncompletedTripsCount = user.OrganizedTrips?.Count(t => 
+                t.Status == TripMate.Domain.Enums.TripStatus.Cancelled || 
+                t.Status == TripMate.Domain.Enums.TripStatus.Rejected || 
+                t.Status == TripMate.Domain.Enums.TripStatus.Failed) ?? 0,
+            JoinedCompletedTripsCount = user.JoinedTrips?.Count(m => m.Trip != null && m.Trip.Status == TripMate.Domain.Enums.TripStatus.Completed) ?? 0,
+            JoinedUncompletedTripsCount = user.JoinedTrips?.Count(m => m.Trip != null && (
+                m.Trip.Status == TripMate.Domain.Enums.TripStatus.Cancelled || 
+                m.Trip.Status == TripMate.Domain.Enums.TripStatus.Rejected || 
+                m.Trip.Status == TripMate.Domain.Enums.TripStatus.Failed)) ?? 0,
             HasActiveTrips = hasActiveTrips
         };
     }
 }
+
