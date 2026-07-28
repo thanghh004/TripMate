@@ -25,11 +25,11 @@ public abstract class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguratio
 
         builder.Property(e => e.CreatedAt)
             .HasColumnName("created_at")
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(e => e.UpdatedAt)
             .HasColumnName("updated_at")
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         // 3. Bộ lọc xóa mềm tự động (Global Query Filter) cho tất cả thực thể kế thừa BaseEntity
         builder.HasQueryFilter(e => !e.IsDeleted);

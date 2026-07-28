@@ -33,7 +33,7 @@ public class TripMemberConfiguration : BaseEntityConfiguration<TripMember>
 
         builder.Property(tm => tm.JoinedAt)
             .HasColumnName("joined_at")
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(tm => tm.LeftAt)
             .HasColumnName("left_at");
@@ -42,7 +42,7 @@ public class TripMemberConfiguration : BaseEntityConfiguration<TripMember>
         // Một người dùng chỉ tham gia 1 chuyến đi ở 1 thời điểm dưới dạng thành viên hoạt động
         builder.HasIndex(tm => new { tm.TripId, tm.UserId })
             .IsUnique()
-            .HasFilter("[is_deleted] = 0");
+            .HasFilter("is_deleted = false");
 
         // 5. Cấu hình mối quan hệ (Relationships)
         builder.HasOne(tm => tm.Trip)

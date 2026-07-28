@@ -41,7 +41,7 @@ public class TripRequestConfiguration : BaseEntityConfiguration<TripRequest>
         // Một người dùng chỉ có duy nhất 1 yêu cầu tham gia còn hoạt động cho 1 chuyến đi
         builder.HasIndex(tr => new { tr.TripId, tr.UserId })
             .IsUnique()
-            .HasFilter("[is_deleted] = 0");
+            .HasFilter("is_deleted = false");
 
         // 5. Cấu hình mối quan hệ (Relationships)
         builder.HasOne(tr => tr.Trip)

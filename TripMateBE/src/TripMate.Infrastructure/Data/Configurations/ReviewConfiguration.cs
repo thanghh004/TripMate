@@ -41,10 +41,10 @@ public class ReviewConfiguration : BaseEntityConfiguration<Review>
         // Ràng buộc một người chỉ được đánh giá người khác 1 lần trong mỗi chuyến đi
         builder.HasIndex(r => new { r.TripId, r.ReviewerId, r.RevieweeId })
             .IsUnique()
-            .HasFilter("[is_deleted] = 0");
+            .HasFilter("is_deleted = false");
 
         // Ràng buộc số sao từ 1 đến 5 bằng SQL Check Constraint
-        builder.ToTable(t => t.HasCheckConstraint("CK_Review_Rating", "[rating] >= 1 AND [rating] <= 5"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_Review_Rating", "rating >= 1 AND rating <= 5"));
 
         // 5. Cấu hình mối quan hệ (Relationships)
         builder.HasOne(r => r.Trip)

@@ -18,9 +18,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// 2. Cấu hình DbContext với SQL Server
+// 2. Cấu hình DbContext với PostgreSQL
 builder.Services.AddDbContext<TripMateDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 3. Cấu hình ASP.NET Core Identity
 builder.Services.AddIdentityCore<User>(options =>

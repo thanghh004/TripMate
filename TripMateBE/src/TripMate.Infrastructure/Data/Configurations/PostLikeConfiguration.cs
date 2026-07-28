@@ -30,7 +30,7 @@ public class PostLikeConfiguration : BaseEntityConfiguration<PostLike>
         // Một người dùng chỉ được thích một bài viết một lần
         builder.HasIndex(pl => new { pl.PostId, pl.UserId })
             .IsUnique()
-            .HasFilter("[is_deleted] = 0");
+            .HasFilter("is_deleted = false");
 
         // 5. Cấu hình mối quan hệ (Relationships)
         builder.HasOne(pl => pl.Post)

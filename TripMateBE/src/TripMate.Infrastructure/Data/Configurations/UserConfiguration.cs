@@ -114,11 +114,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.CreatedAt)
             .HasColumnName("created_at")
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(u => u.UpdatedAt)
             .HasColumnName("updated_at")
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
         builder.Property(u => u.RefreshToken)
             .HasColumnName("refresh_token")
@@ -130,11 +130,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // 4. Các chỉ mục (Indexes)
         builder.HasIndex(u => u.PhoneNumber)
             .IsUnique()
-            .HasFilter("[phone] IS NOT NULL"); // Cho phép nhiều bản ghi có SĐT null
+            .HasFilter("phone IS NOT NULL"); // Cho phép nhiều bản ghi có SĐT null
 
         builder.HasIndex(u => u.Email)
             .IsUnique()
-            .HasFilter("[email] IS NOT NULL"); // Cho phép nhiều bản ghi có Email null
+            .HasFilter("email IS NOT NULL"); // Cho phép nhiều bản ghi có Email null
 
         // 5. Thiết lập Bộ lọc xóa mềm mặc định (Global Query Filter)
         builder.HasQueryFilter(u => !u.IsDeleted);
