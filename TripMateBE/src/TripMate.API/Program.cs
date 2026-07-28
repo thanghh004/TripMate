@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using TripMate.API.Middleware;
 using TripMate.Application;
 using TripMate.Domain.Entities;
@@ -70,7 +70,6 @@ builder.Services.AddAuthorization();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    // Cho phép tất cả proxy (production nên giới hạn KnownProxies cụ thể)
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
 });
@@ -80,8 +79,6 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Policy "AuthPolicy": Tối đa 5 request/phút trên mỗi IP — SlidingWindow mịn hơn FixedWindow
-    // Tránh "double hit": cuối cửa sổ cũ + đầu cửa sổ mới gửi dồn 10 request trong 2 giây
     options.AddPolicy("AuthPolicy", httpContext =>
         RateLimitPartition.GetSlidingWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -89,12 +86,11 @@ builder.Services.AddRateLimiter(options =>
             {
                 PermitLimit = 5,
                 Window = TimeSpan.FromMinutes(1),
-                SegmentsPerWindow = 6, // Chia thành 6 đoạn = mỗi đoạn 10 giây
+                SegmentsPerWindow = 6,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
             }));
 
-    // Policy "GeneralPolicy": Tối đa 60 request/phút cho các API thông thường
     options.AddPolicy("GeneralPolicy", httpContext =>
         RateLimitPartition.GetSlidingWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -131,7 +127,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API cho hệ thống ghép chuyến đi du lịch TripMate"
     });
 
-    var securityScheme = new OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey,
@@ -139,14 +135,20 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
         Description = "Nhập token theo định dạng: Bearer {token}"
-    };
+    });
 
-    c.AddSecurityDefinition("Bearer", securityScheme);
-    c.AddSecurityRequirement((doc) => new OpenApiSecurityRequirement
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecuritySchemeReference("Bearer"),
-            new List<string>()
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
         }
     });
 });
@@ -154,12 +156,12 @@ builder.Services.AddSwaggerGen(c =>
 // 7. Cấu hình giới hạn kích thước file upload (tối đa 10MB)
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
+    options.MultipartBodyLengthLimit = 10 * 1024 * 1024;
 });
 
 var app = builder.Build();
 
-// Bật Swagger UI ở tất cả môi trường (kể cả Production Render)
+// Bật Swagger UI ở tất cả môi trường
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -167,26 +169,15 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-// Bắt lỗi toàn cục tự động chuyển thành JSON phản hồi chuẩn
 app.UseMiddleware<ExceptionMiddleware>();
-
-// Đọc IP thực của client từ header X-Forwarded-For (khi đứng sau Nginx/Cloudflare)
 app.UseForwardedHeaders();
-
-// Bật CORS cho tất cả nguồn (Vercel, Localhost...)
 app.UseCors("AllowAll");
-
 app.UseHttpsRedirection();
-
-// Phục vụ file tĩnh (ảnh upload) từ thư mục wwwroot
 app.UseStaticFiles();
-
 app.UseRateLimiter();
-
 app.UseAuthentication();
 app.UseMiddleware<UserStatusMiddleware>();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
