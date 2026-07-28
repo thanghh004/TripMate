@@ -1,4 +1,5 @@
 using MediatR;
+using TripMate.Domain.Constants;
 using TripMate.Domain.Exceptions;
 using TripMate.Domain.Interfaces;
 
@@ -36,7 +37,7 @@ public class ResendOtpCommandHandler : IRequestHandler<ResendOtpCommand, bool>
         }
 
         // 3. Sinh mã OTP mới với type = "Register" và gửi email
-        await _otpService.GenerateOtpAsync(email, "Register");
+        await _otpService.GenerateOtpAsync(email, VerificationTypeConstants.Register);
 
         return true;
     }

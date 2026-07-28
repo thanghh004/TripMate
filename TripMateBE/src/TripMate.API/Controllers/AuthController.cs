@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using TripMate.Application.Features.Users.Commands.CheckOtp;
 using TripMate.Application.Features.Users.Commands.ForgotPassword;
 using TripMate.Application.Features.Users.Commands.GoogleLogin;
 using TripMate.Application.Features.Users.Commands.Login;
@@ -63,6 +64,24 @@ public class AuthController : BaseApiController
             status = 200,
             message = "Mã OTP mới đã được gửi lại về hòm thư Email của bạn.",
             data = new { isSuccess }
+        });
+    }
+
+    /// <summary>
+    /// Kiểm tra mã OTP hợp lệ mà KHÔNG đánh dấu đã sử dụng
+    /// Dùng cho bước xác thực OTP trước khi nhập mật khẩu mới (Quên mật khẩu Bước 2)
+    /// Giới hạn: 5 lượt/phút/IP
+    /// </summary>
+    [HttpPost("check-otp")]
+    [EnableRateLimiting("AuthPolicy")]
+    public async Task<IActionResult> CheckOtp([FromBody] CheckOtpCommand command)
+    {
+        var isValid = await Mediator.Send(command);
+        return Ok(new
+        {
+            status = 200,
+            message = "Mã OTP hợp lệ.",
+            data = new { isValid }
         });
     }
 

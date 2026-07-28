@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using TripMate.Domain.Constants;
 using TripMate.Domain.Interfaces;
 using TripMate.Domain.Entities;
 using TripMate.Infrastructure.Data;
@@ -7,7 +8,7 @@ using TripMate.Infrastructure.Data;
 namespace TripMate.Infrastructure.Services;
 
 /// <summary>
-/// Dịch vụ quản lý OTP: tạo mã, lưu DB, và gửi Email xác thực
+/// Dịch vụ quản lý OTP: tạo mã, lưu DB, kiểm tra và gửi Email xác thực
 /// </summary>
 public class OtpService : IOtpService
 {
@@ -36,7 +37,7 @@ public class OtpService : IOtpService
 
         foreach (var oldOtp in oldOtps)
         {
-            oldOtp.IsDeleted = true; // Xóa mềm mã cũ
+            oldOtp.IsDeleted = true;
         }
 
         // 3. Lưu mã OTP mới vào CSDL (hết hạn sau 15 phút)
@@ -52,7 +53,6 @@ public class OtpService : IOtpService
         _dbContext.VerificationCodes.Add(verificationCode);
         await _dbContext.SaveChangesAsync();
 
-        // IN NỔI BẬT MÃ OTP RA RENDER CONSOLE LOG DỄ DÀNG TEST
         _logger.LogInformation("=================================================");
         _logger.LogInformation("🔑 [MÃ OTP XÁC THỰC] Target Email: {Email} | OTP Code: {OtpCode} | Type: {Type}", email, otpCode, type);
         _logger.LogInformation("=================================================");
@@ -77,44 +77,69 @@ public class OtpService : IOtpService
         return otpCode;
     }
 
-    public async Task<bool> VerifyOtpAsync(string targetEmail, string code, string type)
+    /// <summary>
+    /// Kiểm tra OTP hợp lệ mà KHÔNG đánh dấu đã sử dụng — dùng cho bước preview (ForgotPassword Step 2)
+    /// </summary>
+    public async Task<bool> CheckOtpAsync(string targetEmail, string code, string type)
     {
         var email = targetEmail.Trim().ToLower();
         var cleanCode = code.Trim();
 
-        // 1. Tìm mã OTP mới nhất chưa dùng và chưa hết hạn của Email theo loại xác thực
         var activeOtp = await _dbContext.VerificationCodes
             .IgnoreQueryFilters()
             .Where(vc => vc.Target == email && vc.VerificationType == type && !vc.IsUsed && !vc.IsDeleted)
             .OrderByDescending(vc => vc.CreatedAt)
             .FirstOrDefaultAsync();
 
-        // Nếu không có mã hoặc mã đã hết hạn
         if (activeOtp == null || activeOtp.ExpiryTime < DateTime.UtcNow)
-        {
             return false;
-        }
 
-        // 2. Kiểm tra mã OTP nhập vào có khớp không
+        // Chỉ kiểm tra mã đúng/sai — KHÔNG cập nhật IsUsed
         if (activeOtp.Code != cleanCode)
         {
             activeOtp.FailedAttempts += 1;
             activeOtp.UpdatedAt = DateTime.UtcNow;
 
-            // Nếu nhập sai từ 5 lần trở lên -> Tự động vô hiệu hóa mã OTP này (Xóa mềm)
             if (activeOtp.FailedAttempts >= 5)
-            {
                 activeOtp.IsDeleted = true;
-            }
 
             await _dbContext.SaveChangesAsync();
             return false;
         }
 
-        // 3. Đánh dấu mã đã sử dụng thành công khi nhập đúng
+        return true;
+    }
+
+    public async Task<bool> VerifyOtpAsync(string targetEmail, string code, string type)
+    {
+        var email = targetEmail.Trim().ToLower();
+        var cleanCode = code.Trim();
+
+        var activeOtp = await _dbContext.VerificationCodes
+            .IgnoreQueryFilters()
+            .Where(vc => vc.Target == email && vc.VerificationType == type && !vc.IsUsed && !vc.IsDeleted)
+            .OrderByDescending(vc => vc.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (activeOtp == null || activeOtp.ExpiryTime < DateTime.UtcNow)
+            return false;
+
+        if (activeOtp.Code != cleanCode)
+        {
+            activeOtp.FailedAttempts += 1;
+            activeOtp.UpdatedAt = DateTime.UtcNow;
+
+            if (activeOtp.FailedAttempts >= 5)
+                activeOtp.IsDeleted = true;
+
+            await _dbContext.SaveChangesAsync();
+            return false;
+        }
+
+        // Đánh dấu mã đã sử dụng thành công
         activeOtp.IsUsed = true;
         activeOtp.UpdatedAt = DateTime.UtcNow;
-        
+
         await _dbContext.SaveChangesAsync();
         return true;
     }

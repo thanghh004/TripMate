@@ -30,6 +30,12 @@ export const authApi = {
     return res.data;
   },
 
+  // API Kiểm tra OTP hợp lệ mà KHÔNG đánh dấu đã sử dụng (dùng cho Quên mật khẩu Bước 2)
+  checkOtp: async (data: { email: string; code: string; type?: string }): Promise<ApiResponse<{ isValid: boolean }>> => {
+    const res = await axiosClient.post<ApiResponse<{ isValid: boolean }>>('/api/auth/check-otp', data);
+    return res.data;
+  },
+
   // API 3: Đăng nhập bằng Email & Mật khẩu
   login: async (data: LoginRequest): Promise<ApiResponse<AuthResponse>> => {
     const res = await axiosClient.post<ApiResponse<AuthResponse>>('/api/auth/login', data);

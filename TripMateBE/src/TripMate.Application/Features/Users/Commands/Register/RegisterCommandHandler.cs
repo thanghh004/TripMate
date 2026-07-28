@@ -1,5 +1,6 @@
 using MediatR;
 using TripMate.Application.DTOs.Auth;
+using TripMate.Domain.Constants;
 using TripMate.Domain.Entities;
 using TripMate.Domain.Exceptions;
 using TripMate.Domain.Interfaces;
@@ -62,7 +63,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, RegisterD
         }
 
         // 5. Sinh mã OTP xác thực và tự động gửi tới Email của người đăng ký
-        await _otpService.GenerateOtpAsync(email, "Register");
+        await _otpService.GenerateOtpAsync(email, VerificationTypeConstants.Register);
 
         return new RegisterDto
         {

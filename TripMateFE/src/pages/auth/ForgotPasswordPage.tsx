@@ -29,7 +29,7 @@ const ForgotPasswordPage: React.FC = () => {
   }, [step, countdown]);
 
   // Bước 1: Gửi yêu cầu OTP quên mật khẩu
-  const handleRequestOtp = async (e: React.FormEvent) => {
+  const handleRequestOtp = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!EMAIL_REGEX.test(email.trim())) {
       toast.error('Vui lòng nhập địa chỉ Email đúng định dạng.');
@@ -53,15 +53,26 @@ const ForgotPasswordPage: React.FC = () => {
     }
   };
 
-  // Bước 2: Xác thực mã OTP (Kiểm tra OTP có đủ 6 số chưa)
-  const handleVerifyOtpStep = (e: React.FormEvent) => {
+  // Bước 2: Xác thực mã OTP qua API — báo lỗi ngay nếu sai, chuyển Step 3 nếu đúng
+  const handleVerifyOtpStep = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!code.trim() || code.trim().length !== 6) {
       toast.error('Vui lòng nhập mã OTP gồm đúng 6 chữ số.');
       return;
     }
-    // Mã OTP hợp lệ 6 số -> Chuyển sang bước 3 nhập Mật khẩu mới
-    setStep(3);
+
+    setIsLoading(true);
+    try {
+      // Gọi API check-otp: kiểm tra OTP đúng/sai mà KHÔNG đánh dấu đã sử dụng
+      await authApi.checkOtp({ email: email.trim(), code: code.trim(), type: 'ResetPassword' });
+      // OTP hợp lệ → Chuyển sang Bước 3 nhập mật khẩu mới
+      setStep(3);
+    } catch (err: any) {
+      // OTP sai → Báo lỗi ngay tại Bước 2, không chuyển trang
+      toast.error(err.response?.data?.message || 'Mã OTP không chính xác hoặc đã hết hạn.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Gửi lại mã OTP Quên mật khẩu
@@ -80,7 +91,7 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   // Bước 3: Đặt lại mật khẩu mới
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!newPassword || newPassword.length < 6) {
       toast.error('Mật khẩu mới phải có ít nhất 6 ký tự.');
@@ -136,7 +147,7 @@ const ForgotPasswordPage: React.FC = () => {
         <div className="bg-white rounded-[28px] shadow-xl shadow-slate-900/[0.06] border border-slate-200/70 relative">
           <div className="px-8 sm:px-10 pt-8 pb-7">
             <div className="flex items-center justify-between mb-6">
-              <span className="text-xs font-bold text-coral-600 bg-coral-50 px-2.5 py-1 rounded-full border border-coral-100">
+              <span>
 
               </span>
               <span className="font-ticket text-[10px] tracking-[0.2em] text-slate-400 uppercase">
@@ -245,6 +256,7 @@ const ForgotPasswordPage: React.FC = () => {
                 <div className="pt-2">
                   <Button
                     type="submit"
+                    isLoading={isLoading}
                     className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs"
                   >
                     Xác nhận mã OTP
