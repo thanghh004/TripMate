@@ -33,8 +33,8 @@ public static class DependencyInjection
         // 6. Đăng ký dịch vụ Xác thực Google Token
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
-        // 7. Đăng ký dịch vụ Lưu trữ File cục bộ (wwwroot/uploads)
-        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+        // 7. Đăng ký dịch vụ Upload File lên Cloudinary CDN
+        services.AddScoped<IFileStorageService, CloudinaryFileStorageService>();
 
         return services;
     }
