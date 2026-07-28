@@ -2,7 +2,7 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { storage } from '../utils/storage';
 import type { ApiResponse, AuthResponse } from '../types/auth';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1301';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:1301';
 
 export const axiosClient = axios.create({
   baseURL: BASE_URL,
