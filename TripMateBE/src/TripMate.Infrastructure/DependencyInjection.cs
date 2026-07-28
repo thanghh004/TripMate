@@ -24,8 +24,8 @@ public static class DependencyInjection
         // 3. Đăng ký Dịch vụ xác thực mã OTP
         services.AddScoped<IOtpService, OtpService>();
 
-        // 4. Đăng ký dịch vụ Gửi Email thật qua SMTP
-        services.AddScoped<IEmailService, EmailService>();
+        // 5. Đăng ký dịch vụ Gửi Email qua Resend HTTPS API (Port 443)
+        services.AddScoped<IEmailService, ResendEmailService>();
 
         // 5. Đăng ký dịch vụ cấp phát JWT & Refresh Token
         services.AddScoped<ITokenService, TokenService>();
