@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TripMate.Domain.Interfaces;
 using TripMate.Domain.Entities;
 using TripMate.Infrastructure.Data;
@@ -12,11 +13,13 @@ public class OtpService : IOtpService
 {
     private readonly TripMateDbContext _dbContext;
     private readonly IEmailService _emailService;
+    private readonly ILogger<OtpService> _logger;
 
-    public OtpService(TripMateDbContext dbContext, IEmailService emailService)
+    public OtpService(TripMateDbContext dbContext, IEmailService emailService, ILogger<OtpService> logger)
     {
         _dbContext = dbContext;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<string> GenerateOtpAsync(string targetEmail, string type)
@@ -48,6 +51,11 @@ public class OtpService : IOtpService
 
         _dbContext.VerificationCodes.Add(verificationCode);
         await _dbContext.SaveChangesAsync();
+
+        // IN NỔI BẬT MÃ OTP RA RENDER CONSOLE LOG DỄ DÀNG TEST
+        _logger.LogInformation("=================================================");
+        _logger.LogInformation("🔑 [MÃ OTP XÁC THỰC] Target Email: {Email} | OTP Code: {OtpCode} | Type: {Type}", email, otpCode, type);
+        _logger.LogInformation("=================================================");
 
         // 4. Gửi mã OTP trực tiếp tới Email người dùng
         var subject = "[TripMate] Mã xác thực tài khoản của bạn";
