@@ -4,18 +4,29 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { authApi } from '../../api/authApi';
 import { useToast } from '../../context/ToastContext';
-import { Mail, KeyRound, Lock, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Mail, KeyRound, Lock, ShieldCheck, CheckCircle2, RotateCw } from 'lucide-react';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const ForgotPasswordPage: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+
+  // Đếm ngược gửi lại OTP
+  React.useEffect(() => {
+    if (step === 2 && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, countdown]);
 
   // Bước 1: Gửi yêu cầu OTP quên mật khẩu
   const handleRequestOtp = async (e: React.FormEvent) => {
@@ -30,6 +41,7 @@ const ForgotPasswordPage: React.FC = () => {
       await authApi.forgotPassword({ email: email.trim() });
       toast.success('Mã OTP khôi phục mật khẩu đã được gửi về hòm thư Email của bạn!');
       setStep(2);
+      setCountdown(60);
     } catch (err: any) {
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);
@@ -41,16 +53,42 @@ const ForgotPasswordPage: React.FC = () => {
     }
   };
 
-  // Bước 2: Đặt lại mật khẩu mới bằng mã OTP
-  const handleResetPassword = async (e: React.FormEvent) => {
+  // Bước 2: Xác thực mã OTP (Kiểm tra OTP có đủ 6 số chưa)
+  const handleVerifyOtpStep = (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim() || code.trim().length !== 6) {
       toast.error('Vui lòng nhập mã OTP gồm đúng 6 chữ số.');
       return;
     }
+    // Mã OTP hợp lệ 6 số -> Chuyển sang bước 3 nhập Mật khẩu mới
+    setStep(3);
+  };
 
+  // Gửi lại mã OTP Quên mật khẩu
+  const handleResendOtp = async () => {
+    if (countdown > 0 || isResending) return;
+    setIsResending(true);
+    try {
+      await authApi.forgotPassword({ email: email.trim() });
+      toast.success('Đã gửi lại mã OTP khôi phục mật khẩu mới!');
+      setCountdown(60);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể gửi lại mã OTP.');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  // Bước 3: Đặt lại mật khẩu mới
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!newPassword || newPassword.length < 6) {
       toast.error('Mật khẩu mới phải có ít nhất 6 ký tự.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('Xác nhận mật khẩu mới không trùng khớp.');
       return;
     }
 
@@ -66,8 +104,12 @@ const ForgotPasswordPage: React.FC = () => {
     } catch (err: any) {
       if (err.response?.data?.message) {
         toast.error(err.response.data.message);
+        // Nếu mã OTP sai -> Quay lại step 2 để nhập lại OTP
+        if (err.response.data.message.toLowerCase().includes('otp')) {
+          setStep(2);
+        }
       } else {
-        toast.error('Đặt lại mật khẩu thất bại. Vui lòng kiểm tra lại mã OTP.');
+        toast.error('Đặt lại mật khẩu thất bại. Vui lòng thử lại.');
       }
     } finally {
       setIsLoading(false);
@@ -93,7 +135,10 @@ const ForgotPasswordPage: React.FC = () => {
       <div className="w-full max-w-[440px] relative z-10">
         <div className="bg-white rounded-[28px] shadow-xl shadow-slate-900/[0.06] border border-slate-200/70 relative">
           <div className="px-8 sm:px-10 pt-8 pb-7">
-            <div className="flex items-center justify-end mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-xs font-bold text-coral-600 bg-coral-50 px-2.5 py-1 rounded-full border border-coral-100">
+                Bước {step} / 3
+              </span>
               <span className="font-ticket text-[10px] tracking-[0.2em] text-slate-400 uppercase">
                 KHÔI PHỤC · TM-03
               </span>
@@ -103,7 +148,7 @@ const ForgotPasswordPage: React.FC = () => {
               <ShieldCheck size={24} />
             </div>
 
-            {step === 1 ? (
+            {step === 1 && (
               <>
                 <h1 className="font-display text-2xl font-bold text-slate-900 tracking-tight mb-2">
                   Quên mật khẩu?
@@ -112,13 +157,26 @@ const ForgotPasswordPage: React.FC = () => {
                   Nhập địa chỉ Email đăng ký tài khoản. Chúng tôi sẽ gửi mã OTP 6 số giúp bạn khôi phục mật khẩu.
                 </p>
               </>
-            ) : (
+            )}
+
+            {step === 2 && (
               <>
                 <h1 className="font-display text-2xl font-bold text-slate-900 tracking-tight mb-2">
-                  Đặt lại mật khẩu
+                  Nhập mã OTP xác thực
                 </h1>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                  Nhập mã OTP vừa nhận từ Email và thiết lập mật khẩu mới cho tài khoản của bạn.
+                  Nhập mã OTP 6 chữ số được gửi tới <strong className="text-slate-700">{email}</strong>.
+                </p>
+              </>
+            )}
+
+            {step === 3 && (
+              <>
+                <h1 className="font-display text-2xl font-bold text-slate-900 tracking-tight mb-2">
+                  Tạo mật khẩu mới
+                </h1>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                  Mã OTP đã hợp lệ. Vui lòng thiết lập mật khẩu mới cho tài khoản của bạn.
                 </p>
               </>
             )}
@@ -131,7 +189,8 @@ const ForgotPasswordPage: React.FC = () => {
           </div>
 
           <div className="p-8 sm:p-10 pt-7">
-            {step === 1 ? (
+            {/* STEP 1: Nhập Email */}
+            {step === 1 && (
               <form onSubmit={handleRequestOtp} className="space-y-4">
                 <Input
                   label="Địa chỉ Email"
@@ -153,8 +212,11 @@ const ForgotPasswordPage: React.FC = () => {
                   </Button>
                 </div>
               </form>
-            ) : (
-              <form onSubmit={handleResetPassword} className="space-y-3.5">
+            )}
+
+            {/* STEP 2: Nhập mã OTP */}
+            {step === 2 && (
+              <form onSubmit={handleVerifyOtpStep} className="space-y-4">
                 <div className="bg-amber-50/80 border border-amber-200/80 text-amber-900 text-xs px-3.5 py-2.5 rounded-xl flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 size={16} className="text-amber-600 shrink-0" />
@@ -180,6 +242,36 @@ const ForgotPasswordPage: React.FC = () => {
                   required
                 />
 
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs"
+                  >
+                    Xác nhận mã OTP
+                  </Button>
+                </div>
+
+                <div className="text-center mt-3 text-xs text-slate-500">
+                  {countdown > 0 ? (
+                    <span>Gửi lại mã sau <strong className="text-slate-700">{countdown}s</strong></span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={isResending}
+                      className="text-coral-500 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    >
+                      <RotateCw size={13} className={isResending ? 'animate-spin' : ''} />
+                      Gửi lại mã OTP mới
+                    </button>
+                  )}
+                </div>
+              </form>
+            )}
+
+            {/* STEP 3: Nhập Mật khẩu mới */}
+            {step === 3 && (
+              <form onSubmit={handleResetPassword} className="space-y-4">
                 <Input
                   label="Mật khẩu mới (tối thiểu 6 ký tự)"
                   type="password"
@@ -190,13 +282,23 @@ const ForgotPasswordPage: React.FC = () => {
                   required
                 />
 
+                <Input
+                  label="Xác nhận mật khẩu mới"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  icon={<Lock size={18} />}
+                  required
+                />
+
                 <div className="pt-2">
                   <Button
                     type="submit"
                     isLoading={isLoading}
                     className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs"
                   >
-                    Xác nhận đổi mật khẩu
+                    Đổi mật khẩu mới
                   </Button>
                 </div>
               </form>

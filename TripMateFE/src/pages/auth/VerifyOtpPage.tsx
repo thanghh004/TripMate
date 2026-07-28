@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { authApi } from '../../api/authApi';
@@ -11,7 +11,12 @@ const VerifyOtpPage: React.FC = () => {
   const authContext = useContext(AuthContext);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const email = authContext?.registeredEmail || '';
+  const [searchParams] = useSearchParams();
+
+  // Ưu tiên lấy email từ URL query params, nếu không có thì lấy từ AuthContext
+  const emailParam = searchParams.get('email');
+  const email = emailParam || authContext?.registeredEmail || '';
+
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -62,13 +67,13 @@ const VerifyOtpPage: React.FC = () => {
     }
   };
 
-  // Gửi lại mã OTP
+  // Gửi lại mã OTP kích hoạt tài khoản
   const handleResendOtp = async () => {
     if (countdown > 0 || isResending) return;
     setIsResending(true);
     try {
-      await authApi.forgotPassword({ email });
-      toast.success('Đã gửi lại mã OTP mới về hòm thư Email của bạn!');
+      await authApi.resendOtp({ email });
+      toast.success('Đã gửi lại mã OTP kích hoạt tài khoản về hòm thư Email của bạn!');
       setCountdown(60);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể gửi lại mã OTP. Vui lòng thử lại sau.');

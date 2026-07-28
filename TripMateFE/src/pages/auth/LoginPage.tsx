@@ -52,7 +52,18 @@ const LoginPage: React.FC = () => {
       }
     } catch (err: any) {
       if (err.response?.data) {
-        toast.error(err.response.data.message || 'Đăng nhập thất bại.');
+        const errorMsg = err.response.data.message || 'Đăng nhập thất bại.';
+        toast.error(errorMsg);
+
+        // Nếu thông báo lỗi chỉ ra tài khoản chưa xác thực Email -> Tự động chuyển hướng tới Verify OTP
+        if (errorMsg.toLowerCase().includes('chưa được xác thực') || errorMsg.toLowerCase().includes('chưa xác thực')) {
+          if (authContext) {
+            authContext.setRegisteredEmail(email.trim());
+          }
+          setTimeout(() => {
+            navigate(`/verify-otp?email=${encodeURIComponent(email.trim())}`);
+          }, 1500);
+        }
       } else {
         toast.error('Không thể kết nối đến máy chủ Backend.');
       }

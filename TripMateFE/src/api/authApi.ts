@@ -24,6 +24,12 @@ export const authApi = {
     return res.data;
   },
 
+  // API Gửi lại mã OTP xác thực tài khoản
+  resendOtp: async (data: { email: string }): Promise<ApiResponse<{ isSuccess: boolean }>> => {
+    const res = await axiosClient.post<ApiResponse<{ isSuccess: boolean }>>('/api/auth/resend-otp', data);
+    return res.data;
+  },
+
   // API 3: Đăng nhập bằng Email & Mật khẩu
   login: async (data: LoginRequest): Promise<ApiResponse<AuthResponse>> => {
     const res = await axiosClient.post<ApiResponse<AuthResponse>>('/api/auth/login', data);

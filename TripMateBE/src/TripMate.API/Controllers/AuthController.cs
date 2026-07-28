@@ -50,6 +50,23 @@ public class AuthController : BaseApiController
     }
 
     /// <summary>
+    /// Gửi lại mã OTP xác thực đăng ký tài khoản
+    /// Giới hạn: 5 lượt/phút/IP
+    /// </summary>
+    [HttpPost("resend-otp")]
+    [EnableRateLimiting("AuthPolicy")]
+    public async Task<IActionResult> ResendOtp([FromBody] TripMate.Application.Features.Users.Commands.ResendOtp.ResendOtpCommand command)
+    {
+        var isSuccess = await Mediator.Send(command);
+        return Ok(new
+        {
+            status = 200,
+            message = "Mã OTP mới đã được gửi lại về hòm thư Email của bạn.",
+            data = new { isSuccess }
+        });
+    }
+
+    /// <summary>
     /// Đăng nhập hệ thống bằng Email và Mật khẩu
     /// Giới hạn: 5 lượt/phút/IP — Chống Brute-force Attack
     /// </summary>
