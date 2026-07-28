@@ -136,9 +136,6 @@ const ForgotPasswordPage: React.FC = () => {
         <div className="bg-white rounded-[28px] shadow-xl shadow-slate-900/[0.06] border border-slate-200/70 relative">
           <div className="px-8 sm:px-10 pt-8 pb-7">
             <div className="flex items-center justify-between mb-6">
-              <span className="text-xs font-bold text-coral-600 bg-coral-50 px-2.5 py-1 rounded-full border border-coral-100">
-                Bước {step} / 3
-              </span>
               <span className="font-ticket text-[10px] tracking-[0.2em] text-slate-400 uppercase">
                 KHÔI PHỤC · TM-03
               </span>
