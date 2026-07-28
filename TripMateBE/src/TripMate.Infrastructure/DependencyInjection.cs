@@ -24,8 +24,8 @@ public static class DependencyInjection
         // 3. Đăng ký Dịch vụ xác thực mã OTP
         services.AddScoped<IOtpService, OtpService>();
 
-        // 5. Đăng ký dịch vụ Gửi Email qua Brevo HTTPS API (Port 443) - Free 300 email/ngày, gửi tới MỌI email
-        services.AddHttpClient<IEmailService, BrevoEmailService>();
+        // 5. Đăng ký dịch vụ Gửi Email qua Mailjet HTTPS API (Port 443) - Free 200 email/ngày tới MỌI Gmail
+        services.AddHttpClient<IEmailService, MailjetEmailService>();
 
         // 5. Đăng ký dịch vụ cấp phát JWT & Refresh Token
         services.AddScoped<ITokenService, TokenService>();
