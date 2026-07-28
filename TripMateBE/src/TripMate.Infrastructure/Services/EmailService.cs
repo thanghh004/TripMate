@@ -1,12 +1,14 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Configuration;
+using MimeKit;
+using MimeKit.Text;
 using TripMate.Domain.Interfaces;
 
 namespace TripMate.Infrastructure.Services;
 
 /// <summary>
-/// Triển khai dịch vụ gửi Email thật sử dụng SMTP Client mặc định của .NET
+/// Triển khai dịch vụ gửi Email sử dụng MailKit/MimeKit (Chuẩn hiện đại cho .NET 9 trên Linux Container)
 /// </summary>
 public class EmailService : IEmailService
 {
@@ -23,33 +25,31 @@ public class EmailService : IEmailService
         var smtpPortStr = _configuration["SmtpSettings:Port"];
         var smtpUser = _configuration["SmtpSettings:Username"];
         var smtpPass = _configuration["SmtpSettings:Password"];
-        var enableSslStr = _configuration["SmtpSettings:EnableSsl"];
         var fromAddress = _configuration["SmtpSettings:FromAddress"];
 
         if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpPass))
         {
-            throw new InvalidOperationException("Cấu hình SmtpSettings trong appsettings.json chưa đầy đủ.");
+            throw new InvalidOperationException("Cấu hình SmtpSettings chưa đầy đủ.");
         }
 
-        var smtpPort = int.Parse(smtpPortStr ?? "587");
-        var enableSsl = bool.Parse(enableSslStr ?? "true");
+        var smtpPort = int.TryParse(smtpPortStr, out var p) ? p : 465;
 
-        using var client = new SmtpClient(smtpHost, smtpPort)
-        {
-            Credentials = new NetworkCredential(smtpUser, smtpPass),
-            EnableSsl = enableSsl
-        };
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("TripMate Support", fromAddress ?? smtpUser));
+        message.To.Add(MailboxAddress.Parse(toEmail));
+        message.Subject = subject;
+        message.Body = new TextPart(TextFormat.Html) { Text = body };
 
-        var mailMessage = new MailMessage
-        {
-            From = new MailAddress(fromAddress ?? smtpUser, "TripMate Support"),
-            Subject = subject,
-            Body = body,
-            IsBodyHtml = true
-        };
-        
-        mailMessage.To.Add(toEmail);
+        using var client = new SmtpClient();
 
-        await client.SendMailAsync(mailMessage);
+        // Tự động phân loại cổng: Port 465 dùng Direct SSL/TLS, Port 587 dùng StartTls
+        var socketOptions = smtpPort == 465 
+            ? SecureSocketOptions.SslOnConnect 
+            : SecureSocketOptions.StartTls;
+
+        await client.ConnectAsync(smtpHost, smtpPort, socketOptions);
+        await client.AuthenticateAsync(smtpUser, smtpPass);
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
     }
 }
