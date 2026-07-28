@@ -22,6 +22,8 @@ EXPOSE 8080
 EXPOSE 8081
 
 ENV ASPNETCORE_URLS=http://+:8080
+# Khắc phục lỗi inotify limit trên Linux / Render Container
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
 
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "TripMate.API.dll"]
