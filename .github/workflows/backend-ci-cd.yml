@@ -15,6 +15,10 @@ jobs:
     name: Build & Test .NET API
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: TripMateBE
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,13 +28,13 @@ jobs:
         with:
           dotnet-version: '9.0.x'
           cache: true
-          cache-dependency-path: '**/*.csproj'
+          cache-dependency-path: 'TripMateBE/**/*.csproj'
 
       - name: Restore dependencies
         run: dotnet restore src/TripMate.API/TripMate.API.csproj
 
       - name: Build solution
-        run: dotnet build src/TripMate.API/TripMate.API.csproj --configuration Release --no-restore
+        run: dotnet build TripMate.sln --configuration Release --no-restore
 
       - name: Run Tests (if exists)
         run: |
@@ -75,8 +79,8 @@ jobs:
       - name: Build and push Docker image (with GHA caching)
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./TripMateBE
+          file: ./TripMateBE/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

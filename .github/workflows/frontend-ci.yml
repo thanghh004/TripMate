@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    defaults:
+      run:
+        working-directory: TripMateFE
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,7 +25,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: 'package-lock.json'
+          cache-dependency-path: 'TripMateFE/package-lock.json'
 
       - name: Install dependencies
         run: npm ci
