@@ -40,8 +40,7 @@ public class CloudinaryFileStorageService : IFileStorageService
             // Tự động sinh PublicId duy nhất theo thời gian + GUID
             PublicId = $"tripmate/{Path.GetFileNameWithoutExtension(fileName)}_{Guid.NewGuid():N}",
             Overwrite = false,
-            // Tự động tối ưu chất lượng ảnh khi upload
-            Transformation = new Transformation().Quality("auto").FetchFormat("auto")
+            // Giữ nguyên 100% chất lượng ảnh gốc HD/4K sắc nét của người dùng tải lên
         };
 
         // 2. Upload lên Cloudinary

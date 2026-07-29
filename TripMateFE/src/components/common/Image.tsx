@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ImageOff, Loader2, ZoomIn, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ImageOff, Loader2, ZoomIn, X, ExternalLink } from 'lucide-react';
 
 interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src?: string;
@@ -77,36 +78,62 @@ export const Image: React.FC<ImageProps> = ({
 
         {/* Hover Indicator if Previewable */}
         {previewable && !isLoading && !isError && src && (
-          <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none">
-            <div className="bg-black/60 p-2 rounded-full backdrop-blur-xs">
-              <ZoomIn size={18} />
+          <div className="absolute inset-0 bg-black/25 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none">
+            <div className="bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 text-xs font-semibold shadow-lg">
+              <ZoomIn size={15} /> Xem ảnh sắc nét
             </div>
           </div>
         )}
       </div>
 
-      {/* Lightbox Preview Modal */}
-      {isPreviewOpen && src && (
+      {/* Lightbox Preview Modal via React Portal (Tránh bị cắt bởi z-index/overflow) */}
+      {isPreviewOpen && src && createPortal(
         <div
-          className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[999999] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
           onClick={() => setIsPreviewOpen(false)}
         >
-          <button
-            type="button"
-            onClick={() => setIsPreviewOpen(false)}
-            className="absolute top-4 right-4 p-2.5 text-white/80 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-colors cursor-pointer"
-            aria-label="Đóng xem ảnh"
-          >
-            <X size={20} />
-          </button>
-          <img
-            src={src}
-            alt={alt}
-            className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-            style={{ imageRendering: '-webkit-optimize-contrast' }}
-          />
-        </div>
+          {/* Header Bar */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-20 text-white">
+            <span className="text-xs font-semibold text-white/80 bg-black/40 px-3 py-1.5 rounded-full border border-white/10 backdrop-blur-md truncate max-w-xs sm:max-w-md">
+              {alt || 'Hình ảnh xem chi tiết'}
+            </span>
+
+            <div className="flex items-center gap-2">
+              <a
+                href={src}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="p-2 text-white/80 hover:text-white bg-black/40 hover:bg-black/70 rounded-full border border-white/10 transition-colors cursor-pointer"
+                title="Mở ảnh tab mới"
+              >
+                <ExternalLink size={18} />
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setIsPreviewOpen(false)}
+                className="p-2 text-white/80 hover:text-white bg-black/40 hover:bg-black/70 rounded-full border border-white/10 transition-colors cursor-pointer ml-1"
+                aria-label="Đóng xem ảnh"
+                title="Đóng (ESC)"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Large HD Image Display */}
+          <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-6 select-none">
+            <img
+              src={src}
+              alt={alt}
+              className="max-w-[92vw] max-h-[86vh] w-auto h-auto object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 border border-white/10"
+              onClick={(e) => e.stopPropagation()}
+              style={{ imageRendering: '-webkit-optimize-contrast' }}
+            />
+          </div>
+        </div>,
+        document.body
       )}
     </>
   );
