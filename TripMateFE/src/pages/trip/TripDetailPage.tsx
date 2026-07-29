@@ -245,6 +245,21 @@ export const TripDetailPage: React.FC = () => {
                 {renderStatusBadge(trip.status)}
               </h2>
 
+              {/* Cảnh báo Lý do bị từ chối nếu chuyến đi bị từ chối */}
+              {(trip.status === TripStatus.Rejected || trip.moderationNote) && (
+                <div className="p-4 sm:p-5 bg-rose-50 border border-rose-200/80 rounded-2xl flex items-start gap-3.5 text-xs text-rose-900 font-sans">
+                  <AlertCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <p className="font-extrabold text-rose-900 text-xs uppercase tracking-wider">
+                      Lý do bị từ chối phê duyệt bởi Admin
+                    </p>
+                    <p className="text-rose-800 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-200/60 whitespace-pre-wrap">
+                      {trip.moderationNote || 'Chưa có ghi chú lý do chi tiết từ Admin.'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Tiêu đề & Loại hình */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
