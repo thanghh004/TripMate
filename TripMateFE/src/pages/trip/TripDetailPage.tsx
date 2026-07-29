@@ -20,9 +20,6 @@ import {
   Loader2,
   ShieldCheck,
   Star,
-  ArrowLeft,
-  Share2,
-  Bookmark,
   UserCheck,
   Sparkles,
   AlertCircle,
@@ -88,11 +85,6 @@ export const TripDetailPage: React.FC = () => {
     }
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success('Đã sao chép liên kết chuyến đi!');
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -129,52 +121,48 @@ export const TripDetailPage: React.FC = () => {
       {/* Main Container khớp 100% với CreateTripPage: pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] */}
       <main className="flex-1 pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] mx-auto w-full">
         
-        {/* Header Navigation & Title Seamless */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 bg-slate-50 p-4 sm:p-6 rounded-3xl border border-slate-200/60">
+        {/* Header Title Seamless Top - Khớp 100% thiết kế phẳng của Tạo Mới Chuyến Đi */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 transition cursor-pointer mb-1"
-              >
-                <ArrowLeft size={15} /> Quay lại
-              </button>
-              <span className="text-xs font-bold text-coral-600 bg-coral-50 px-2.5 py-1 rounded-full mb-1">
-                {trip.categoryName || 'Chuyến đi'}
-              </span>
-            </div>
-
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-              {trip.title}
+              {trip.title} <Sparkles size={24} className="text-coral-500 fill-coral-500/20" />
             </h1>
-            <p className="text-xs text-slate-500 font-medium leading-relaxed flex items-center gap-2">
-              <span>Được tạo bởi <strong className="text-slate-800 font-bold">{trip.organizerName}</strong></span>
-              <span>•</span>
-              <span>Ngày tạo {formatDate(trip.createdAt)}</span>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Đăng tin tuyển thành viên đồng hành cho hành trình tuyệt vời sắp tới của bạn.
             </p>
           </div>
 
-          <div className="shrink-0 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleShare}
-              className="p-2.5 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 rounded-2xl border border-slate-200 transition cursor-pointer"
-              title="Chia sẻ chuyến đi"
-            >
-              <Share2 size={18} />
-            </button>
-            <button
-              type="button"
-              className="p-2.5 text-slate-600 hover:text-rose-500 bg-white hover:bg-slate-100 rounded-2xl border border-slate-200 transition cursor-pointer"
-              title="Lưu yêu thích"
-            >
-              <Bookmark size={18} />
-            </button>
+          {/* Thẻ Người Tổ Chức (Host) đưa lên vị trí Ô Xác thực Host bên phải */}
+          <div className="shrink-0 flex items-center gap-3 bg-slate-100/80 p-3 rounded-2xl">
+            {trip.organizerAvatarUrl ? (
+              <Image
+                src={trip.organizerAvatarUrl}
+                alt={trip.organizerName}
+                containerClassName="w-10 h-10 rounded-xl border border-slate-200 shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-coral-50 text-coral-600 font-black text-base flex items-center justify-center shrink-0">
+                {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : 'H'}
+              </div>
+            )}
+
+            <div className="text-[11px] text-slate-600 font-semibold">
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-900 font-bold">{trip.organizerName}</span>
+                <span title="Host đã xác minh CCCD">
+                  <ShieldCheck size={15} className="text-emerald-500 shrink-0" />
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-slate-500 pt-0.5">
+                <Star size={12} className="text-amber-400 fill-amber-400" />
+                <span className="font-bold text-slate-700">{trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'}</span>
+                <span>(Host uy tín)</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* BỐ CỤC 2 CỘT 100% KHỚP CREATE TRIP (7 COLS MAIN + 5 COLS SIDEBAR) */}
+        {/* BỐ CỤC 2 CỘT KHỚP CREATE TRIP (7 COLS MAIN + 5 COLS SIDEBAR) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
 
           {/* CỘT TRÁI (MAIN FORM - 7 COLS) */}
@@ -305,45 +293,7 @@ export const TripDetailPage: React.FC = () => {
           {/* CỘT PHẢI (SIDEBAR FORM - 5 COLS) */}
           <div className="lg:col-span-5 space-y-6">
 
-            {/* Box 1: Người tổ chức (Host) */}
-            <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-4 font-sans">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
-                <ShieldCheck size={18} className="text-coral-500" /> Người tổ chức (Host)
-              </h2>
-
-              <div className="bg-white p-4 rounded-2xl border border-slate-200/80 flex items-center gap-3.5">
-                {trip.organizerAvatarUrl ? (
-                  <Image
-                    src={trip.organizerAvatarUrl}
-                    alt={trip.organizerName}
-                    containerClassName="w-12 h-12 rounded-2xl border border-slate-200 shrink-0"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-2xl bg-coral-50 text-coral-600 font-black text-lg flex items-center justify-center shrink-0">
-                    {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : 'H'}
-                  </div>
-                )}
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="text-sm font-extrabold text-slate-900 truncate">{trip.organizerName}</h3>
-                    <span title="Host đã xác minh CCCD">
-                      <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <Star size={13} className="text-amber-400 fill-amber-400" />
-                    <span className="text-xs font-extrabold text-slate-700">
-                      {trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'}
-                    </span>
-                    <span className="text-[11px] text-slate-400 font-medium">(Host uy tín)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Box 2: Ảnh bìa chính & Bộ sưu tập ảnh */}
+            {/* Box 1: Ảnh bìa chính & Bộ sưu tập ảnh */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-5 font-sans">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
                 <ImagePlus size={18} className="text-coral-500" /> Ảnh bìa & Hình ảnh
@@ -385,7 +335,7 @@ export const TripDetailPage: React.FC = () => {
               )}
             </div>
 
-            {/* Box 3: Chi phí & Thành viên */}
+            {/* Box 2: Chi phí & Thành viên */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-4 font-sans">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
                 <DollarSign size={18} className="text-coral-500" /> Chi phí & Thành viên
