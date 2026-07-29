@@ -8,11 +8,10 @@ import { Pagination } from '../../components/common/Pagination';
 import { UserDetailModal } from './user-manager/UserDetailModal';
 import { useToast } from '../../context/ToastContext';
 import { adminApi } from '../../api/adminApi';
-import { userApi } from '../../api/userApi';
 import type { Trip } from '../../types/trip';
 import type { AdminUserListItem } from '../../types/admin';
 import { formatDate } from '../../utils/formatters';
-import { Compass, Loader2, MapPin, ArrowRight, User, AlertCircle } from 'lucide-react';
+import { Compass, Loader2, MapPin, ArrowRight, AlertCircle } from 'lucide-react';
 
 const statusOptions: SelectOption[] = [
   { value: '', label: 'Tất cả trạng thái' },
@@ -30,6 +29,7 @@ export const TripManagementPage: React.FC = () => {
   const { toast } = useToast();
 
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [allUsers, setAllUsers] = useState<AdminUserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Search & Filter State
@@ -45,11 +45,16 @@ export const TripManagementPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<AdminUserListItem | null>(null);
   const [isLoadingUserDetail, setIsLoadingUserDetail] = useState(false);
 
-  const fetchTrips = async () => {
+  const fetchTripsAndUsers = async () => {
     try {
       setIsLoading(true);
-      const data = await adminApi.getAllTrips();
-      setTrips(data || []);
+      const [tripsData, usersRes] = await Promise.all([
+        adminApi.getAllTrips(),
+        adminApi.getUsers().catch(() => ({ data: [] })),
+      ]);
+
+      setTrips(tripsData || []);
+      setAllUsers(usersRes.data || []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể tải danh sách chuyến đi.');
     } finally {
@@ -58,7 +63,7 @@ export const TripManagementPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTrips();
+    fetchTripsAndUsers();
   }, []);
 
   // Lọc dữ liệu client-side
@@ -83,13 +88,35 @@ export const TripManagementPage: React.FC = () => {
   const totalPages = Math.ceil(totalItems / pageSize) || 1;
   const paginatedTrips = filteredTrips.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // Xử lý xem thông tin chi tiết Người tổ chức (Host)
-  const handleViewHostDetail = async (userId: string) => {
+  // Xử lý xem thông tin chi tiết Người tổ chức (Host) từ danh sách Users đã load
+  const handleViewHostDetail = (organizerId: string, organizerName: string) => {
+    setIsLoadingUserDetail(true);
     try {
-      setIsLoadingUserDetail(true);
-      const res = await userApi.getUserById(userId);
-      const userData = (res as any).data || res;
-      setSelectedUser(userData);
+      // Tìm user trong danh sách allUsers
+      const foundUser = allUsers.find((u) => u.userId === organizerId);
+      if (foundUser) {
+        setSelectedUser(foundUser);
+      } else {
+        // Fallback tạo object cơ bản nếu không tìm thấy
+        setSelectedUser({
+          userId: organizerId,
+          fullName: organizerName,
+          email: 'Chưa cập nhật',
+          phoneNumber: 'Chưa cập nhật',
+          gender: 'Nam',
+          birthDate: new Date().toISOString(),
+          identityCardNumber: 'Chưa cập nhật',
+          role: 'Member',
+          status: 0,
+          hostVerificationStatus: 2,
+          avgRating: 5.0,
+          totalTrips: 0,
+          createdCompletedTripsCount: 0,
+          createdUncompletedTripsCount: 0,
+          joinedCompletedTripsCount: 0,
+          joinedUncompletedTripsCount: 0
+        });
+      }
     } catch {
       toast.error('Không thể lấy thông tin người dùng.');
     } finally {
@@ -198,12 +225,13 @@ export const TripManagementPage: React.FC = () => {
                 {paginatedTrips.map((trip) => (
                   <tr key={trip.id} className="hover:bg-slate-50/60 transition-colors">
                     
-                    {/* Cột 1: Tên chuyến đi */}
+                    {/* Cột 1: Tên chuyến đi (Dạng link chữ sky-600 hover:underline dẫn tới trang AdminTripDetailPage) */}
                     <td className="py-3.5 px-5">
                       <button
                         type="button"
-                        onClick={() => navigate(`/trips/${trip.id}`)}
-                        className="font-bold text-slate-900 hover:text-coral-600 transition text-left cursor-pointer line-clamp-2 block"
+                        onClick={() => navigate(`/admin/trips/${trip.id}`)}
+                        className="text-sky-600 font-semibold hover:underline cursor-pointer text-left line-clamp-2 block"
+                        title="Bấm để xem chi tiết chuyến đi"
                       >
                         {trip.title}
                       </button>
@@ -212,27 +240,15 @@ export const TripManagementPage: React.FC = () => {
                       </span>
                     </td>
 
-                    {/* Cột 2: Người tổ chức (Host) */}
+                    {/* Cột 2: Người tổ chức (BỎ HẲN AVATAR, DẠNG LINK CHỮ sky-600 HOVER:UNDERLINE SANG MODAL) */}
                     <td className="py-3.5 px-5">
                       <button
                         type="button"
-                        onClick={() => handleViewHostDetail(trip.organizerId)}
-                        className="inline-flex items-center gap-2 hover:text-coral-600 transition cursor-pointer text-left group"
+                        onClick={() => handleViewHostDetail(trip.organizerId, trip.organizerName)}
+                        className="text-sky-600 font-semibold hover:underline cursor-pointer text-left block"
+                        title="Bấm để xem thông tin người dùng"
                       >
-                        {trip.organizerAvatarUrl ? (
-                          <img
-                            src={trip.organizerAvatarUrl}
-                            alt={trip.organizerName}
-                            className="w-7 h-7 rounded-full object-cover border border-slate-200 shrink-0"
-                          />
-                        ) : (
-                          <div className="w-7 h-7 rounded-full bg-coral-50 text-coral-600 font-bold text-xs flex items-center justify-center shrink-0">
-                            {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : <User size={14} />}
-                          </div>
-                        )}
-                        <span className="font-bold text-slate-800 group-hover:text-coral-600 underline-offset-2 group-hover:underline">
-                          {trip.organizerName}
-                        </span>
+                        {trip.organizerName}
                       </button>
                     </td>
 

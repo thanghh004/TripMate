@@ -17,6 +17,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import HostVerificationPage from './pages/admin/HostVerificationPage';
 import UserManagementPage from './pages/admin/user-manager';
 import TripManagementPage from './pages/admin/TripManagementPage';
+import AdminTripDetailPage from './pages/admin/AdminTripDetailPage';
 import CountryManagementPage from './pages/admin/country-manager';
 import CityManagementPage from './pages/admin/city-manager';
 import CategoryManagementPage from './pages/admin/category-manager';
@@ -136,6 +137,7 @@ function App() {
       <Route path="/admin/host-verifications" element={<HostVerificationPage />} />
       <Route path="/admin/users" element={<UserManagementPage />} />
       <Route path="/admin/trips" element={<TripManagementPage />} />
+      <Route path="/admin/trips/:id" element={<AdminTripDetailPage />} />
       <Route path="/admin/countries" element={<CountryManagementPage />} />
       <Route path="/admin/cities" element={<CityManagementPage />} />
       <Route path="/admin/categories" element={<CategoryManagementPage />} />
