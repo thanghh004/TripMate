@@ -312,16 +312,16 @@ export const AdminTripDetailPage: React.FC = () => {
             Đã hủy
           </span>
         );
-      case TripStatus.Failed:
-        return (
-          <span className="text-[11px] font-black text-slate-600 bg-slate-200 px-3 py-1 rounded-full uppercase tracking-wider">
-            Tạo thất bại
-          </span>
-        );
       case TripStatus.Rejected:
         return (
           <span className="text-[11px] font-black text-rose-800 bg-rose-200 px-3 py-1 rounded-full uppercase tracking-wider">
             Bị từ chối
+          </span>
+        );
+      case TripStatus.Failed:
+        return (
+          <span className="text-[11px] font-black text-slate-600 bg-slate-200 px-3 py-1 rounded-full uppercase tracking-wider">
+            Tạo thất bại
           </span>
         );
       default:

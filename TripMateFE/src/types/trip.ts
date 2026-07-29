@@ -6,8 +6,8 @@ export const TripStatus = {
   Ongoing: 3,
   Completed: 4,
   Cancelled: 5,
-  Failed: 6,
-  Rejected: 7,
+  Rejected: 6,
+  Failed: 7,
 } as const;
 
 export type TripStatus = number;

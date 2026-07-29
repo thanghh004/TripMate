@@ -164,16 +164,16 @@ export const TripManagementPage: React.FC = () => {
             Đã hủy
           </span>
         );
-      case TripStatusEnum.Failed:
-        return (
-          <span className="text-[11px] font-bold text-slate-600 bg-slate-200 px-3 py-1 rounded-full">
-            Tạo thất bại
-          </span>
-        );
       case TripStatusEnum.Rejected:
         return (
           <span className="text-[11px] font-bold text-rose-800 bg-rose-200 px-3 py-1 rounded-full">
             Bị từ chối
+          </span>
+        );
+      case TripStatusEnum.Failed:
+        return (
+          <span className="text-[11px] font-bold text-slate-600 bg-slate-200 px-3 py-1 rounded-full">
+            Tạo thất bại
           </span>
         );
       default:
