@@ -22,5 +22,7 @@ public class PendingHostVerificationDto
     public HostVerificationStatus HostVerificationStatus { get; set; }
     public decimal AvgRating { get; set; }
     public int TotalTrips { get; set; }
+    public int CreatedTripsCount { get; set; }
+    public int CancelledTripsCount { get; set; }
     public DateTime? RequestDate { get; set; }
 }

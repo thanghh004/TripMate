@@ -21,6 +21,7 @@ public class TripRepository : ITripRepository
     public async Task<Trip?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Trips
+            .AsNoTracking()
             .Include(t => t.Category)
             .Include(t => t.StartCity)
             .Include(t => t.DestinationCity)
@@ -34,6 +35,7 @@ public class TripRepository : ITripRepository
     public async Task<List<Trip>> GetMyTripsAsync(Guid organizerId, CancellationToken cancellationToken = default)
     {
         return await _context.Trips
+            .AsNoTracking()
             .Where(t => t.OrganizerId == organizerId)
             .Include(t => t.Category)
             .Include(t => t.StartCity)
@@ -45,6 +47,7 @@ public class TripRepository : ITripRepository
     public async Task<List<Trip>> GetPendingTripsAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Trips
+            .AsNoTracking()
             .Where(t => t.Status == TripStatus.PendingReview)
             .Include(t => t.Category)
             .Include(t => t.StartCity)

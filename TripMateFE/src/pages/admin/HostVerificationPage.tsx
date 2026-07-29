@@ -4,8 +4,10 @@ import { adminApi } from '../../api/adminApi';
 import { useToast } from '../../context/ToastContext';
 import { type PendingHostVerification } from '../../types/adminHost';
 import { Modal } from '../../components/common/Modal';
+import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import SearchInput from '../../components/common/SearchInput';
+import Pagination from '../../components/common/Pagination';
 import { formatDate } from '../../utils/formatters';
 import {
   ShieldCheck,
@@ -35,6 +37,8 @@ const HostVerificationPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchRequests = async () => {
     try {
@@ -51,6 +55,11 @@ const HostVerificationPage: React.FC = () => {
   useEffect(() => {
     fetchRequests();
   }, []);
+
+  // Reset về trang 1 khi tìm kiếm
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const handleApprove = async (userId: string) => {
     try {
@@ -95,6 +104,13 @@ const HostVerificationPage: React.FC = () => {
       (u.identityCardNumber && u.identityCardNumber.includes(searchQuery))
   );
 
+  const totalItems = filteredRequests.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const paginatedRequests = filteredRequests.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   return (
     <AdminLayout pendingCount={requests.length}>
       {/* Title & Top Search */}
@@ -132,64 +148,80 @@ const HostVerificationPage: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
-          {filteredRequests.map((user) => (
-            <div
-              key={user.userId}
-              className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs transition-all flex flex-col justify-between space-y-4"
-            >
-              <div className="space-y-3">
-                {/* Header User info */}
-                <div className="flex items-center gap-3">
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={user.fullName}
-                      className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-11 h-11 rounded-xl bg-coral-50 text-coral-600 font-bold text-base flex items-center justify-center shrink-0">
-                      {user.fullName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-sm font-bold text-slate-900 truncate">{user.fullName}</h4>
-                    <p className="text-xs text-slate-500 truncate flex items-center gap-1">
-                      <Mail size={12} /> {user.email}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Info Pills */}
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs space-y-1.5">
-                  <div className="flex items-center justify-between text-slate-600 font-medium">
-                    <span className="flex items-center gap-1.5 text-slate-400">
-                      <Phone size={13} /> SĐT:
-                    </span>
-                    <span className="font-bold text-slate-800">{user.phoneNumber || 'Chưa cập nhật'}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600 font-medium">
-                    <span className="flex items-center gap-1.5 text-slate-400">
-                      <CreditCard size={13} /> Số CCCD:
-                    </span>
-                    <span className="font-mono font-bold text-slate-900">{user.identityCardNumber || 'Chưa đăng ký'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action */}
-              <Button
-                size="sm"
-                variant="info"
-                leftIcon={<Eye size={15} />}
-                onClick={() => setSelectedUser(user)}
-                className="text-xs font-bold py-2 px-4 rounded-lg cursor-pointer shadow-2xs"
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
+            {paginatedRequests.map((user) => (
+              <div
+                key={user.userId}
+                className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs transition-all flex flex-col justify-between space-y-4"
               >
-                Soi hồ sơ & Duyệt
-              </Button>
-            </div>
-          ))}
+                <div className="space-y-3">
+                  {/* Header User info */}
+                  <div className="flex items-center gap-3">
+                    {user.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.fullName}
+                        className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-xl bg-coral-50 text-coral-600 font-bold text-base flex items-center justify-center shrink-0">
+                        {user.fullName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-bold text-slate-900 truncate">{user.fullName}</h4>
+                      <p className="text-xs text-slate-500 truncate flex items-center gap-1">
+                        <Mail size={12} /> {user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Info Pills */}
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs space-y-1.5">
+                    <div className="flex items-center justify-between text-slate-600 font-medium">
+                      <span className="flex items-center gap-1.5 text-slate-400">
+                        <Phone size={13} /> SĐT:
+                      </span>
+                      <span className="font-bold text-slate-800">{user.phoneNumber || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-600 font-medium">
+                      <span className="flex items-center gap-1.5 text-slate-400">
+                        <CreditCard size={13} /> Số CCCD:
+                      </span>
+                      <span className="font-mono font-bold text-slate-900">{user.identityCardNumber || 'Chưa đăng ký'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action */}
+                <Button
+                  size="sm"
+                  variant="info"
+                  leftIcon={<Eye size={15} />}
+                  onClick={() => setSelectedUser(user)}
+                  className="text-xs font-bold py-2 px-4 rounded-lg cursor-pointer shadow-2xs"
+                >
+                  Soi hồ sơ & Duyệt
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination Component */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={(page) => setCurrentPage(page)}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+            pageSizeOptions={[10, 20, 50, 100]}
+          />
         </div>
       )}
 
@@ -220,69 +252,20 @@ const HostVerificationPage: React.FC = () => {
             </div>
 
             {/* User Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Họ và tên</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
-                  {selectedUser.fullName}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 truncate">
-                  {selectedUser.email}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Số điện thoại</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
-                  {selectedUser.phoneNumber || 'Chưa cập nhật'}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Giới tính</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
-                  {selectedUser.gender || 'Chưa chọn'}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Ngày sinh</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
-                  {formatDate(selectedUser.birthDate) || 'Chưa nhập'}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Số CCCD</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-800">
-                  {selectedUser.identityCardNumber || 'Chưa đăng ký'}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Đánh giá trung bình</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
-                  {selectedUser.avgRating?.toFixed(1) || '0.0'} / 5.0
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Tổng số chuyến đi</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
-                  {selectedUser.totalTrips || 0} chuyến
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Ngày gửi yêu cầu</label>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800">
-                  {formatDate(selectedUser.requestDate) || 'Chưa có'}
-                </div>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+              <Input label="Họ và tên" value={selectedUser.fullName} disabled />
+              <Input label="Email" value={selectedUser.email} disabled />
+              <Input label="Số điện thoại" value={selectedUser.phoneNumber || 'Chưa cập nhật'} disabled />
+              <Input label="Giới tính" value={selectedUser.gender || 'Chưa chọn'} disabled />
+              <Input label="Ngày sinh" value={formatDate(selectedUser.birthDate) || 'Chưa nhập'} disabled />
+              <Input label="Số CCCD" value={selectedUser.identityCardNumber || 'Chưa đăng ký'} disabled className="font-mono" />
+              <Input label="Đánh giá trung bình" value={`${selectedUser.avgRating?.toFixed(1) || '0.0'} / 5.0`} disabled />
+              <Input
+                label="Số chuyến đã tạo"
+                value={`${selectedUser.createdTripsCount ?? selectedUser.totalTrips ?? 0} chuyến (${selectedUser.cancelledTripsCount ?? 0} chuyến đã hủy)`}
+                disabled
+              />
+              <Input label="Ngày gửi yêu cầu" value={formatDate(selectedUser.requestDate) || 'Chưa có'} disabled />
             </div>
 
             {/* Bio cá nhân */}

@@ -36,6 +36,8 @@ public class GetPendingHostVerificationsQueryHandler : IRequestHandler<GetPendin
             HostVerificationStatus = u.HostVerificationStatus,
             AvgRating = u.AvgRating,
             TotalTrips = (u.OrganizedTrips?.Count ?? 0) + (u.JoinedTrips?.Count ?? 0),
+            CreatedTripsCount = u.OrganizedTrips?.Count ?? 0,
+            CancelledTripsCount = u.OrganizedTrips?.Count(t => t.Status == Domain.Enums.TripStatus.Cancelled) ?? 0,
             RequestDate = u.UpdatedAt != default ? u.UpdatedAt : u.CreatedAt
         }).ToList();
     }

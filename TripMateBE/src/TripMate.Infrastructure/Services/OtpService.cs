@@ -87,6 +87,7 @@ public class OtpService : IOtpService
 
         var activeOtp = await _dbContext.VerificationCodes
             .IgnoreQueryFilters()
+            .AsNoTracking()
             .Where(vc => vc.Target == email && vc.VerificationType == type && !vc.IsUsed && !vc.IsDeleted)
             .OrderByDescending(vc => vc.CreatedAt)
             .FirstOrDefaultAsync();

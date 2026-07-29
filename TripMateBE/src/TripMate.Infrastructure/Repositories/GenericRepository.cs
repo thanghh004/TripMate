@@ -22,27 +22,45 @@ public class GenericRepository<T> : IRepository<T> where T : class
 
     public async Task<T?> GetByIdAsync(Guid id)
     {
-        return await _dbSet.FindAsync(id);
+        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.AsNoTracking().ToListAsync();
+    }
+
+    public async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageIndex, int pageSize, Expression<Func<T, bool>>? predicate = null)
+    {
+        IQueryable<T> query = _dbSet.AsNoTracking();
+
+        if (predicate != null)
+        {
+            query = query.Where(predicate);
+        }
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .Skip((pageIndex - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 
     public async Task<IEnumerable<T>> GetAllWithDeletedAsync()
     {
-        return await _dbSet.IgnoreQueryFilters().ToListAsync();
+        return await _dbSet.IgnoreQueryFilters().AsNoTracking().ToListAsync();
     }
 
     public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
     {
-        return await _dbSet.Where(predicate).ToListAsync();
+        return await _dbSet.AsNoTracking().Where(predicate).ToListAsync();
     }
 
     public async Task<IEnumerable<T>> FindWithDeletedAsync(Expression<Func<T, bool>> predicate)
     {
-        return await _dbSet.IgnoreQueryFilters().Where(predicate).ToListAsync();
+        return await _dbSet.IgnoreQueryFilters().AsNoTracking().Where(predicate).ToListAsync();
     }
 
     public async Task AddAsync(T entity)

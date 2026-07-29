@@ -23,12 +23,14 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
         return await _userManager.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
     public async Task<User?> GetByPhoneAsync(string phone, CancellationToken cancellationToken)
     {
         return await _userManager.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.PhoneNumber == phone, cancellationToken);
     }
 
@@ -40,6 +42,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _userManager.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 
@@ -62,6 +65,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetProfileByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _userManager.Users
+            .AsNoTracking()
             .Include(u => u.OrganizedTrips)
             .Include(u => u.JoinedTrips)
                 .ThenInclude(m => m.Trip)
@@ -71,6 +75,7 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> GetAllUsersAsync(CancellationToken cancellationToken)
     {
         return await _userManager.Users
+            .AsNoTracking()
             .Where(u => u.Role == Domain.Enums.UserRole.User && u.EmailConfirmed)
             .Include(u => u.OrganizedTrips)
             .Include(u => u.JoinedTrips)
@@ -82,7 +87,10 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> GetPendingHostVerificationsAsync(CancellationToken cancellationToken)
     {
         return await _userManager.Users
+            .AsNoTracking()
             .Where(u => u.HostVerificationStatus == Domain.Enums.HostVerificationStatus.Pending && u.EmailConfirmed)
+            .Include(u => u.OrganizedTrips)
+            .Include(u => u.JoinedTrips)
             .OrderByDescending(u => u.UpdatedAt)
             .ToListAsync(cancellationToken);
     }
@@ -99,12 +107,14 @@ public class UserRepository : IUserRepository
 
         // 1. Kiểm tra xem người dùng có là Organizer của chuyến đi đang active nào không
         var isOrganizerOfActiveTrip = await _context.Trips
+            .AsNoTracking()
             .AnyAsync(t => t.OrganizerId == userId && activeStatuses.Contains(t.Status), cancellationToken);
 
         if (isOrganizerOfActiveTrip) return true;
 
         // 2. Kiểm tra xem người dùng có là thành viên (đã được duyệt/Joined) của chuyến đi đang active nào không
         var isMemberOfActiveTrip = await _context.TripMembers
+            .AsNoTracking()
             .AnyAsync(m => m.UserId == userId && activeStatuses.Contains(m.Trip.Status), cancellationToken);
 
         return isMemberOfActiveTrip;

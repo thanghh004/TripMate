@@ -17,5 +17,7 @@ export interface PendingHostVerification {
   hostVerificationStatus: number;
   avgRating: number;
   totalTrips: number;
+  createdTripsCount?: number;
+  cancelledTripsCount?: number;
   requestDate?: string;
 }

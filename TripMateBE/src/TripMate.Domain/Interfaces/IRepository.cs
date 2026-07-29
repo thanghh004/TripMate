@@ -10,6 +10,7 @@ public interface IRepository<T> where T : class
 {
     Task<T?> GetByIdAsync(Guid id);
     Task<IEnumerable<T>> GetAllAsync();
+    Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int pageIndex, int pageSize, Expression<Func<T, bool>>? predicate = null);
     Task<IEnumerable<T>> GetAllWithDeletedAsync();
     Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
     Task<IEnumerable<T>> FindWithDeletedAsync(Expression<Func<T, bool>> predicate);
