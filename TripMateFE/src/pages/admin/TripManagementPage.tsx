@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AdminLayout } from '../../components/admin/AdminLayout';
 import SearchInput from '../../components/common/SearchInput';
 import { Select, type SelectOption } from '../../components/common/Select';
 import { DatePicker } from '../../components/common/DatePicker';
-import Pagination from '../../components/common/Pagination';
+import { Pagination } from '../../components/common/Pagination';
 import { UserDetailModal } from './user-manager/UserDetailModal';
 import { useToast } from '../../context/ToastContext';
 import { adminApi } from '../../api/adminApi';
@@ -11,7 +12,7 @@ import { userApi } from '../../api/userApi';
 import type { Trip } from '../../types/trip';
 import type { AdminUserListItem } from '../../types/admin';
 import { formatDate } from '../../utils/formatters';
-import { Compass, Loader2, MapPin, ArrowRight, User } from 'lucide-react';
+import { Compass, Loader2, MapPin, ArrowRight, User, AlertCircle } from 'lucide-react';
 
 const statusOptions: SelectOption[] = [
   { value: '', label: 'Tất cả trạng thái' },
@@ -79,6 +80,7 @@ export const TripManagementPage: React.FC = () => {
 
   // Chia trang
   const totalItems = filteredTrips.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
   const paginatedTrips = filteredTrips.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // Xử lý xem thông tin chi tiết Người tổ chức (Host)
@@ -98,100 +100,105 @@ export const TripManagementPage: React.FC = () => {
   const renderStatusBadge = (status: number) => {
     switch (status) {
       case 0:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Đang chờ duyệt</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">Đang chờ duyệt</span>;
       case 1:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Đang mở đăng ký</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">Đang mở đăng ký</span>;
       case 2:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">Đã đủ thành viên</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">Đã đủ thành viên</span>;
       case 3:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">Đang diễn ra</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200/80">Đang diễn ra</span>;
       case 4:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-700">Đã hoàn thành</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Đã hoàn thành</span>;
       case 5:
       case 7:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">Đã hủy / Bị từ chối</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">Đã hủy / Bị từ chối</span>;
       default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">Đang mở đăng ký</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">Đang mở đăng ký</span>;
     }
   };
 
   return (
-    <div className="p-6 space-y-6 text-left max-w-[1400px] mx-auto">
-      {/* Header Page Title */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-            <Compass className="text-coral-500" /> Quản lý Chuyến đi
+    <AdminLayout>
+      {/* HEADER PANEL (GOM TIÊU ĐỀ + 3 Ô LỌC CÙNG 1 HÀNG CHUẨN XÁC VỚI CÁC TRANG ADMIN KHÁC) */}
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs text-left">
+        <div className="space-y-0.5">
+          <h1 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            <Compass size={20} className="text-coral-500" />
+            Quản lý Chuyến đi
           </h1>
-          <p className="text-xs text-slate-500 font-medium">Danh sách toàn bộ chuyến đi trên hệ thống TripMate</p>
-        </div>
-      </div>
-
-      {/* FILTER HEADER BAR (Tìm kiếm, Trạng thái, Ngày xuất phát) */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-        <div className="sm:col-span-5">
-          <SearchInput
-            value={searchTerm}
-            onChange={(val) => {
-              setSearchTerm(val);
-              setCurrentPage(1);
-            }}
-            placeholder="Tìm theo tên chuyến đi hoặc tên Host..."
-          />
+          <p className="text-xs text-slate-500 font-medium">
+            Danh sách toàn bộ chuyến đi trên hệ thống TripMate
+          </p>
         </div>
 
-        <div className="sm:col-span-4">
-          <Select
-            options={statusOptions}
-            value={selectedStatus}
-            onChange={(val) => {
-              setSelectedStatus(val);
-              setCurrentPage(1);
-            }}
-            placeholder="Tất cả trạng thái"
-          />
-        </div>
+        {/* CÙNG HÀNG: SearchInput, Select lọc trạng thái, DatePicker lọc ngày xuất phát */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="w-full sm:w-64">
+            <SearchInput
+              value={searchTerm}
+              onChange={(val) => {
+                setSearchTerm(val);
+                setCurrentPage(1);
+              }}
+              placeholder="Tìm theo chuyến đi hoặc Host..."
+            />
+          </div>
 
-        <div className="sm:col-span-3">
-          <DatePicker
-            value={startDateFilter}
-            onChange={(val) => {
-              setStartDateFilter(val);
-              setCurrentPage(1);
-            }}
-            placeholder="Lọc theo ngày khởi hành"
-          />
+          <div className="w-full sm:w-48">
+            <Select
+              options={statusOptions}
+              value={selectedStatus}
+              onChange={(val) => {
+                setSelectedStatus(val);
+                setCurrentPage(1);
+              }}
+              placeholder="Tất cả trạng thái"
+            />
+          </div>
+
+          <div className="w-full sm:w-44">
+            <DatePicker
+              value={startDateFilter}
+              onChange={(val) => {
+                setStartDateFilter(val);
+                setCurrentPage(1);
+              }}
+              placeholder="Ngày khởi hành"
+            />
+          </div>
         </div>
       </div>
 
       {/* DATA TABLE (4 CỘT) */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-        {isLoading ? (
-          <div className="p-12 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 size={32} className="animate-spin text-coral-500" />
-            <span className="text-xs font-semibold">Đang tải danh sách chuyến đi...</span>
-          </div>
-        ) : paginatedTrips.length === 0 ? (
-          <div className="p-12 text-center text-xs text-slate-400 font-semibold">
-            Không tìm thấy chuyến đi nào phù hợp với bộ lọc.
-          </div>
-        ) : (
+      {isLoading ? (
+        <div className="bg-white p-12 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-3 text-slate-500">
+          <Loader2 size={24} className="animate-spin text-coral-500" />
+          <span className="text-xs font-semibold">Đang tải danh sách chuyến đi...</span>
+        </div>
+      ) : filteredTrips.length === 0 ? (
+        <div className="bg-white p-12 rounded-2xl border border-slate-200/80 text-center space-y-3">
+          <AlertCircle size={36} className="mx-auto text-slate-300" />
+          <h3 className="text-sm font-bold text-slate-800">Không tìm thấy chuyến đi nào</h3>
+          <p className="text-xs text-slate-500">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden text-left">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider">
-                  <th className="py-3.5 px-4 w-[35%]">Cột 1: Tên chuyến đi</th>
-                  <th className="py-3.5 px-4 w-[25%]">Cột 2: Người tổ chức (Host)</th>
-                  <th className="py-3.5 px-4 w-[25%]">Cột 3: Hành trình & Ngày xuất phát</th>
-                  <th className="py-3.5 px-4 w-[15%] text-right">Cột 4: Trạng thái</th>
+                <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-bold uppercase text-slate-400 tracking-wider">
+                  <th className="py-3.5 px-5 w-[35%]">Cột 1: Tên chuyến đi</th>
+                  <th className="py-3.5 px-5 w-[25%]">Cột 2: Người tổ chức (Host)</th>
+                  <th className="py-3.5 px-5 w-[25%]">Cột 3: Hành trình & Ngày xuất phát</th>
+                  <th className="py-3.5 px-5 w-[15%] text-right">Cột 4: Trạng thái</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+              <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-800">
                 {paginatedTrips.map((trip) => (
-                  <tr key={trip.id} className="hover:bg-slate-50/80 transition-colors">
+                  <tr key={trip.id} className="hover:bg-slate-50/60 transition-colors">
                     
                     {/* Cột 1: Tên chuyến đi */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-5">
                       <button
                         type="button"
                         onClick={() => navigate(`/trips/${trip.id}`)}
@@ -205,7 +212,7 @@ export const TripManagementPage: React.FC = () => {
                     </td>
 
                     {/* Cột 2: Người tổ chức (Host) */}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-5">
                       <button
                         type="button"
                         onClick={() => handleViewHostDetail(trip.organizerId)}
@@ -229,7 +236,7 @@ export const TripManagementPage: React.FC = () => {
                     </td>
 
                     {/* Cột 3: Hành trình & Ngày xuất phát */}
-                    <td className="py-3.5 px-4 space-y-1">
+                    <td className="py-3.5 px-5 space-y-1">
                       <div className="flex items-center gap-1.5 font-bold text-slate-800 truncate">
                         <MapPin size={13} className="text-coral-500 shrink-0" />
                         <span className="truncate">{trip.startLocation}</span>
@@ -242,7 +249,7 @@ export const TripManagementPage: React.FC = () => {
                     </td>
 
                     {/* Cột 4: Trạng thái */}
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-5 text-right">
                       {renderStatusBadge(trip.status)}
                     </td>
 
@@ -251,23 +258,23 @@ export const TripManagementPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* COMPONENT PHÂN TRANG CHUẨN */}
-        {!isLoading && totalItems > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={Math.ceil(totalItems / pageSize) || 1}
-            pageSize={pageSize}
-            totalItems={totalItems}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(newSize) => {
-              setPageSize(newSize);
-              setCurrentPage(1);
-            }}
-          />
-        )}
-      </div>
+      {/* COMPONENT PHÂN TRANG CHUẨN */}
+      {!isLoading && totalItems > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+          }}
+        />
+      )}
 
       {/* Modal Chi tiết Người dùng tái sử dụng từ admin/users */}
       {selectedUser && (
@@ -285,7 +292,7 @@ export const TripManagementPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 
