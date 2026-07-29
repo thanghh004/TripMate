@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { ImageOff, Loader2, ZoomIn, X, ExternalLink } from 'lucide-react';
 
@@ -11,7 +11,7 @@ interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   previewable?: boolean;
 }
 
-export const Image: React.FC<ImageProps> = ({
+export const Image: React.FC<ImageProps> = memo(({
   src,
   alt = 'Hình ảnh',
   className = '',
@@ -20,9 +20,19 @@ export const Image: React.FC<ImageProps> = ({
   previewable = false,
   ...props
 }) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!src);
   const [isError, setIsError] = useState(!src);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  // Chỉ reset loading state khi URL `src` thực sự thay đổi!
+  useEffect(() => {
+    if (src) {
+      setIsError(false);
+    } else {
+      setIsLoading(false);
+      setIsError(true);
+    }
+  }, [src]);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -39,7 +49,7 @@ export const Image: React.FC<ImageProps> = ({
       <div
         className={`relative overflow-hidden bg-slate-100/80 ${containerClassName}`}
         onClick={() => {
-          if (previewable && !isError && !isLoading && src) {
+          if (previewable && !isError && src) {
             setIsPreviewOpen(true);
           }
         }}
@@ -65,9 +75,9 @@ export const Image: React.FC<ImageProps> = ({
             onError={handleError}
             loading="lazy"
             decoding="async"
-            className={`w-full h-full object-cover transition-all duration-300 ${
-              isLoading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-            } ${previewable ? 'cursor-zoom-in hover:scale-105' : ''} ${className}`}
+            className={`w-full h-full object-cover transition-opacity duration-200 ${
+              isLoading ? 'opacity-0' : 'opacity-100'
+            } ${previewable ? 'cursor-zoom-in hover:scale-105 transition-transform duration-300' : ''} ${className}`}
             style={{
               imageRendering: '-webkit-optimize-contrast',
               ...props.style,
@@ -78,7 +88,7 @@ export const Image: React.FC<ImageProps> = ({
 
         {/* Hover Indicator if Previewable */}
         {previewable && !isLoading && !isError && src && (
-          <div className="absolute inset-0 bg-black/25 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none">
+          <div className="absolute inset-0 bg-black/25 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white pointer-events-none z-10">
             <div className="bg-black/60 px-3 py-1.5 rounded-full backdrop-blur-md flex items-center gap-1.5 text-xs font-semibold shadow-lg">
               <ZoomIn size={15} /> Xem ảnh sắc nét
             </div>
@@ -137,6 +147,6 @@ export const Image: React.FC<ImageProps> = ({
       )}
     </>
   );
-};
+});
 
 export default Image;

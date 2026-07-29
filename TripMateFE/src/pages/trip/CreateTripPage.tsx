@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import { Select, type SelectOption } from '../../components/common/Select';
 import { DatePicker } from '../../components/common/DatePicker';
+import Image from '../../components/common/Image';
 import { useToast } from '../../context/ToastContext';
 import { tripApi } from '../../api/tripApi';
 import { locationApi } from '../../api/locationApi';
@@ -29,7 +30,6 @@ import {
   X,
   UploadCloud,
   FileText,
-  Eye
 } from 'lucide-react';
 
 export const CreateTripPage: React.FC = () => {
@@ -75,9 +75,6 @@ export const CreateTripPage: React.FC = () => {
   const [maxAge, setMaxAge] = useState<string>('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-
-  // Preview Image Modal state
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   // Submitting & Uploading state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -545,52 +542,25 @@ export const CreateTripPage: React.FC = () => {
                 }}
               />
               <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                   Ảnh bìa chính <span className="text-rose-500">*</span>
                 </label>
                 {coverImageUrl ? (
-                  <div className="relative group rounded-2xl overflow-hidden aspect-video bg-white cursor-pointer shadow-xs">
-                    <img
+                  <div className="relative group rounded-2xl overflow-hidden aspect-video bg-white cursor-pointer shadow-xs border border-slate-200">
+                    <Image
                       src={coverImageUrl}
-                      alt="Cover"
-                      onClick={() => setPreviewImageUrl(coverImageUrl)}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      alt="Ảnh bìa chuyến đi"
+                      previewable
+                      containerClassName="w-full h-full"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPreviewImageUrl(coverImageUrl);
-                        }}
-                        className="p-2.5 bg-white/90 rounded-full text-slate-700 hover:bg-white cursor-pointer shadow-xs"
-                        title="Xem ảnh phóng to"
-                      >
-                        <Eye size={18} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          coverInputRef.current?.click();
-                        }}
-                        className="p-2.5 bg-white/90 rounded-full text-slate-700 hover:bg-white cursor-pointer shadow-xs"
-                        title="Đổi ảnh"
-                      >
-                        <UploadCloud size={18} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCoverImageUrl('');
-                        }}
-                        className="p-2.5 bg-white/90 rounded-full text-rose-500 hover:bg-white cursor-pointer shadow-xs"
-                        title="Xóa ảnh"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCoverImageUrl('')}
+                      className="absolute top-3 right-3 p-2 rounded-full bg-black/60 text-white hover:bg-black transition cursor-pointer z-20 opacity-0 group-hover:opacity-100"
+                      title="Xóa ảnh bìa"
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
                 ) : (
                   <button
@@ -641,37 +611,21 @@ export const CreateTripPage: React.FC = () => {
                 {imageUrls.length > 0 && (
                   <div className="grid grid-cols-3 gap-2.5">
                     {imageUrls.map((url, idx) => (
-                      <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square border border-slate-200 bg-white cursor-pointer">
-                        <img
+                      <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square border border-slate-200 bg-white">
+                        <Image
                           src={url}
                           alt={`Gallery ${idx}`}
-                          onClick={() => setPreviewImageUrl(url)}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          previewable
+                          containerClassName="w-full h-full"
                         />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewImageUrl(url);
-                            }}
-                            className="p-1.5 bg-white/90 rounded-full text-slate-700 hover:bg-white cursor-pointer"
-                            title="Xem ảnh"
-                          >
-                            <Eye size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeGalleryImage(idx);
-                            }}
-                            className="p-1.5 bg-white/90 rounded-full text-rose-500 hover:bg-white cursor-pointer"
-                            title="Xóa ảnh"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(idx)}
+                          className="absolute top-1.5 right-1.5 p-1.5 bg-black/60 text-white rounded-full hover:bg-black transition cursor-pointer opacity-0 group-hover:opacity-100 z-20"
+                          title="Xóa ảnh"
+                        >
+                          <X size={13} />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -780,32 +734,6 @@ export const CreateTripPage: React.FC = () => {
           </div>
         </form>
       </main>
-
-      {/* Modal Xem Ảnh Phóng To (Image Preview Modal) */}
-      {previewImageUrl && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={() => setPreviewImageUrl(null)}
-        >
-          <div
-            className="relative max-w-4xl max-h-[85vh] overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex items-center justify-center p-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setPreviewImageUrl(null)}
-              className="absolute top-4 right-4 p-2.5 rounded-full bg-black/60 hover:bg-black text-white transition cursor-pointer z-10"
-            >
-              <X size={20} />
-            </button>
-            <img
-              src={previewImageUrl}
-              alt="Preview Fullsize"
-              className="max-w-full max-h-[80vh] object-contain rounded-2xl"
-            />
-          </div>
-        </div>
-      )}
 
       <ScrollToTop />
     </div>
