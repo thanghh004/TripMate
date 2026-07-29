@@ -8,6 +8,7 @@ import Input from '../../components/common/Input';
 import Image from '../../components/common/Image';
 import { useToast } from '../../context/ToastContext';
 import { tripApi } from '../../api/tripApi';
+import { adminApi } from '../../api/adminApi';
 import type { Trip } from '../../types/trip';
 import { TripStatus } from '../../types/trip';
 import { formatDate } from '../../utils/formatters';
@@ -24,7 +25,9 @@ import {
   UserCheck,
   Sparkles,
   AlertCircle,
-  FileText
+  FileText,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 
 export const TripDetailPage: React.FC = () => {
@@ -450,7 +453,63 @@ export const TripDetailPage: React.FC = () => {
             </div>
 
             {/* Nút Action Submit Form */}
-            <div className="pt-1">
+            <div className="pt-1 space-y-2.5">
+              {/* Nếu người dùng là ADMIN: Hiển thị thanh công cụ Duyệt / Từ chối chuyến đi */}
+              {currentUser?.role === 'Admin' || currentUser?.role === 1 || currentUser?.role === '1' ? (
+                <div className="space-y-2">
+                  <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-2xl text-[11px] font-bold text-amber-800 flex items-center gap-2">
+                    <ShieldCheck size={16} className="text-amber-600 shrink-0" />
+                    <span>Chế độ Quản trị viên Admin — Xem & Phê duyệt chuyến đi</span>
+                  </div>
+
+                  {trip.status === TripStatus.PendingReview && (
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <Button
+                        type="button"
+                        disabled={isJoining}
+                        onClick={async () => {
+                          try {
+                            setIsJoining(true);
+                            await adminApi.approveTrip(trip.id);
+                            toast.success('Đã phê duyệt chuyến đi thành công!');
+                            setTrip({ ...trip, status: TripStatus.Open });
+                          } catch (err: any) {
+                            toast.error(err.response?.data?.message || 'Phê duyệt thất bại.');
+                          } finally {
+                            setIsJoining(false);
+                          }
+                        }}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3.5 rounded-2xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                      >
+                        <CheckCircle2 size={16} /> Phê duyệt chuyến
+                      </Button>
+
+                      <Button
+                        type="button"
+                        disabled={isJoining}
+                        onClick={async () => {
+                          const reason = prompt('Nhập lý do từ chối chuyến đi này:');
+                          if (!reason || !reason.trim()) return;
+                          try {
+                            setIsJoining(true);
+                            await adminApi.rejectTrip(trip.id, reason.trim());
+                            toast.success('Đã từ chối chuyến đi.');
+                            setTrip({ ...trip, status: TripStatus.Rejected });
+                          } catch (err: any) {
+                            toast.error(err.response?.data?.message || 'Từ chối thất bại.');
+                          } finally {
+                            setIsJoining(false);
+                          }
+                        }}
+                        className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-3.5 rounded-2xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                      >
+                        <XCircle size={16} /> Từ chối chuyến
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
               {isOrganizer ? (
                 <Button
                   onClick={() => navigate(`/trips/${trip.id}/edit`)}

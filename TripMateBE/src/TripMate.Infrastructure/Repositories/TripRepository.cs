@@ -57,6 +57,19 @@ public class TripRepository : ITripRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Trip>> GetAllTripsForAdminAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Trips
+            .AsNoTracking()
+            .Include(t => t.Category)
+            .Include(t => t.StartCity)
+            .Include(t => t.DestinationCity)
+            .Include(t => t.Organizer)
+            .Include(t => t.Images)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Trip trip, CancellationToken cancellationToken = default)
     {
         await _context.Trips.AddAsync(trip, cancellationToken);

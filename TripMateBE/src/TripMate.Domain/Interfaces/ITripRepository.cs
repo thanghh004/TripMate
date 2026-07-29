@@ -24,6 +24,11 @@ public interface ITripRepository
     Task<List<Trip>> GetPendingTripsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Lấy danh sách tất cả chuyến đi dành cho Admin
+    /// </summary>
+    Task<List<Trip>> GetAllTripsForAdminAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Thêm mới một chuyến đi
     /// </summary>
     Task AddAsync(Trip trip, CancellationToken cancellationToken = default);

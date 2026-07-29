@@ -79,6 +79,17 @@ public class TripsController : BaseApiController
     // ─── ADMIN CONTROLS ───
 
     /// <summary>
+    /// [Admin] Lấy danh sách toàn bộ chuyến đi trong hệ thống
+    /// </summary>
+    [HttpGet("admin/all")]
+    [Authorize(Roles = "Admin,0")]
+    public async Task<ActionResult<List<TripDto>>> GetAdminAllTrips()
+    {
+        var result = await Mediator.Send(new Application.Features.Trips.Queries.GetAdminAllTrips.GetAdminAllTripsQuery());
+        return Ok(result);
+    }
+
+    /// <summary>
     /// [Admin] Lấy danh sách chuyến đi chờ duyệt (PendingReview)
     /// </summary>
     [HttpGet("admin/pending")]

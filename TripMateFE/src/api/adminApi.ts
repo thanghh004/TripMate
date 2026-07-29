@@ -2,6 +2,7 @@ import { axiosClient } from './axiosClient';
 import type { ApiResponse } from '../types/auth';
 import type { AdminUserListItem, AdminUpdateUserRequest } from '../types/admin';
 import type { PendingHostVerification } from '../types/adminHost';
+import type { Trip } from '../types/trip';
 
 export interface AdminStatsResponse {
   totalUsers: number;
@@ -53,6 +54,24 @@ export const adminApi = {
     data: AdminUpdateUserRequest
   ): Promise<ApiResponse<{ isSuccess: boolean }>> => {
     const res = await axiosClient.put<ApiResponse<{ isSuccess: boolean }>>(`/api/users/${userId}`, data);
+    return res.data;
+  },
+
+  // 8. Admin lấy danh sách toàn bộ chuyến đi
+  getAllTrips: async (): Promise<ApiResponse<Trip[]>> => {
+    const res = await axiosClient.get<ApiResponse<Trip[]>>('/api/trips/admin/all');
+    return res.data;
+  },
+
+  // 9. Admin phê duyệt chuyến đi
+  approveTrip: async (tripId: string): Promise<ApiResponse<{ isSuccess: boolean }>> => {
+    const res = await axiosClient.patch<ApiResponse<{ isSuccess: boolean }>>(`/api/trips/admin/${tripId}/approve`);
+    return res.data;
+  },
+
+  // 10. Admin từ chối chuyến đi kèm lý do
+  rejectTrip: async (tripId: string, reason: string): Promise<ApiResponse<{ isSuccess: boolean }>> => {
+    const res = await axiosClient.patch<ApiResponse<{ isSuccess: boolean }>>(`/api/trips/admin/${tripId}/reject`, { reason });
     return res.data;
   },
 };

@@ -1,5 +1,6 @@
 import { axiosClient } from './axiosClient';
 import type { ApiResponse, UpdateProfileRequest, UserProfileResponse } from '../types/auth';
+import type { AdminUserListItem } from '../types/admin';
 
 export const userApi = {
   // API 1: Lấy thông tin hồ sơ đầy đủ của người dùng hiện tại từ DB
@@ -35,6 +36,12 @@ export const userApi = {
     const res = await axiosClient.post<ApiResponse<{ isSuccess: boolean }>>(
       '/api/users/request-host-verification'
     );
+    return res.data;
+  },
+
+  // API 5: Admin lấy thông tin chi tiết một người dùng theo ID
+  getUserById: async (userId: string): Promise<ApiResponse<AdminUserListItem>> => {
+    const res = await axiosClient.get<ApiResponse<AdminUserListItem>>(`/api/users/${userId}`);
     return res.data;
   },
 };
