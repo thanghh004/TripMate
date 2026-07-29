@@ -387,7 +387,7 @@ export const MyTripsPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Cụm Nút Thao Tác Bên Phải */}
+                    {/* Cụm Nút Thao Tác Bên Phải - CHỈ HIỂN THỊ CHỈNH SỬA & HỦY KHI Ở TRẠNG THÁI PENDING REVIEW (0) */}
                     <div className="flex items-center gap-2 shrink-0 self-end md:self-center ml-auto">
                       <Button
                         size="sm"
@@ -398,9 +398,8 @@ export const MyTripsPage: React.FC = () => {
                         Chi tiết
                       </Button>
 
-                      {trip.status !== TripStatusEnum.Ongoing &&
-                        trip.status !== TripStatusEnum.Completed &&
-                        trip.status !== TripStatusEnum.Cancelled && (
+                      {trip.status === TripStatusEnum.PendingReview && (
+                        <>
                           <Button
                             size="sm"
                             variant="warning"
@@ -409,11 +408,7 @@ export const MyTripsPage: React.FC = () => {
                           >
                             Chỉnh sửa
                           </Button>
-                        )}
 
-                      {trip.status !== TripStatusEnum.Cancelled &&
-                        trip.status !== TripStatusEnum.Completed &&
-                        trip.status !== TripStatusEnum.Ongoing && (
                           <Button
                             size="sm"
                             variant="danger"
@@ -422,7 +417,8 @@ export const MyTripsPage: React.FC = () => {
                           >
                             Hủy chuyến
                           </Button>
-                        )}
+                        </>
+                      )}
                     </div>
                   </div>
 

@@ -79,7 +79,7 @@ export const TripManagementPage: React.FC = () => {
 
     const matchesStartDate =
       !startDateFilter ||
-      new Date(t.startDate).toISOString().slice(0, 10) === startDateFilter;
+      (t.startDate && t.startDate.substring(0, 10) === startDateFilter);
 
     return matchesSearch && matchesStatus && matchesStartDate;
   });
@@ -218,6 +218,10 @@ export const TripManagementPage: React.FC = () => {
               value={startDateFilter}
               onChange={(val) => {
                 setStartDateFilter(val);
+                setCurrentPage(1);
+              }}
+              onClear={() => {
+                setStartDateFilter('');
                 setCurrentPage(1);
               }}
               placeholder="Ngày khởi hành"

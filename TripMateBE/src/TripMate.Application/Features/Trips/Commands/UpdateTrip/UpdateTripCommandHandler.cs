@@ -28,9 +28,9 @@ public class UpdateTripCommandHandler : IRequestHandler<UpdateTripCommand, TripD
         if (trip.OrganizerId != request.UserId)
             throw new BusinessRuleException("Bạn không phải là Trưởng đoàn của chuyến đi này.");
 
-        // Rule: Không cho sửa khi chuyến đi đang diễn ra hoặc đã hoàn thành/hủy
-        if (trip.Status == TripStatus.Ongoing || trip.Status == TripStatus.Completed || trip.Status == TripStatus.Cancelled)
-            throw new BusinessRuleException("Không thể chỉnh sửa chuyến đi đang diễn ra, đã hoàn thành hoặc đã bị hủy.");
+        // Rule: CHỈ DUY NHẤT cho phép chỉnh sửa khi chuyến đi đang ở trạng thái Chờ duyệt (PendingReview)
+        if (trip.Status != TripStatus.PendingReview)
+            throw new BusinessRuleException("Chỉ có thể chỉnh sửa chuyến đi khi đang ở trạng thái Chờ duyệt.");
 
         var dto = request.Dto;
 

@@ -26,12 +26,9 @@ public class CancelTripCommandHandler : IRequestHandler<CancelTripCommand, bool>
         if (!request.IsAdmin && trip.OrganizerId != request.UserId)
             throw new BusinessRuleException("Bạn không có quyền hủy chuyến đi này.");
 
-        // Rule: Chuyến đi đã hoàn thành không thể hủy
-        if (trip.Status == TripStatus.Completed)
-            throw new BusinessRuleException("Chuyến đi đã hoàn thành xuất sắc, không thể hủy bỏ.");
-
-        if (trip.Status == TripStatus.Cancelled)
-            throw new BusinessRuleException("Chuyến đi này đã ở trạng thái bị hủy từ trước.");
+        // Rule: CHỈ DUY NHẤT cho phép hủy chuyến đi khi đang ở trạng thái Chờ duyệt (PendingReview)
+        if (trip.Status != TripStatus.PendingReview)
+            throw new BusinessRuleException("Chỉ có thể hủy chuyến đi khi đang ở trạng thái Chờ duyệt.");
 
         // Rule: Bắt buộc phải có lý do hủy
         if (string.IsNullOrWhiteSpace(request.Reason))
