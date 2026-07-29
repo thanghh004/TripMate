@@ -41,23 +41,19 @@
     cursor: not-allowed !important;
   }
 
-  /* Tùy chỉnh thanh cuộn (Scrollbar) mỏng nhẹ, thanh lịch và không chiếm không gian layout */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  /* Ẩn hoàn toàn thanh cuộn (Scrollbar) trên toàn bộ trang web nhưng vẫn giữ tính năng cuộn mượt mà */
+  html, body, * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #94a3b8;
-    border-radius: 9999px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
   }
 }
 
