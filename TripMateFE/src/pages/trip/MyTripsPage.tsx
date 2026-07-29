@@ -547,16 +547,20 @@ export const MyTripsPage: React.FC = () => {
                   Đóng
                 </button>
 
-                <Button
-                  size="sm"
-                  variant="danger"
-                  isLoading={isCancelling}
+                <button
+                  type="submit"
                   disabled={isCancelling || !hasReason}
                   onClick={handleConfirmCancel}
                   className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
                 >
-                  Xác nhận Hủy chuyến
-                </Button>
+                  {isCancelling ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Đang hủy...
+                    </>
+                  ) : (
+                    'Xác nhận Hủy chuyến'
+                  )}
+                </button>
               </div>
             </div>
           </div>

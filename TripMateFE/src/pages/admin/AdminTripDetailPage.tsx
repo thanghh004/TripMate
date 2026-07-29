@@ -123,16 +123,29 @@ const RejectTripModal: React.FC<RejectTripModalProps> = ({
                   onClick={() => toggleReason(reason)}
                   className={`p-3 rounded-xl border text-left text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer ${
                     isChecked
-                      ? 'bg-rose-50/80 border-rose-300 text-rose-900 shadow-2xs'
+                      ? 'bg-rose-50 border-rose-300 text-rose-900 shadow-2xs'
                       : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 text-slate-700'
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => {}}
-                    className="w-4 h-4 rounded text-coral-500 focus:ring-coral-400 accent-coral-500 cursor-pointer"
-                  />
+                  <span
+                    className={`w-4 h-4 shrink-0 rounded border flex items-center justify-center transition-all ${
+                      isChecked
+                        ? 'bg-rose-500 border-rose-500'
+                        : 'border-slate-300 bg-white'
+                    }`}
+                  >
+                    {isChecked && (
+                      <svg width="9" height="7" viewBox="0 0 8 6" fill="none">
+                        <path
+                          d="M1 3L3 5L7 1"
+                          stroke="white"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </span>
                   <span className="truncate">{reason}</span>
                 </button>
               );
@@ -154,7 +167,7 @@ const RejectTripModal: React.FC<RejectTripModalProps> = ({
               setCustomReason(e.target.value);
             }}
             placeholder="Nhập thêm chi tiết lý do từ chối chuyến..."
-            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-coral-400 transition resize-none leading-relaxed"
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-rose-400 transition resize-none leading-relaxed"
           />
           <div className="text-[11px] font-semibold text-slate-400 text-right pt-0.5">
             {customReason.length}/500
@@ -181,10 +194,10 @@ const RejectTripModal: React.FC<RejectTripModalProps> = ({
               Đóng
             </button>
 
-            <Button
+            <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-6 py-2 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
+              className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
             >
               {isSubmitting ? (
                 <>
@@ -193,7 +206,7 @@ const RejectTripModal: React.FC<RejectTripModalProps> = ({
               ) : (
                 'Xác nhận Từ chối chuyến'
               )}
-            </Button>
+            </button>
           </div>
         </div>
       </form>

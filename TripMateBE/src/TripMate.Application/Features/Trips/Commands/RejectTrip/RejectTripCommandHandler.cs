@@ -26,7 +26,7 @@ public class RejectTripCommandHandler : IRequestHandler<RejectTripCommand, TripD
         if (trip.Status != TripStatus.PendingReview)
             throw new BusinessRuleException($"Chuyến đi đang ở trạng thái '{trip.Status}', chỉ từ chối được chuyến đi đang ở trạng thái Chờ duyệt (PendingReview).");
 
-        trip.Status = TripStatus.Cancelled;
+        trip.Status = TripStatus.Rejected;
         trip.ModerationNote = request.Dto.Reason.Trim();
         trip.UpdatedAt = DateTime.UtcNow;
 
