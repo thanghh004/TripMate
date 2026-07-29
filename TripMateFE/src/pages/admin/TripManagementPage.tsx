@@ -9,6 +9,7 @@ import { UserDetailModal } from './user-manager/UserDetailModal';
 import { useToast } from '../../context/ToastContext';
 import { adminApi } from '../../api/adminApi';
 import type { Trip } from '../../types/trip';
+import { TripStatus as TripStatusEnum } from '../../types/trip';
 import type { AdminUserListItem } from '../../types/admin';
 import { formatDate } from '../../utils/formatters';
 import { Compass, Loader2, MapPin, ArrowRight, AlertCircle } from 'lucide-react';
@@ -124,24 +125,63 @@ export const TripManagementPage: React.FC = () => {
     }
   };
 
-  // Helper render Trạng thái chuẩn Tiếng Việt
   const renderStatusBadge = (status: number) => {
     switch (status) {
-      case 0:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">Đang chờ duyệt</span>;
-      case 1:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">Đang mở đăng ký</span>;
-      case 2:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">Đã đủ thành viên</span>;
-      case 3:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200/80">Đang diễn ra</span>;
-      case 4:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Đã hoàn thành</span>;
-      case 5:
-      case 7:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/80">Đã hủy / Bị từ chối</span>;
+      case TripStatusEnum.PendingReview:
+        return (
+          <span className="text-[11px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
+            Đang chờ duyệt
+          </span>
+        );
+      case TripStatusEnum.Approved:
+      case TripStatusEnum.Open:
+        return (
+          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+            Đang nhận đăng ký
+          </span>
+        );
+      case TripStatusEnum.Full:
+        return (
+          <span className="text-[11px] font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
+            Đã đủ thành viên
+          </span>
+        );
+      case TripStatusEnum.Ongoing:
+        return (
+          <span className="text-[11px] font-bold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">
+            Đang diễn ra
+          </span>
+        );
+      case TripStatusEnum.Completed:
+        return (
+          <span className="text-[11px] font-bold text-slate-700 bg-slate-200 px-3 py-1 rounded-full">
+            Hoàn thành
+          </span>
+        );
+      case TripStatusEnum.Cancelled:
+        return (
+          <span className="text-[11px] font-bold text-rose-700 bg-rose-100 px-3 py-1 rounded-full">
+            Đã hủy
+          </span>
+        );
+      case TripStatusEnum.Failed:
+        return (
+          <span className="text-[11px] font-bold text-slate-600 bg-slate-200 px-3 py-1 rounded-full">
+            Tạo thất bại
+          </span>
+        );
+      case TripStatusEnum.Rejected:
+        return (
+          <span className="text-[11px] font-bold text-rose-800 bg-rose-200 px-3 py-1 rounded-full">
+            Bị từ chối
+          </span>
+        );
       default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">Đang mở đăng ký</span>;
+        return (
+          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+            Đang nhận đăng ký
+          </span>
+        );
     }
   };
 

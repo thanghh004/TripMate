@@ -184,7 +184,7 @@ const RejectTripModal: React.FC<RejectTripModalProps> = ({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs px-6 py-2 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
+              className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-6 py-2 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
             >
               {isSubmitting ? (
                 <>
@@ -259,7 +259,7 @@ export const AdminTripDetailPage: React.FC = () => {
     }
   };
 
-  // Helper render Trạng thái chuyến đi chuẩn Tiếng Việt
+  // Helper render Trạng thái chuyến đi chuẩn Tiếng Việt (Phân tách 100%)
   const renderStatusBadge = (status: number) => {
     switch (status) {
       case TripStatus.PendingReview:
@@ -268,11 +268,11 @@ export const AdminTripDetailPage: React.FC = () => {
             Đang chờ duyệt
           </span>
         );
-      case TripStatus.Open:
       case TripStatus.Approved:
+      case TripStatus.Open:
         return (
           <span className="text-[11px] font-black text-emerald-700 bg-emerald-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đang mở đăng ký
+            Đang nhận đăng ký
           </span>
         );
       case TripStatus.Full:
@@ -290,21 +290,31 @@ export const AdminTripDetailPage: React.FC = () => {
       case TripStatus.Completed:
         return (
           <span className="text-[11px] font-black text-slate-700 bg-slate-200/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đã hoàn thành
+            Hoàn thành
           </span>
         );
       case TripStatus.Cancelled:
-      case TripStatus.Failed:
-      case TripStatus.Rejected:
         return (
           <span className="text-[11px] font-black text-rose-700 bg-rose-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đã hủy / Bị từ chối
+            Đã hủy
+          </span>
+        );
+      case TripStatus.Failed:
+        return (
+          <span className="text-[11px] font-black text-slate-600 bg-slate-200 px-3 py-1 rounded-full uppercase tracking-wider">
+            Tạo thất bại
+          </span>
+        );
+      case TripStatus.Rejected:
+        return (
+          <span className="text-[11px] font-black text-rose-800 bg-rose-200 px-3 py-1 rounded-full uppercase tracking-wider">
+            Bị từ chối
           </span>
         );
       default:
         return (
           <span className="text-[11px] font-black text-emerald-700 bg-emerald-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đang mở đăng ký
+            Đang nhận đăng ký
           </span>
         );
     }
