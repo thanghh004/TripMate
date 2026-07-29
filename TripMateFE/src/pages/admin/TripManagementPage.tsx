@@ -159,7 +159,7 @@ export const TripManagementPage: React.FC = () => {
           </p>
         </div>
 
-        {/* CÙNG HÀNG: Ô tìm kiếm + Nhóm bộ lọc (Lọc Trạng thái & Ngày khởi hành) */}
+        {/* CÙNG HÀNG: Ô tìm kiếm + Nhóm bộ lọc (Lọc Ngày khởi hành trước -> Select Trạng thái sau) */}
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <div className="w-full sm:w-64">
             <SearchInput
@@ -172,6 +172,19 @@ export const TripManagementPage: React.FC = () => {
             />
           </div>
 
+          {/* Ô lọc theo ngày khởi hành (Chuyển vào bên trong) */}
+          <div className="w-full sm:w-40">
+            <DatePicker
+              value={startDateFilter}
+              onChange={(val) => {
+                setStartDateFilter(val);
+                setCurrentPage(1);
+              }}
+              placeholder="Ngày khởi hành"
+            />
+          </div>
+
+          {/* Ô chọn lọc theo trạng thái (Chuyển ra ngoài cùng) */}
           <div className="w-full sm:w-44">
             <Select
               options={statusOptions}
@@ -181,17 +194,6 @@ export const TripManagementPage: React.FC = () => {
                 setCurrentPage(1);
               }}
               placeholder="Tất cả trạng thái"
-            />
-          </div>
-
-          <div className="w-full sm:w-40">
-            <DatePicker
-              value={startDateFilter}
-              onChange={(val) => {
-                setStartDateFilter(val);
-                setCurrentPage(1);
-              }}
-              placeholder="Ngày khởi hành"
             />
           </div>
         </div>
