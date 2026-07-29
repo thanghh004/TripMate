@@ -4,6 +4,7 @@ import { AdminLayout } from '../../components/admin/AdminLayout';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Image from '../../components/common/Image';
+import { RejectTripModal } from './RejectTripModal';
 import { useToast } from '../../context/ToastContext';
 import { tripApi } from '../../api/tripApi';
 import { adminApi } from '../../api/adminApi';
@@ -54,6 +55,8 @@ export const AdminTripDetailPage: React.FC = () => {
     fetchTripDetail();
   }, [id]);
 
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+
   // Admin Phê duyệt chuyến đi
   const handleApprove = async () => {
     if (!trip) return;
@@ -69,19 +72,17 @@ export const AdminTripDetailPage: React.FC = () => {
     }
   };
 
-  // Admin Từ chối chuyến đi
-  const handleReject = async () => {
+  // Admin Từ chối chuyến đi từ RejectTripModal
+  const handleConfirmReject = async (reason: string) => {
     if (!trip) return;
-    const reason = prompt('Nhập lý do từ chối chuyến đi này:');
-    if (!reason || !reason.trim()) return;
-
     try {
       setIsProcessing(true);
-      await adminApi.rejectTrip(trip.id, reason.trim());
+      await adminApi.rejectTrip(trip.id, reason);
       toast.success('Đã từ chối chuyến đi.');
       setTrip({ ...trip, status: TripStatus.Rejected });
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Từ chối thất bại.');
+      throw err;
     } finally {
       setIsProcessing(false);
     }
@@ -463,7 +464,7 @@ export const AdminTripDetailPage: React.FC = () => {
                       <Button
                         type="button"
                         disabled={isProcessing}
-                        onClick={handleReject}
+                        onClick={() => setIsRejectModalOpen(true)}
                         className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-3.5 rounded-2xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5 transition"
                       >
                         <XCircle size={16} /> Từ chối chuyến
@@ -482,6 +483,13 @@ export const AdminTripDetailPage: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Modal từ chối phê duyệt chuyến đi */}
+      <RejectTripModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        onConfirm={handleConfirmReject}
+      />
     </AdminLayout>
   );
 };
