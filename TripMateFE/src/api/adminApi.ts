@@ -58,9 +58,9 @@ export const adminApi = {
   },
 
   // 8. Admin lấy danh sách toàn bộ chuyến đi
-  getAllTrips: async (): Promise<ApiResponse<Trip[]>> => {
-    const res = await axiosClient.get<ApiResponse<Trip[]>>('/api/trips/admin/all');
-    return res.data;
+  getAllTrips: async (): Promise<Trip[]> => {
+    const res = await axiosClient.get<any>('/api/trips/admin/all');
+    return Array.isArray(res.data) ? res.data : res.data?.data || [];
   },
 
   // 9. Admin phê duyệt chuyến đi

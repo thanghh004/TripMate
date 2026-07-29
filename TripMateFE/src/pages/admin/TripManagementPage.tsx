@@ -48,8 +48,8 @@ export const TripManagementPage: React.FC = () => {
   const fetchTrips = async () => {
     try {
       setIsLoading(true);
-      const res = await adminApi.getAllTrips();
-      setTrips(res.data || []);
+      const data = await adminApi.getAllTrips();
+      setTrips(data || []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Không thể tải danh sách chuyến đi.');
     } finally {
@@ -88,7 +88,8 @@ export const TripManagementPage: React.FC = () => {
     try {
       setIsLoadingUserDetail(true);
       const res = await userApi.getUserById(userId);
-      setSelectedUser(res.data);
+      const userData = (res as any).data || res;
+      setSelectedUser(userData);
     } catch {
       toast.error('Không thể lấy thông tin người dùng.');
     } finally {
@@ -119,7 +120,7 @@ export const TripManagementPage: React.FC = () => {
 
   return (
     <AdminLayout>
-      {/* HEADER PANEL (GOM TIÊU ĐỀ + 3 Ô LỌC CÙNG 1 HÀNG CHUẨN XÁC VỚI CÁC TRANG ADMIN KHÁC) */}
+      {/* HEADER PANEL (GOM TIÊU ĐỀ + NHÓM BỘ LỌC CÙNG 1 HÀNG CHUẨN XÁC) */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs text-left">
         <div className="space-y-0.5">
           <h1 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
@@ -131,7 +132,7 @@ export const TripManagementPage: React.FC = () => {
           </p>
         </div>
 
-        {/* CÙNG HÀNG: SearchInput, Select lọc trạng thái, DatePicker lọc ngày xuất phát */}
+        {/* CÙNG HÀNG: Ô tìm kiếm + Nhóm bộ lọc (Lọc Trạng thái & Ngày khởi hành) */}
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <div className="w-full sm:w-64">
             <SearchInput
@@ -144,7 +145,7 @@ export const TripManagementPage: React.FC = () => {
             />
           </div>
 
-          <div className="w-full sm:w-48">
+          <div className="w-full sm:w-44">
             <Select
               options={statusOptions}
               value={selectedStatus}
@@ -156,7 +157,7 @@ export const TripManagementPage: React.FC = () => {
             />
           </div>
 
-          <div className="w-full sm:w-44">
+          <div className="w-full sm:w-40">
             <DatePicker
               value={startDateFilter}
               onChange={(val) => {
@@ -179,7 +180,7 @@ export const TripManagementPage: React.FC = () => {
         <div className="bg-white p-12 rounded-2xl border border-slate-200/80 text-center space-y-3">
           <AlertCircle size={36} className="mx-auto text-slate-300" />
           <h3 className="text-sm font-bold text-slate-800">Không tìm thấy chuyến đi nào</h3>
-          <p className="text-xs text-slate-500">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.</p>
+          <p className="text-xs text-slate-500">Thử thay đổi từ khóa tìm kiếm hoặc bỏ bộ lọc.</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden text-left">
@@ -187,10 +188,10 @@ export const TripManagementPage: React.FC = () => {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-bold uppercase text-slate-400 tracking-wider">
-                  <th className="py-3.5 px-5 w-[35%]">Cột 1: Tên chuyến đi</th>
-                  <th className="py-3.5 px-5 w-[25%]">Cột 2: Người tổ chức (Host)</th>
-                  <th className="py-3.5 px-5 w-[25%]">Cột 3: Hành trình & Ngày xuất phát</th>
-                  <th className="py-3.5 px-5 w-[15%] text-right">Cột 4: Trạng thái</th>
+                  <th className="py-3.5 px-5 w-[35%]">Tên chuyến đi</th>
+                  <th className="py-3.5 px-5 w-[25%]">Người tổ chức (Host)</th>
+                  <th className="py-3.5 px-5 w-[25%]">Hành trình & Ngày xuất phát</th>
+                  <th className="py-3.5 px-5 w-[15%] text-right">Trạng thái</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-800">
