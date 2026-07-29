@@ -4,7 +4,7 @@ import { AdminLayout } from '../../components/admin/AdminLayout';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Image from '../../components/common/Image';
-import { RejectTripModal } from './RejectTripModal';
+import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 import { tripApi } from '../../api/tripApi';
 import { adminApi } from '../../api/adminApi';
@@ -25,9 +25,181 @@ import {
   AlertCircle,
   FileText,
   CheckCircle2,
-  XCircle,
-  ArrowLeft
+  XCircle
 } from 'lucide-react';
+
+const PRESET_REASONS = [
+  'Lịch trình chưa chi tiết',
+  'Hình ảnh không hợp lệ',
+  'Chi phí không hợp lý',
+  'Yêu cầu không phù hợp',
+  'Địa điểm không an toàn',
+  'Lý do khác',
+];
+
+interface RejectTripModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (reason: string) => Promise<void>;
+  tripTitle?: string;
+}
+
+const RejectTripModal: React.FC<RejectTripModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  tripTitle = 'chuyến đi này',
+}) => {
+  const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
+  const [customReason, setCustomReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const toggleReason = (reason: string) => {
+    setError('');
+    setSelectedReasons((prev) =>
+      prev.includes(reason)
+        ? prev.filter((r) => r !== reason)
+        : [...prev, reason]
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const allReasons = [...selectedReasons];
+    if (customReason.trim()) {
+      allReasons.push(customReason.trim());
+    }
+
+    if (allReasons.length === 0) {
+      setError('Vui lòng chọn ít nhất 1 lý do từ chối');
+      return;
+    }
+
+    const finalReasonString = allReasons.join('; ');
+
+    try {
+      setIsSubmitting(true);
+      await onConfirm(finalReasonString);
+      onClose();
+    } catch {
+      // Handled by parent
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Xác nhận từ chối chuyến đi"
+      maxWidth="2xl"
+      position="top"
+    >
+      <form onSubmit={handleSubmit} className="space-y-5 text-left font-sans">
+        {/* Banner cảnh báo đỏ */}
+        <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 text-xs text-rose-800">
+          <AlertCircle size={20} className="text-rose-500 shrink-0" />
+          <p className="font-medium leading-relaxed">
+            Bạn sắp từ chối duyệt chuyến đi <strong className="font-extrabold text-rose-900">{tripTitle}</strong>. Hành động này <strong className="font-extrabold text-rose-900">không thể hoàn tác</strong>.
+          </p>
+        </div>
+
+        {/* Lý do từ chối (Grid 3 cột x 2 hàng chuẩn ảnh mẫu) */}
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-800">
+            Lý do từ chối <span className="text-rose-500">*</span>
+          </label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {PRESET_REASONS.map((reason, idx) => {
+              const isChecked = selectedReasons.includes(reason);
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => toggleReason(reason)}
+                  className={`p-3 rounded-xl border text-left text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer ${
+                    isChecked
+                      ? 'bg-rose-50/80 border-rose-300 text-rose-900 shadow-2xs'
+                      : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 text-slate-700'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => {}}
+                    className="w-4 h-4 rounded text-coral-500 focus:ring-coral-400 accent-coral-500 cursor-pointer"
+                  />
+                  <span className="truncate">{reason}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Ghi chú thêm (Tùy chọn) kèm bộ đếm 0/500 */}
+        <div className="space-y-1.5 relative">
+          <label className="block text-xs font-semibold text-slate-600">
+            Ghi chú thêm <span className="text-slate-400 font-normal">(tùy chọn)</span>
+          </label>
+          <textarea
+            rows={3}
+            maxLength={500}
+            value={customReason}
+            onChange={(e) => {
+              setError('');
+              setCustomReason(e.target.value);
+            }}
+            placeholder="Nhập thêm chi tiết lý do từ chối chuyến..."
+            className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-coral-400 transition resize-none leading-relaxed"
+          />
+          <div className="text-[11px] font-semibold text-slate-400 text-right pt-0.5">
+            {customReason.length}/500
+          </div>
+        </div>
+
+        {/* Footer Modal: Lỗi bên trái, Nút Đóng & Xác nhận bên phải */}
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+          <div>
+            {error && (
+              <p className="text-xs font-bold text-rose-500 flex items-center gap-1">
+                <AlertCircle size={14} /> {error}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="px-5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+            >
+              Đóng
+            </button>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs px-6 py-2 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" /> Đang từ chối...
+                </>
+              ) : (
+                'Xác nhận Từ chối chuyến'
+              )}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </Modal>
+  );
+};
 
 export const AdminTripDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +209,7 @@ export const AdminTripDetailPage: React.FC = () => {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
 
   const fetchTripDetail = async () => {
     if (!id) return;
@@ -54,8 +227,6 @@ export const AdminTripDetailPage: React.FC = () => {
   useEffect(() => {
     fetchTripDetail();
   }, [id]);
-
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
 
   // Admin Phê duyệt chuyến đi
   const handleApprove = async () => {
@@ -157,19 +328,9 @@ export const AdminTripDetailPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Header Title Top - KHỚP 100% VỚI THIẾT KẾ PHẲNG & THẺ HOST GÓC PHẢI */}
+            {/* Header Title Top */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/admin/trips')}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white px-3 py-1 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 transition cursor-pointer mb-1"
-                  >
-                    <ArrowLeft size={15} /> Quay lại danh sách
-                  </button>
-                </div>
-
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
                   {trip.title} <Sparkles size={24} className="text-coral-500 fill-coral-500/20" />
                 </h1>
@@ -211,7 +372,7 @@ export const AdminTripDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) KHỚP 100% THIẾT KẾ CỦA USER */}
+            {/* BỐ CỤC 2 CỘT KHỚP 100% THIẾT KẾ CỦA USER */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
 
               {/* CỘT TRÁI (MAIN FORM - 7 COLS) */}
@@ -484,11 +645,12 @@ export const AdminTripDetailPage: React.FC = () => {
         )}
       </div>
 
-      {/* Modal từ chối phê duyệt chuyến đi */}
+      {/* Modal từ chối phê duyệt chuyến đi gộp trực tiếp */}
       <RejectTripModal
         isOpen={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}
         onConfirm={handleConfirmReject}
+        tripTitle={trip?.title}
       />
     </AdminLayout>
   );

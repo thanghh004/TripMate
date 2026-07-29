@@ -466,32 +466,23 @@ export const MyTripsPage: React.FC = () => {
           onClose={resetCancelModal}
           title="Xác nhận hủy chuyến đi"
           maxWidth="2xl"
+          position="top"
         >
-          <div className="space-y-5 text-left">
-            {/* Cảnh báo */}
-            <div className="flex items-start gap-2.5 p-3.5 bg-rose-50 border border-rose-100 rounded-lg">
-              <AlertCircle size={15} className="text-rose-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-rose-700 leading-relaxed">
-                Bạn sắp hủy chuyến đi{' '}
-                <strong className="font-bold">{tripToCancel.title}</strong>.
-                {' '}Hành động này <strong>không thể hoàn tác</strong>.
+          <div className="space-y-5 text-left font-sans">
+            {/* Cảnh báo đỏ */}
+            <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 text-xs text-rose-800">
+              <AlertCircle size={20} className="text-rose-500 shrink-0" />
+              <p className="font-medium leading-relaxed">
+                Bạn sắp hủy chuyến đi <strong className="font-extrabold text-rose-900">{tripToCancel.title}</strong>. Hành động này <strong className="font-extrabold text-rose-900">không thể hoàn tác</strong>.
               </p>
             </div>
 
-            {/* Chọn lý do hủy (multi-select) */}
+            {/* Chọn lý do hủy (Grid 3 cột x 2 hàng) */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-slate-700">
-                  Lý do hủy chuyến
-                  <span className="font-normal text-rose-500 ml-1">*</span>
-                </p>
-                {selectedReasons.length > 0 && (
-                  <span className="text-[10px] text-rose-500 font-medium">
-                    Đã chọn {selectedReasons.length} lý do
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-3 gap-2">
+              <label className="block text-xs font-bold text-slate-800">
+                Lý do hủy chuyến <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {CANCEL_REASONS.map((reason) => {
                   const isSelected = selectedReasons.includes(reason);
                   return (
@@ -499,26 +490,19 @@ export const MyTripsPage: React.FC = () => {
                       key={reason}
                       type="button"
                       onClick={() => toggleReason(reason)}
-                      className={`relative text-left px-3 py-2.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
+                      className={`p-3 rounded-xl border text-left text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer ${
                         isSelected
-                          ? 'bg-rose-50 border-rose-400 text-rose-700'
-                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-100'
+                          ? 'bg-rose-50/80 border-rose-300 text-rose-900 shadow-2xs'
+                          : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 text-slate-700'
                       }`}
                     >
-                      <span className="flex items-center gap-1.5">
-                        <span className={`w-3.5 h-3.5 shrink-0 rounded border flex items-center justify-center transition-all ${
-                          isSelected
-                            ? 'bg-rose-500 border-rose-500'
-                            : 'border-slate-300 bg-white'
-                        }`}>
-                          {isSelected && (
-                            <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-                              <path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </span>
-                        {reason}
-                      </span>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="w-4 h-4 rounded text-rose-500 focus:ring-rose-400 accent-rose-500 cursor-pointer"
+                      />
+                      <span className="truncate">{reason}</span>
                     </button>
                   );
                 })}
@@ -526,48 +510,50 @@ export const MyTripsPage: React.FC = () => {
             </div>
 
             {/* Textarea ghi chú thêm */}
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-slate-700">
-                Ghi chú thêm
-                <span className="font-normal text-slate-400 ml-1">(tùy chọn)</span>
-              </p>
+            <div className="space-y-1.5 relative">
+              <label className="block text-xs font-semibold text-slate-600">
+                Ghi chú thêm <span className="text-slate-400 font-normal">(tùy chọn)</span>
+              </label>
               <textarea
                 value={customNote}
                 onChange={(e) => setCustomNote(e.target.value)}
                 placeholder="Nhập thêm chi tiết lý do hủy chuyến..."
                 rows={3}
                 maxLength={500}
-                className="w-full px-3 py-2.5 text-xs text-slate-700 bg-white border border-slate-200 rounded-lg resize-none outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 transition placeholder:text-slate-400"
+                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-rose-400 transition resize-none leading-relaxed"
               />
-              <p className="text-[10px] text-slate-400 text-right">
+              <div className="text-[11px] font-semibold text-slate-400 text-right pt-0.5">
                 {customNote.length}/500
-              </p>
+              </div>
             </div>
 
             {/* Actions */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
-              {!hasReason && (
-                <p className="text-[10px] text-rose-400 font-medium flex items-center gap-1">
-                  <AlertCircle size={11} />
-                  Vui lòng chọn ít nhất 1 lý do hủy
-                </p>
-              )}
-              <div className="flex items-center gap-3 ml-auto">
-                <Button
-                  size="sm"
-                  variant="outline"
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+              <div>
+                {!hasReason && (
+                  <p className="text-xs font-bold text-rose-500 flex items-center gap-1">
+                    <AlertCircle size={14} /> Vui lòng chọn ít nhất 1 lý do hủy
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
                   onClick={resetCancelModal}
-                  className="px-4 border-slate-300 text-slate-700 font-semibold"
+                  disabled={isCancelling}
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
                 >
                   Đóng
-                </Button>
+                </button>
+
                 <Button
                   size="sm"
                   variant="danger"
                   isLoading={isCancelling}
                   disabled={isCancelling || !hasReason}
                   onClick={handleConfirmCancel}
-                  className="px-4 font-semibold"
+                  className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
                 >
                   Xác nhận Hủy chuyến
                 </Button>
