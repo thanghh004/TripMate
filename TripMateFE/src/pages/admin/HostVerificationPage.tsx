@@ -68,8 +68,8 @@ const HostVerificationPage: React.FC = () => {
       toast.success('Đã phê duyệt thành công! Người dùng có thể tạo chuyến đi.');
       setSelectedUser(null);
       fetchRequests();
-    } catch {
-      toast.error('Phê duyệt thất bại.');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Phê duyệt thất bại.');
     } finally {
       setIsProcessing(false);
     }
@@ -84,13 +84,13 @@ const HostVerificationPage: React.FC = () => {
     try {
       setIsProcessing(true);
       await adminApi.rejectHostVerification(selectedUser.userId, rejectReason);
-      toast.error('Đã từ chối yêu cầu tạo chuyến của người dùng.');
+      toast.success('Đã từ chối yêu cầu tạo chuyến của người dùng.');
       setShowRejectModal(false);
       setSelectedUser(null);
       setRejectReason('');
       fetchRequests();
-    } catch {
-      toast.error('Từ chối thất bại.');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Từ chối thất bại.');
     } finally {
       setIsProcessing(false);
     }
