@@ -23,14 +23,12 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken)
     {
         return await _userManager.Users
-            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
     public async Task<User?> GetByPhoneAsync(string phone, CancellationToken cancellationToken)
     {
         return await _userManager.Users
-            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.PhoneNumber == phone, cancellationToken);
     }
 
@@ -42,6 +40,13 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _userManager.Users
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+    }
+
+    public async Task<User?> GetByIdReadOnlyAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _userManager.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
     }
 

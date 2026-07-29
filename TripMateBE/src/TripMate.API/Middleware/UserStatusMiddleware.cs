@@ -25,7 +25,7 @@ public class UserStatusMiddleware
             var userIdClaim = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
             {
-                var user = await userRepository.GetByIdAsync(userId, context.RequestAborted);
+                var user = await userRepository.GetByIdReadOnlyAsync(userId, context.RequestAborted);
                 if (user != null && user.Status == UserStatus.Suspended)
                 {
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;

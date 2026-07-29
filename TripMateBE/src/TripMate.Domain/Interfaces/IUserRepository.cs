@@ -24,9 +24,14 @@ public interface IUserRepository
     Task<IdentityResult> CreateAsync(User user, string password);
 
     /// <summary>
-    /// Tìm kiếm người dùng bằng ID
+    /// Tìm kiếm người dùng bằng ID (Tracked - Dùng cho các thao tác Cập nhật Update)
     /// </summary>
     Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Tìm kiếm người dùng bằng ID (AsNoTracking - Dùng cho Middleware/Read-only Checks)
+    /// </summary>
+    Task<User?> GetByIdReadOnlyAsync(Guid id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Kiểm tra mật khẩu của người dùng
