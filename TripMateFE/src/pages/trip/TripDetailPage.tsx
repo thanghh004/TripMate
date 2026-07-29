@@ -48,7 +48,6 @@ export const TripDetailPage: React.FC = () => {
         const data = await tripApi.getTripById(id);
         setTrip(data);
         
-        // Kiểm tra xem user hiện tại đã tham gia chưa
         if (currentUser && data.members) {
           const joined = data.members.some((m) => m.userId === currentUser.userId);
           setHasJoined(joined);
@@ -63,7 +62,6 @@ export const TripDetailPage: React.FC = () => {
     fetchTripDetail();
   }, [id]);
 
-  // Đăng ký tham gia chuyến đi
   const handleJoinTrip = async () => {
     if (!authContext?.isAuthenticated) {
       toast.error('Vui lòng đăng nhập để đăng ký tham gia chuyến đi.');
@@ -88,10 +86,9 @@ export const TripDetailPage: React.FC = () => {
     }
   };
 
-  // Chia sẻ link chuyến đi
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast.success('Đã sao chép liên kết chuyến đi vào bộ nhớ tạm!');
+    toast.success('Đã sao chép liên kết chuyến đi!');
   };
 
   if (isLoading) {
@@ -108,11 +105,11 @@ export const TripDetailPage: React.FC = () => {
   if (!trip) {
     return (
       <div className="min-h-screen bg-slate-100/60 flex flex-col items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-3xl shadow-xs text-center max-w-md space-y-4">
+        <div className="bg-white p-8 rounded-3xl text-center max-w-md space-y-4">
           <AlertCircle size={48} className="mx-auto text-rose-500" />
           <h2 className="text-lg font-bold text-slate-900">Không tìm thấy chuyến đi</h2>
-          <p className="text-xs text-slate-500">Chuyến đi có thể đã bị hủy, ẩn hoặc không tồn tại trên hệ thống.</p>
-          <Button onClick={() => navigate('/trips')} className="w-full bg-coral-500 text-white font-bold py-2.5 rounded-xl">
+          <p className="text-xs text-slate-500">Chuyến đi có thể đã bị hủy hoặc không tồn tại trên hệ thống.</p>
+          <Button onClick={() => navigate('/')} className="w-full bg-coral-500 text-white font-bold py-2.5 rounded-xl">
             Khám phá chuyến đi khác
           </Button>
         </div>
@@ -157,7 +154,7 @@ export const TripDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* LAYOUT 2 CỘT TƯƠNG TỰ TẠO MỚI CHUYẾN (7 COLS MAIN + 5 COLS SIDEBAR) */}
+        {/* LAYOUT 2 CỘT LIỀN PHẲNG SANG TRỌNG (7 COLS MAIN + 5 COLS SIDEBAR) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
 
           {/* CỘT TRÁI (MAIN CONTENT - 7 COLS) */}
@@ -165,71 +162,69 @@ export const TripDetailPage: React.FC = () => {
 
             {/* Box 1: Thông tin tổng quan chuyến đi */}
             <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-6">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-800">
-                  <Info size={18} className="text-coral-500" /> 1. Thông tin chung về chuyến đi
-                </span>
+              <div className="flex items-center justify-between border-b border-slate-200/60 pb-3.5">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                  <Info size={18} className="text-coral-500" /> Thông tin chuyến đi
+                </h2>
                 <span className="text-[11px] font-bold text-coral-600 bg-coral-50 px-3 py-1 rounded-full">
                   {trip.categoryName || 'Chuyến đi'}
                 </span>
-              </h2>
+              </div>
 
-              {/* Status Badge & Title */}
-              <div className="space-y-3">
+              {/* Status & Title */}
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                  <span className="text-[10px] font-black text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
                     {trip.statusName || 'Đang mở đăng ký'}
                   </span>
                   <span className="text-xs font-semibold text-slate-500">
-                    • Tạo ngày {formatDate(trip.createdAt)}
+                    • Ngày tạo {formatDate(trip.createdAt)}
                   </span>
                 </div>
 
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 leading-snug">
                   {trip.title}
                 </h1>
               </div>
 
-              {/* Địa điểm Khởi hành & Đến */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-1">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                    <MapPin size={14} className="text-coral-500" /> Điểm khởi hành
-                  </span>
-                  <p className="text-sm font-bold text-slate-800 truncate">
-                    {trip.startLocation}
-                  </p>
-                  {trip.startCityName && (
-                    <p className="text-xs font-semibold text-slate-500">{trip.startCityName}</p>
-                  )}
-                </div>
-
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-1">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                    <MapPin size={14} className="text-emerald-500" /> Điểm đến chính
-                  </span>
-                  <p className="text-sm font-bold text-slate-800 truncate">
-                    {trip.destination}
-                  </p>
-                  {trip.destinationCityName && (
-                    <p className="text-xs font-semibold text-slate-500">{trip.destinationCityName}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Thời gian Bắt đầu & Kết thúc */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <Calendar size={14} className="text-coral-500" /> Thời gian lịch trình
-                </span>
-                <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
+              {/* Địa điểm & Thời gian (Phẳng, liền mạch không lồng ô) */}
+              <div className="space-y-4 pt-2 border-t border-slate-200/60">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-slate-400 block text-[10px] font-semibold uppercase">Bắt đầu</span>
-                    <span>{formatDate(trip.startDate)}</span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                      <MapPin size={15} className="text-coral-500" /> Điểm khởi hành
+                    </span>
+                    <p className="text-sm font-extrabold text-slate-800">{trip.startLocation}</p>
+                    {trip.startCityName && (
+                      <p className="text-xs font-semibold text-slate-500">{trip.startCityName}</p>
+                    )}
                   </div>
+
                   <div>
-                    <span className="text-slate-400 block text-[10px] font-semibold uppercase">Kết thúc</span>
-                    <span>{formatDate(trip.endDate)}</span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                      <MapPin size={15} className="text-emerald-500" /> Điểm đến chính
+                    </span>
+                    <p className="text-sm font-extrabold text-slate-800">{trip.destination}</p>
+                    {trip.destinationCityName && (
+                      <p className="text-xs font-semibold text-slate-500">{trip.destinationCityName}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-200/60">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                    <Calendar size={15} className="text-coral-500" /> Thời gian lịch trình
+                  </span>
+                  <div className="flex items-center gap-6 text-xs font-bold text-slate-800">
+                    <div>
+                      <span className="text-slate-400 block text-[10px] font-semibold uppercase">Bắt đầu</span>
+                      <span className="text-sm font-extrabold">{formatDate(trip.startDate)}</span>
+                    </div>
+                    <span className="text-slate-300 text-base">➔</span>
+                    <div>
+                      <span className="text-slate-400 block text-[10px] font-semibold uppercase">Kết thúc</span>
+                      <span className="text-sm font-extrabold">{formatDate(trip.endDate)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -238,28 +233,28 @@ export const TripDetailPage: React.FC = () => {
             {/* Box 2: Kế hoạch & Mô tả chi tiết */}
             <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
-                <Info size={18} className="text-coral-500" /> 2. Kế hoạch & Mô tả chi tiết
+                <Info size={18} className="text-coral-500" /> Kế hoạch & Mô tả chi tiết
               </h2>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 text-xs sm:text-sm font-normal leading-relaxed text-slate-700 whitespace-pre-line">
+              <p className="text-xs sm:text-sm font-medium leading-relaxed text-slate-700 whitespace-pre-line pt-1">
                 {trip.description || 'Chưa có mô tả chi tiết cho chuyến đi này.'}
-              </div>
+              </p>
             </div>
 
-            {/* Box 3: Danh sách Thành viên đã tham gia */}
+            {/* Box 3: Thành viên đã tham gia */}
             <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200/60 pb-3.5">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                   <Users size={18} className="text-coral-500" /> Thành viên đã tham gia ({trip.currentMembers}/{trip.maxMembers})
                 </h2>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
                   Còn trống {Math.max(0, trip.maxMembers - trip.currentMembers)} chỗ
                 </span>
               </div>
 
               {trip.members && trip.members.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   {trip.members.map((member) => (
-                    <div key={member.userId} className="bg-white p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
+                    <div key={member.userId} className="flex items-center gap-3 p-2">
                       {member.avatarUrl ? (
                         <Image
                           src={member.avatarUrl}
@@ -279,9 +274,9 @@ export const TripDetailPage: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <div className="bg-white p-6 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-400 font-medium">
+                <p className="text-xs text-slate-400 font-semibold py-2">
                   Chưa có thành viên nào đăng ký. Hãy là người đầu tiên tham gia!
-                </div>
+                </p>
               )}
             </div>
           </div>
@@ -289,11 +284,13 @@ export const TripDetailPage: React.FC = () => {
           {/* CỘT PHẢI (SIDEBAR FORM - 5 COLS STICKY) */}
           <div className="lg:col-span-5 space-y-6">
 
-            {/* Box 1: Thẻ Người tổ chức (Host / Organizer) */}
+            {/* Box 1: Người tổ chức (Host) */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-4">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Người tổ chức (Host)</span>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block border-b border-slate-200/60 pb-3">
+                Người tổ chức (Host)
+              </span>
               
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-3.5">
+              <div className="flex items-center gap-3.5 pt-1">
                 {trip.organizerAvatarUrl ? (
                   <Image
                     src={trip.organizerAvatarUrl}
@@ -308,7 +305,7 @@ export const TripDetailPage: React.FC = () => {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="text-sm font-bold text-slate-900 truncate">{trip.organizerName}</h3>
+                    <h3 className="text-sm font-extrabold text-slate-900 truncate">{trip.organizerName}</h3>
                     <span title="Host đã xác minh CCCD">
                       <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
                     </span>
@@ -316,7 +313,7 @@ export const TripDetailPage: React.FC = () => {
 
                   <div className="flex items-center gap-1 mt-0.5">
                     <Star size={13} className="text-amber-400 fill-amber-400" />
-                    <span className="text-xs font-bold text-slate-700">
+                    <span className="text-xs font-extrabold text-slate-700">
                       {trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'}
                     </span>
                     <span className="text-[11px] text-slate-400 font-medium">(Host uy tín)</span>
@@ -367,43 +364,42 @@ export const TripDetailPage: React.FC = () => {
               )}
             </div>
 
-            {/* Box 3: Chi phí & Thành viên */}
+            {/* Box 3: Chi phí & Điều kiện */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-4 font-sans">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
                 <DollarSign size={18} className="text-coral-500" /> Chi phí & Điều kiện
               </h2>
 
-              {/* Chi phí ước tính */}
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-1">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Chi phí ước tính / người</span>
-                <p className="text-lg font-black text-coral-600">
-                  {trip.estimatedCost ? `${trip.estimatedCost.toLocaleString('vi-VN')} VNĐ` : 'Thỏa thuận'}
-                </p>
-                {trip.costNote && (
-                  <p className="text-xs font-medium text-slate-500 pt-1 border-t border-slate-100">{trip.costNote}</p>
+              <div className="space-y-3 pt-1">
+                <div>
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Chi phí ước tính / người</span>
+                  <p className="text-xl font-black text-coral-600 pt-0.5">
+                    {trip.estimatedCost ? `${trip.estimatedCost.toLocaleString('vi-VN')} VNĐ` : 'Thỏa thuận'}
+                  </p>
+                  {trip.costNote && (
+                    <p className="text-xs font-medium text-slate-600 pt-1">{trip.costNote}</p>
+                  )}
+                </div>
+
+                {(trip.minAge || trip.maxAge) && (
+                  <div className="pt-2 border-t border-slate-200/60 text-xs font-bold text-slate-700 flex justify-between">
+                    <span className="text-slate-400 font-semibold">Độ tuổi yêu cầu:</span>
+                    <span>
+                      {trip.minAge ? `${trip.minAge} tuổi` : 'Không min'} - {trip.maxAge ? `${trip.maxAge} tuổi` : 'Không max'}
+                    </span>
+                  </div>
+                )}
+
+                {trip.requirements && (
+                  <div className="pt-2 border-t border-slate-200/60 text-xs space-y-0.5">
+                    <span className="font-bold text-slate-700 block">Yêu cầu khác:</span>
+                    <p className="text-slate-600 font-medium leading-relaxed">{trip.requirements}</p>
+                  </div>
                 )}
               </div>
-
-              {/* Yêu cầu độ tuổi */}
-              {(trip.minAge || trip.maxAge) && (
-                <div className="bg-white p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span className="text-slate-500 font-semibold">Độ tuổi yêu cầu:</span>
-                  <span>
-                    {trip.minAge ? `${trip.minAge} tuổi` : 'Không min'} - {trip.maxAge ? `${trip.maxAge} tuổi` : 'Không max'}
-                  </span>
-                </div>
-              )}
-
-              {/* Yêu cầu khác */}
-              {trip.requirements && (
-                <div className="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-1 text-xs">
-                  <span className="font-bold text-slate-700 block">Yêu cầu khác:</span>
-                  <p className="text-slate-600 font-medium leading-relaxed">{trip.requirements}</p>
-                </div>
-              )}
             </div>
 
-            {/* Box 4: Action Box (Đăng ký tham gia) */}
+            {/* Box 4: Action Box (Đăng ký) */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3">
               {isOrganizer ? (
                 <Button
