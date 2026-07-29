@@ -56,7 +56,7 @@ export const EditCountryModal: React.FC<EditCountryModalProps> = ({ country, onC
   };
 
   return (
-    <Modal isOpen onClose={onClose} title={`Chỉnh sửa quốc gia — ${country.name}`} maxWidth="lg">
+    <Modal isOpen onClose={onClose} title={`Chỉnh sửa quốc gia — ${country.name}`} maxWidth="lg" overflowVisible>
       <form onSubmit={handleSubmit} className="space-y-4 text-left">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input

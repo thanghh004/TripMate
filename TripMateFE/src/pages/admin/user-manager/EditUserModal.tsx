@@ -65,6 +65,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({ user, onClose, onS
       title={`Chỉnh sửa thông tin quản trị — ${user.fullName}`}
       maxWidth="3xl"
       position="top"
+      overflowVisible
     >
       {/* 1. Thông tin cá nhân Read-only */}
       <div className="space-y-3">

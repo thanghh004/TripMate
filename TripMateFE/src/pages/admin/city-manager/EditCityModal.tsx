@@ -61,7 +61,7 @@ export const EditCityModal: React.FC<EditCityModalProps> = ({ city, countries, o
   };
 
   return (
-    <Modal isOpen onClose={onClose} title={`Chỉnh sửa thành phố — ${city.name}`} maxWidth="lg">
+    <Modal isOpen onClose={onClose} title={`Chỉnh sửa thành phố — ${city.name}`} maxWidth="lg" overflowVisible>
       <form onSubmit={handleSubmit} className="space-y-4 text-left">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>

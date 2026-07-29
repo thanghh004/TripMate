@@ -52,7 +52,7 @@ export const CreateCityModal: React.FC<CreateCityModalProps> = ({ countries, onC
   };
 
   return (
-    <Modal isOpen onClose={onClose} title="Thêm thành phố / tỉnh mới" maxWidth="lg">
+    <Modal isOpen onClose={onClose} title="Thêm thành phố / tỉnh mới" maxWidth="lg" overflowVisible>
       <form onSubmit={handleSubmit} className="space-y-4 text-left">
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">

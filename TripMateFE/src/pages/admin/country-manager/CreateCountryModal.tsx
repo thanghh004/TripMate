@@ -46,7 +46,7 @@ export const CreateCountryModal: React.FC<CreateCountryModalProps> = ({ onClose,
   };
 
   return (
-    <Modal isOpen onClose={onClose} title="Thêm quốc gia mới" maxWidth="lg">
+    <Modal isOpen onClose={onClose} title="Thêm quốc gia mới" maxWidth="lg" overflowVisible>
       <form onSubmit={handleSubmit} className="space-y-4 text-left">
         <Input
           label="Tên quốc gia *"

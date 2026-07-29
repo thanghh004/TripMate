@@ -12,6 +12,7 @@ interface ModalProps {
   closeOnBackdrop?: boolean;
   /** 'center' (default) căn giữa màn hình | 'top' neo sát trên */
   position?: 'center' | 'top';
+  overflowVisible?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -21,8 +22,9 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'md',
   showCloseButton = true,
-  closeOnBackdrop = true,
+  closeOnBackdrop = false,
   position = 'top',
+  overflowVisible = false,
 }) => {
   // Đóng khi nhấn phím ESC
   useEffect(() => {
@@ -75,7 +77,9 @@ export const Modal: React.FC<ModalProps> = ({
 
           {/* Modal Panel */}
           <motion.div
-            className={`relative w-full ${maxWidthMap[maxWidth]} bg-white border border-slate-200 rounded-xl shadow-2xl z-10 text-slate-900 max-h-[88vh] overflow-y-auto`}
+            className={`relative w-full ${maxWidthMap[maxWidth]} bg-white border border-slate-200 rounded-xl shadow-2xl z-10 text-slate-900 ${
+              overflowVisible ? 'overflow-visible' : 'max-h-[88vh] overflow-y-auto'
+            }`}
             initial={{ opacity: 0, y: -20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.97 }}
