@@ -398,7 +398,11 @@ export const TripDetailPage: React.FC = () => {
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">Chi phí ước tính / người (VND)</label>
                 <Input
-                  value={trip.estimatedCost ? `${trip.estimatedCost.toLocaleString('vi-VN')} VNĐ` : 'Thỏa thuận'}
+                  value={
+                    trip.estimatedCost !== undefined && trip.estimatedCost !== null
+                      ? `${trip.estimatedCost.toLocaleString('vi-VN')} VNĐ`
+                      : 'Thỏa thuận'
+                  }
                   readOnly
                   className="font-black text-coral-600"
                 />
