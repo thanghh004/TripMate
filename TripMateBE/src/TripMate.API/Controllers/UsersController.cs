@@ -78,8 +78,14 @@ public class UsersController : BaseApiController
         }
 
         await using var stream = file.OpenReadStream();
-        var relativePath = await _fileStorageService.UploadAsync(stream, file.FileName, file.ContentType, cancellationToken);
-        var fileUrl = $"{Request.Scheme}://{Request.Host}{relativePath}";
+        var uploadedPath = await _fileStorageService.UploadAsync(stream, file.FileName, file.ContentType, cancellationToken);
+        
+        // Nếu đã là URL tuyệt đối (ví dụ Cloudinary CDN https://res.cloudinary.com/...) -> Dùng trực tiếp
+        // Nếu là đường dẫn tương đối (/uploads/...) -> Nối với Host domain
+        var fileUrl = (uploadedPath.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
+                       uploadedPath.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            ? uploadedPath
+            : $"{Request.Scheme}://{Request.Host}{uploadedPath}";
 
         return Ok(new
         {

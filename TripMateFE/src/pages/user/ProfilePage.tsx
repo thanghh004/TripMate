@@ -195,9 +195,14 @@ const ProfilePage: React.FC = () => {
       return;
     }
 
+    // Hiển thị xem trước ảnh (Preview) tức thì bằng Local Blob URL
+    const localPreviewUrl = URL.createObjectURL(file);
+    setUrl(localPreviewUrl);
+
     try {
       setLoading(true);
       const res = await userApi.uploadFile(file);
+      // Khi server trả về URL thật (Cloudinary) -> Gán URL chính thức
       setUrl(res.data.url);
     } catch {
       toast.error('Tải ảnh lên thất bại. Vui lòng thử lại.');
@@ -350,7 +355,15 @@ const ProfilePage: React.FC = () => {
       />
       {url ? (
         <div className="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-slate-100">
-          <img src={url} alt={label} className="w-full h-full object-cover" />
+          <img
+            src={url}
+            alt={label}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback nếu link ảnh hỏng/lỗi
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
           {isEditing && !disabled && (
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <button
