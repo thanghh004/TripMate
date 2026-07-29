@@ -16,13 +16,14 @@ import { Compass, Loader2, MapPin, ArrowRight, AlertCircle } from 'lucide-react'
 
 const statusOptions: SelectOption[] = [
   { value: '', label: 'Tất cả trạng thái' },
-  { value: '0', label: 'Đang chờ duyệt' },
-  { value: '1', label: 'Đang mở đăng ký' },
-  { value: '2', label: 'Đã đủ thành viên' },
-  { value: '3', label: 'Đang diễn ra' },
-  { value: '4', label: 'Đã hoàn thành' },
-  { value: '5', label: 'Đã hủy' },
-  { value: '7', label: 'Bị từ chối' },
+  { value: String(TripStatusEnum.PendingReview), label: 'Đang chờ duyệt' },
+  { value: String(TripStatusEnum.Open), label: 'Đang nhận đăng ký' },
+  { value: String(TripStatusEnum.Full), label: 'Đã đủ thành viên' },
+  { value: String(TripStatusEnum.Ongoing), label: 'Đang diễn ra' },
+  { value: String(TripStatusEnum.Completed), label: 'Hoàn thành' },
+  { value: String(TripStatusEnum.Cancelled), label: 'Đã hủy' },
+  { value: String(TripStatusEnum.Rejected), label: 'Bị từ chối' },
+  { value: String(TripStatusEnum.Failed), label: 'Tạo thất bại' },
 ];
 
 export const TripManagementPage: React.FC = () => {
@@ -75,7 +76,9 @@ export const TripManagementPage: React.FC = () => {
       t.organizerName.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
-      !selectedStatus || t.status.toString() === selectedStatus;
+      !selectedStatus ||
+      String(t.status) === selectedStatus ||
+      (selectedStatus === String(TripStatusEnum.Open) && t.status === TripStatusEnum.Approved);
 
     const matchesStartDate =
       !startDateFilter ||
