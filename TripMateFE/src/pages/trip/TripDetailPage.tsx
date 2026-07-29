@@ -9,6 +9,7 @@ import Image from '../../components/common/Image';
 import { useToast } from '../../context/ToastContext';
 import { tripApi } from '../../api/tripApi';
 import type { Trip } from '../../types/trip';
+import { TripStatus } from '../../types/trip';
 import { formatDate } from '../../utils/formatters';
 import {
   Calendar,
@@ -85,6 +86,57 @@ export const TripDetailPage: React.FC = () => {
     }
   };
 
+  // Helper render Trạng thái chuyến đi chuẩn Tiếng Việt
+  const renderStatusBadge = (status: number) => {
+    switch (status) {
+      case TripStatus.PendingReview:
+        return (
+          <span className="text-[11px] font-black text-amber-700 bg-amber-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
+            Đang chờ duyệt
+          </span>
+        );
+      case TripStatus.Open:
+      case TripStatus.Approved:
+        return (
+          <span className="text-[11px] font-black text-emerald-700 bg-emerald-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
+            Đang mở đăng ký
+          </span>
+        );
+      case TripStatus.Full:
+        return (
+          <span className="text-[11px] font-black text-blue-700 bg-blue-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
+            Đã đủ thành viên
+          </span>
+        );
+      case TripStatus.Ongoing:
+        return (
+          <span className="text-[11px] font-black text-purple-700 bg-purple-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
+            Đang diễn ra
+          </span>
+        );
+      case TripStatus.Completed:
+        return (
+          <span className="text-[11px] font-black text-slate-700 bg-slate-200/90 px-3 py-1 rounded-full uppercase tracking-wider">
+            Đã hoàn thành
+          </span>
+        );
+      case TripStatus.Cancelled:
+      case TripStatus.Failed:
+      case TripStatus.Rejected:
+        return (
+          <span className="text-[11px] font-black text-rose-700 bg-rose-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
+            Đã hủy / Bị từ chối
+          </span>
+        );
+      default:
+        return (
+          <span className="text-[11px] font-black text-emerald-700 bg-emerald-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
+            Đang mở đăng ký
+          </span>
+        );
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -121,7 +173,7 @@ export const TripDetailPage: React.FC = () => {
       {/* Main Container khớp 100% với CreateTripPage: pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] */}
       <main className="flex-1 pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] mx-auto w-full">
         
-        {/* Header Title Seamless Top - Khớp 100% thiết kế phẳng của Tạo Mới Chuyến Đi */}
+        {/* Header Title Seamless Top - Khớp 100% thiết kế phẳng & kích thước thẻ Host góc phải */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
@@ -132,7 +184,7 @@ export const TripDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Thẻ Người Tổ Chức (Host) đưa lên vị trí Ô Xác thực Host bên phải */}
+          {/* Thẻ Người Tổ Chức (Host) được thiết kế ĐẸP KHỚP 100% KÍCH THƯỚC VỚI THẺ "XÁC THỰC QUYỀN HOST" */}
           <div className="shrink-0 flex items-center gap-3 bg-slate-100/80 p-3 rounded-2xl">
             {trip.organizerAvatarUrl ? (
               <Image
@@ -147,17 +199,20 @@ export const TripDetailPage: React.FC = () => {
             )}
 
             <div className="text-[11px] text-slate-600 font-semibold">
-              <div className="flex items-center gap-1.5">
-                <span className="text-slate-900 font-bold">{trip.organizerName}</span>
+              <p className="text-slate-800 font-bold flex items-center gap-1">
+                Người tổ chức: {trip.organizerName}
                 <span title="Host đã xác minh CCCD">
-                  <ShieldCheck size={15} className="text-emerald-500 shrink-0" />
+                  <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
                 </span>
-              </div>
-              <div className="flex items-center gap-1 text-slate-500 pt-0.5">
-                <Star size={12} className="text-amber-400 fill-amber-400" />
-                <span className="font-bold text-slate-700">{trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'}</span>
-                <span>(Host uy tín)</span>
-              </div>
+              </p>
+              <p className="text-slate-400 flex items-center gap-1 pt-0.5">
+                <span>Đã xác minh CCCD</span>
+                <span>•</span>
+                <span className="flex items-center gap-0.5 text-slate-600 font-bold">
+                  <Star size={11} className="text-amber-400 fill-amber-400" />
+                  {trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'}
+                </span>
+              </p>
             </div>
           </div>
         </div>
@@ -174,9 +229,7 @@ export const TripDetailPage: React.FC = () => {
                 <span className="flex items-center gap-2 text-slate-800">
                   <Info size={18} className="text-coral-500" /> 1. Thông tin chung về chuyến đi
                 </span>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                  {trip.statusName || 'Đang mở đăng ký'}
-                </span>
+                {renderStatusBadge(trip.status)}
               </h2>
 
               {/* Tiêu đề & Loại hình */}
