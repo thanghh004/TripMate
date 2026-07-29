@@ -20,6 +20,18 @@ export const tripApi = {
     return res.data;
   },
 
+  // API Lấy chi tiết 1 chuyến đi theo ID
+  getTripById: async (id: string): Promise<Trip> => {
+    const res = await axiosClient.get<Trip>(`/api/trips/${id}`);
+    return res.data;
+  },
+
+  // API Đăng ký tham gia chuyến đi
+  joinTrip: async (tripId: string): Promise<{ message: string }> => {
+    const res = await axiosClient.post<{ message: string }>(`/api/trips/${tripId}/join`);
+    return res.data;
+  },
+
   // API Lấy chuyến đi của tôi
   getMyTrips: async (): Promise<Trip[]> => {
     const res = await axiosClient.get<Trip[]>('/api/trips/my-trips');

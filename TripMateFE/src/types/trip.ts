@@ -36,11 +36,20 @@ export interface CreateTripRequest {
   imageUrls?: string[];
 }
 
+export interface TripMember {
+  userId: string;
+  fullName: string;
+  avatarUrl?: string;
+  role?: string;
+  joinedAt?: string;
+}
+
 export interface Trip {
   id: string;
   organizerId: string;
   organizerName: string;
   organizerAvatarUrl?: string;
+  organizerRating?: number;
   categoryId: string;
   categoryName: string;
   title: string;
@@ -57,6 +66,7 @@ export interface Trip {
   registrationDeadline?: string;
   maxMembers: number;
   currentMembers: number;
+  members?: TripMember[];
   estimatedCost?: number;
   costNote?: string;
   requirements?: string;
