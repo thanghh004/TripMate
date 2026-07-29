@@ -18,6 +18,17 @@ namespace TripMate.API.Controllers;
 public class TripsController : BaseApiController
 {
     /// <summary>
+    /// Lấy chi tiết thông tin 1 chuyến đi theo ID
+    /// </summary>
+    [HttpGet("{id:guid}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<TripDto>> GetTripById(Guid id)
+    {
+        var result = await Mediator.Send(new Application.Features.Trips.Queries.GetTripById.GetTripByIdQuery(id));
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Tạo chuyến đi mới (Yêu cầu tài khoản đã được duyệt quyền Host)
     /// </summary>
     [HttpPost]

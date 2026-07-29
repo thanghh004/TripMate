@@ -61,7 +61,7 @@ export const TripDetailPage: React.FC = () => {
     };
 
     fetchTripDetail();
-  }, [id, currentUser, toast]);
+  }, [id]);
 
   // Đăng ký tham gia chuyến đi
   const handleJoinTrip = async () => {
