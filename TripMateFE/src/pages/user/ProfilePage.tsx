@@ -10,6 +10,7 @@ import { useToast } from '../../context/ToastContext';
 import { userApi } from '../../api/userApi';
 import { DatePicker } from '../../components/common/DatePicker';
 import { Modal } from '../../components/common/Modal';
+import Image from '../../components/common/Image';
 import { HostVerificationStatus } from '../../types/auth';
 import {
   ShieldCheck, Star,
@@ -355,17 +356,14 @@ const ProfilePage: React.FC = () => {
       />
       {url ? (
         <div className="relative group rounded-2xl overflow-hidden border border-slate-200 aspect-video bg-slate-100">
-          <img
+          <Image
             src={url}
             alt={label}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Fallback nếu link ảnh hỏng/lỗi
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
+            previewable
+            containerClassName="w-full h-full"
           />
           {isEditing && !disabled && (
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-10">
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}

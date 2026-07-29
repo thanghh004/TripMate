@@ -8,6 +8,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import SearchInput from '../../components/common/SearchInput';
 import Pagination from '../../components/common/Pagination';
+import Image from '../../components/common/Image';
 import { formatDate } from '../../utils/formatters';
 import {
   ShieldCheck,
@@ -159,10 +160,10 @@ const HostVerificationPage: React.FC = () => {
                   {/* Header User info */}
                   <div className="flex items-center gap-3">
                     {user.avatarUrl ? (
-                      <img
+                      <Image
                         src={user.avatarUrl}
                         alt={user.fullName}
-                        className="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0"
+                        containerClassName="w-11 h-11 rounded-xl border border-slate-200 shrink-0"
                       />
                     ) : (
                       <div className="w-11 h-11 rounded-xl bg-coral-50 text-coral-600 font-bold text-base flex items-center justify-center shrink-0">
@@ -279,37 +280,29 @@ const HostVerificationPage: React.FC = () => {
             )}
 
             {/* 2 Ảnh CCCD Mặt Trước & Mặt Sau */}
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <span className="text-xs font-semibold text-slate-700 block">Ảnh CCCD Mặt trước & Mặt sau</span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <span className="text-[11px] font-semibold text-slate-500 block mb-1">Mặt trước</span>
-                  {selectedUser.identityCardFrontUrl ? (
-                    <img
-                      src={selectedUser.identityCardFrontUrl}
-                      alt="CCCD Mặt trước"
-                      className="w-full h-44 object-cover rounded-xl border border-slate-200 shadow-2xs"
-                    />
-                  ) : (
-                    <div className="w-full h-44 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 font-semibold">
-                      Thiếu ảnh mặt trước
-                    </div>
-                  )}
+                  <Image
+                    src={selectedUser.identityCardFrontUrl}
+                    alt="CCCD Mặt trước"
+                    previewable
+                    fallbackText="Thiếu ảnh mặt trước"
+                    containerClassName="w-full h-44 rounded-xl border border-slate-200 shadow-2xs"
+                  />
                 </div>
 
                 <div>
                   <span className="text-[11px] font-semibold text-slate-500 block mb-1">Mặt sau</span>
-                  {selectedUser.identityCardBackUrl ? (
-                    <img
-                      src={selectedUser.identityCardBackUrl}
-                      alt="CCCD Mặt sau"
-                      className="w-full h-44 object-cover rounded-xl border border-slate-200 shadow-2xs"
-                    />
-                  ) : (
-                    <div className="w-full h-44 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 font-semibold">
-                      Thiếu ảnh mặt sau
-                    </div>
-                  )}
+                  <Image
+                    src={selectedUser.identityCardBackUrl}
+                    alt="CCCD Mặt sau"
+                    previewable
+                    fallbackText="Thiếu ảnh mặt sau"
+                    containerClassName="w-full h-44 rounded-xl border border-slate-200 shadow-2xs"
+                  />
                 </div>
               </div>
             </div>
