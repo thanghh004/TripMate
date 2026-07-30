@@ -38,6 +38,7 @@ public class TripDto
     public TripStatus Status { get; set; }
     public string StatusName => Status.ToString();
     public string? ModerationNote { get; set; }
+    public string? CancellationReason { get; set; }
     public List<string> ImageUrls { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

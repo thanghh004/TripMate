@@ -2,13 +2,13 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { Header } from '../../components/common/Header';
+import { Footer } from '../../components/common/Footer';
 import ScrollToTop from '../../components/common/ScrollToTop';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Image from '../../components/common/Image';
 import { useToast } from '../../context/ToastContext';
 import { tripApi } from '../../api/tripApi';
-import { adminApi } from '../../api/adminApi';
 import type { Trip } from '../../types/trip';
 import { TripStatus } from '../../types/trip';
 import { formatDate } from '../../utils/formatters';
@@ -26,8 +26,7 @@ import {
   Sparkles,
   AlertCircle,
   FileText,
-  CheckCircle2,
-  XCircle
+  XCircle,
 } from 'lucide-react';
 
 export const TripDetailPage: React.FC = () => {
@@ -50,7 +49,7 @@ export const TripDetailPage: React.FC = () => {
         setIsLoading(true);
         const data = await tripApi.getTripById(id);
         setTrip(data);
-        
+
         if (currentUser && data.members) {
           const joined = data.members.some((m) => m.userId === currentUser.userId);
           setHasJoined(joined);
@@ -89,7 +88,6 @@ export const TripDetailPage: React.FC = () => {
     }
   };
 
-  // Helper render Trạng thái chuyến đi chuẩn Tiếng Việt (Tách biệt 100% các enum)
   const renderStatusBadge = (status: number) => {
     switch (status) {
       case TripStatus.PendingReview:
@@ -182,21 +180,18 @@ export const TripDetailPage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
       <Header />
 
-      {/* Main Container khớp 100% với CreateTripPage: pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] */}
       <main className="flex-1 pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] mx-auto w-full">
-        
-        {/* Header Title Seamless Top - Khớp 100% thiết kế phẳng & kích thước thẻ Host góc phải */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        {/* Header Title Seamless Top */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 bg-slate-50 p-4 sm:p-6 rounded-3xl">
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
               {trip.title} <Sparkles size={24} className="text-coral-500 fill-coral-500/20" />
             </h1>
             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              Đăng tin tuyển thành viên đồng hành cho hành trình tuyệt vời sắp tới của bạn.
+              Thông tin chi tiết hành trình và thành viên tham gia chuyến đi.
             </p>
           </div>
 
-          {/* Thẻ Người Tổ Chức (Host) được thiết kế ĐẸP KHỚP 100% KÍCH THƯỚC VỚI THẺ "XÁC THỰC QUYỀN HOST" */}
           <div className="shrink-0 flex items-center gap-3 bg-slate-100/80 p-3 rounded-2xl">
             {trip.organizerAvatarUrl ? (
               <Image
@@ -229,12 +224,10 @@ export const TripDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* BỐ CỤC 2 CỘT KHỚP CREATE TRIP (7 COLS MAIN + 5 COLS SIDEBAR) */}
+        {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) chuẩn CreateTripPage */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
-
           {/* CỘT TRÁI (MAIN FORM - 7 COLS) */}
           <div className="lg:col-span-7 space-y-6">
-
             {/* Box 1: Thông tin chung về chuyến đi */}
             <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-6">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center justify-between">
@@ -244,8 +237,8 @@ export const TripDetailPage: React.FC = () => {
                 {renderStatusBadge(trip.status)}
               </h2>
 
-              {/* Cảnh báo Lý do bị từ chối nếu chuyến đi bị từ chối */}
-              {(trip.status === TripStatus.Rejected || trip.moderationNote) && (
+              {/* Hiển thị Lý Do Hủy / Từ Chối / Thất Bại đầy đủ cho mọi trường hợp */}
+              {trip.status === TripStatus.Rejected && (
                 <div className="p-4 sm:p-5 bg-rose-50 border border-rose-200/80 rounded-2xl flex items-start gap-3.5 text-xs text-rose-900 font-sans">
                   <AlertCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
                   <div className="space-y-1 min-w-0 flex-1">
@@ -254,6 +247,34 @@ export const TripDetailPage: React.FC = () => {
                     </p>
                     <p className="text-rose-800 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-200/60 whitespace-pre-wrap">
                       {trip.moderationNote || 'Chưa có ghi chú lý do chi tiết từ Admin.'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {trip.status === TripStatus.Cancelled && (
+                <div className="p-4 sm:p-5 bg-rose-50 border border-rose-200/80 rounded-2xl flex items-start gap-3.5 text-xs text-rose-900 font-sans">
+                  <XCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <p className="font-extrabold text-rose-900 text-xs uppercase tracking-wider">
+                      Lý do chuyến đi đã bị hủy
+                    </p>
+                    <p className="text-rose-800 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-200/60 whitespace-pre-wrap">
+                      {trip.cancellationReason || trip.moderationNote || 'Chuyến đi đã bị hủy bởi người tổ chức hoặc quản trị viên.'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {trip.status === TripStatus.Failed && (
+                <div className="p-4 sm:p-5 bg-slate-100 border border-slate-200 rounded-2xl flex items-start gap-3.5 text-xs text-slate-800 font-sans">
+                  <AlertCircle size={20} className="text-slate-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <p className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
+                      Lý do tạo chuyến đi thất bại
+                    </p>
+                    <p className="text-slate-700 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
+                      {trip.cancellationReason || trip.moderationNote || 'Chuyến đi tự động hủy do không đủ số lượng thành viên tham gia khi đến ngày khởi hành.'}
                     </p>
                   </div>
                 </div>
@@ -271,143 +292,139 @@ export const TripDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Điểm khởi hành & Điểm đến */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Địa điểm khởi hành</label>
-                  <Input
-                    value={`${trip.startLocation}${trip.startCityName ? ` (${trip.startCityName})` : ''}`}
-                    readOnly
-                    leftIcon={<MapPin size={18} className="text-coral-500 shrink-0" />}
-                  />
+              {/* Lộ trình: Điểm khởi hành & Điểm đến */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-1">
+                {/* Điểm khởi hành */}
+                <div className="space-y-3.5 p-5 rounded-2xl bg-white">
+                  <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-2">
+                    <MapPin size={16} className="text-teal-600" /> Điểm khởi hành
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm cụ thể</label>
+                    <Input value={trip.startLocation} readOnly />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Quốc gia</label>
+                      <Input value="Việt Nam" readOnly />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Thành phố / Tỉnh</label>
+                      <Input value={trip.startCityName || 'Chưa chọn'} readOnly />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Địa điểm đến chính</label>
-                  <Input
-                    value={`${trip.destination}${trip.destinationCityName ? ` (${trip.destinationCityName})` : ''}`}
-                    readOnly
-                    leftIcon={<MapPin size={18} className="text-emerald-500 shrink-0" />}
-                  />
+
+                {/* Điểm đến */}
+                <div className="space-y-3.5 p-5 rounded-2xl bg-white">
+                  <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-2">
+                    <MapPin size={16} className="text-coral-500" /> Điểm đến chính
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm cụ thể</label>
+                    <Input value={trip.destination} readOnly />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Quốc gia</label>
+                      <Input value="Việt Nam" readOnly />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Thành phố / Tỉnh</label>
+                      <Input value={trip.destinationCityName || 'Chưa chọn'} readOnly />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Ngày khởi hành & Ngày kết thúc */}
+              {/* Mô tả chuyến đi */}
+              <div className="space-y-1.5 pt-1">
+                <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <FileText size={15} className="text-slate-500" /> Mô tả & Kế hoạch chi tiết
+                </label>
+                <div className="w-full bg-white border border-slate-300 rounded-xl p-4 text-xs font-medium text-slate-800 leading-relaxed whitespace-pre-wrap">
+                  {trip.description || 'Chưa có thông tin mô tả lịch trình.'}
+                </div>
+              </div>
+            </div>
+
+            {/* Box 2: Thời gian chuyến đi */}
+            <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-5">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
+                <Calendar size={18} className="text-coral-500" /> 2. Thời gian chuyến đi
+              </h2>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">Ngày khởi hành</label>
-                  <Input
-                    value={formatDate(trip.startDate)}
-                    readOnly
-                    leftIcon={<Calendar size={18} className="text-coral-500 shrink-0" />}
-                  />
+                  <Input value={formatDate(trip.startDate)} readOnly />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5">Ngày kết thúc</label>
-                  <Input
-                    value={formatDate(trip.endDate)}
-                    readOnly
-                    leftIcon={<Calendar size={18} className="text-coral-500 shrink-0" />}
-                  />
+                  <Input value={formatDate(trip.endDate)} readOnly />
                 </div>
               </div>
             </div>
 
-            {/* Box 2: Kế hoạch & Mô tả chi tiết */}
-            <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4 font-sans">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
-                <FileText size={18} className="text-coral-500" /> 2. Kế hoạch & Mô tả chi tiết
-              </h2>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Nội dung chi tiết chuyến đi</label>
-                <textarea
-                  rows={6}
-                  value={trip.description || 'Chưa có mô tả chi tiết cho chuyến đi này.'}
-                  readOnly
-                  className="w-full bg-white border border-slate-200 rounded-xl p-3.5 text-xs font-medium text-slate-800 focus:outline-none transition resize-none leading-relaxed"
-                />
-              </div>
-            </div>
-
-            {/* Box 3: Danh sách Thành viên tham gia */}
-            <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4 font-sans">
-              <div className="flex items-center justify-between border-b border-slate-200/60 pb-3.5">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                  <Users size={18} className="text-coral-500" /> Thành viên đã tham gia ({trip.currentMembers}/{trip.maxMembers})
+            {/* Thành viên tham gia */}
+            {trip.members && trip.members.length > 0 && (
+              <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-slate-800">
+                    <Users size={18} className="text-coral-500" /> Thành viên tham gia ({trip.members.length}/{trip.maxMembers})
+                  </span>
                 </h2>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                  Còn trống {Math.max(0, trip.maxMembers - trip.currentMembers)} chỗ
-                </span>
-              </div>
-
-              {trip.members && trip.members.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  {trip.members.map((member) => (
-                    <div key={member.userId} className="bg-white p-3 rounded-2xl border border-slate-200/80 flex items-center gap-3">
-                      {member.avatarUrl ? (
-                        <Image
-                          src={member.avatarUrl}
-                          alt={member.fullName}
-                          containerClassName="w-10 h-10 rounded-xl border border-slate-200 shrink-0"
-                        />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {trip.members.map((m) => (
+                    <div key={m.userId} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200/70">
+                      {m.avatarUrl ? (
+                        <Image src={m.avatarUrl} alt={m.fullName} containerClassName="w-9 h-9 rounded-xl border border-slate-100 shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-coral-50 text-coral-600 font-bold text-sm flex items-center justify-center shrink-0">
-                          {member.fullName.charAt(0).toUpperCase()}
+                        <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                          {m.fullName ? m.fullName.charAt(0).toUpperCase() : 'U'}
                         </div>
                       )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-slate-800 truncate">{member.fullName}</p>
-                        <span className="text-[10px] font-semibold text-slate-400 block">{member.role || 'Thành viên'}</span>
+                      <div className="text-xs min-w-0 flex-1">
+                        <p className="font-bold text-slate-800 truncate">{m.fullName}</p>
+                        <p className="text-[11px] text-slate-400 truncate">{m.role || 'Thành viên'}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="bg-white p-5 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-400 font-medium">
-                  Chưa có thành viên nào đăng ký. Hãy là người đầu tiên tham gia!
-                </div>
-              )}
-            </div>
-
+              </div>
+            )}
           </div>
 
           {/* CỘT PHẢI (SIDEBAR FORM - 5 COLS) */}
           <div className="lg:col-span-5 space-y-6">
-
-            {/* Box 1: Ảnh bìa chính & Bộ sưu tập ảnh */}
-            <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-5 font-sans">
+            {/* Box 3: Ảnh bìa & Hình ảnh */}
+            <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-5">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
                 <ImagePlus size={18} className="text-coral-500" /> Ảnh bìa & Hình ảnh
               </h2>
 
-              {/* Ảnh bìa chính */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">Ảnh bìa chính</label>
-                <div className="rounded-2xl overflow-hidden aspect-video bg-white border border-slate-200 shadow-2xs">
-                  <Image
-                    src={trip.coverImageUrl}
-                    alt={trip.title}
-                    previewable
-                    fallbackText="Chưa có ảnh bìa"
-                    containerClassName="w-full h-full"
-                  />
-                </div>
+                <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Ảnh bìa chính</label>
+                {trip.coverImageUrl ? (
+                  <div className="rounded-2xl overflow-hidden aspect-video bg-white shadow-xs border border-slate-200">
+                    <Image src={trip.coverImageUrl} alt={trip.title} previewable containerClassName="w-full h-full" />
+                  </div>
+                ) : (
+                  <div className="aspect-video rounded-2xl border-2 border-dashed border-slate-200 bg-white flex items-center justify-center text-xs text-slate-400 font-medium">
+                    Chưa có ảnh bìa
+                  </div>
+                )}
               </div>
 
-              {/* Bộ sưu tập ảnh */}
               {trip.imageUrls && trip.imageUrls.length > 0 && (
                 <div className="space-y-2.5 pt-2">
-                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
                     Bộ sưu tập ảnh ({trip.imageUrls.length})
                   </label>
                   <div className="grid grid-cols-3 gap-2.5">
                     {trip.imageUrls.map((url, idx) => (
                       <div key={idx} className="rounded-xl overflow-hidden aspect-square border border-slate-200 bg-white">
-                        <Image
-                          src={url}
-                          alt={`Gallery ${idx}`}
-                          previewable
-                          containerClassName="w-full h-full"
-                        />
+                        <Image src={url} alt={`Gallery ${idx}`} previewable containerClassName="w-full h-full" />
                       </div>
                     ))}
                   </div>
@@ -415,157 +432,69 @@ export const TripDetailPage: React.FC = () => {
               )}
             </div>
 
-            {/* Box 2: Chi phí & Thành viên */}
+            {/* Box 4: Chi phí & Thành viên */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-4 font-sans">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
                 <DollarSign size={18} className="text-coral-500" /> Chi phí & Thành viên
               </h2>
 
-              {/* Chi phí ước tính */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Chi phí ước tính / người (VND)</label>
-                <Input
-                  value={
-                    trip.estimatedCost !== undefined && trip.estimatedCost !== null
-                      ? `${trip.estimatedCost.toLocaleString('vi-VN')} VNĐ`
-                      : 'Thỏa thuận'
-                  }
-                  readOnly
-                  className="font-black text-coral-600"
-                />
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Chi phí ước tính / người</label>
+                <Input value={trip.estimatedCost ? `${trip.estimatedCost.toLocaleString('vi-VN')} VNĐ` : 'Miễn phí'} readOnly />
               </div>
 
-              {/* Ghi chú chi phí */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Ghi chú chi phí</label>
-                <Input value={trip.costNote || 'Không có ghi chú thêm.'} readOnly />
-              </div>
+              {trip.costNote && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Ghi chú chi phí</label>
+                  <Input value={trip.costNote} readOnly />
+                </div>
+              )}
 
-              {/* Số lượng thành viên tối đa */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">Số lượng thành viên tối đa</label>
-                <Input
-                  value={`${trip.maxMembers} thành viên`}
-                  readOnly
-                  rightIcon={<Users size={18} className="text-slate-400 shrink-0" />}
-                />
+                <Input value={`${trip.currentMembers}/${trip.maxMembers} thành viên`} readOnly rightIcon={<Users size={18} className="text-slate-400" />} />
               </div>
 
-              {/* Giới hạn độ tuổi */}
               {(trip.minAge || trip.maxAge) && (
-                <div className="space-y-1.5 pt-1">
-                  <label className="block text-xs font-bold text-slate-700">Yêu cầu độ tuổi</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input value={`Min: ${trip.minAge || 'Không có'}`} readOnly />
-                    <Input value={`Max: ${trip.maxAge || 'Không có'}`} readOnly />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Yêu cầu độ tuổi</label>
+                  <Input value={`${trip.minAge || 0} - ${trip.maxAge || 'Không giới hạn'} tuổi`} readOnly />
                 </div>
               )}
 
-              {/* Yêu cầu khác */}
               {trip.requirements && (
-                <div className="space-y-1.5 pt-1">
-                  <label className="block text-xs font-bold text-slate-700">Yêu cầu khác đối với thành viên</label>
-                  <textarea
-                    rows={3}
-                    value={trip.requirements}
-                    readOnly
-                    className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none transition resize-none"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Nút Action Submit Form */}
-            <div className="pt-1 space-y-2.5">
-              {/* Nếu người dùng là ADMIN: Hiển thị thanh công cụ Duyệt / Từ chối chuyến đi */}
-              {currentUser?.role === 'Admin' || currentUser?.role === 1 || currentUser?.role === '1' ? (
-                <div className="space-y-2">
-                  <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-2xl text-[11px] font-bold text-amber-800 flex items-center gap-2">
-                    <ShieldCheck size={16} className="text-amber-600 shrink-0" />
-                    <span>Chế độ Quản trị viên Admin — Xem & Phê duyệt chuyến đi</span>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Yêu cầu khác</label>
+                  <div className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 whitespace-pre-wrap">
+                    {trip.requirements}
                   </div>
-
-                  {trip.status === TripStatus.PendingReview && (
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <Button
-                        type="button"
-                        disabled={isJoining}
-                        onClick={async () => {
-                          try {
-                            setIsJoining(true);
-                            await adminApi.approveTrip(trip.id);
-                            toast.success('Đã phê duyệt chuyến đi thành công!');
-                            setTrip({ ...trip, status: TripStatus.Open });
-                          } catch (err: any) {
-                            toast.error(err.response?.data?.message || 'Phê duyệt thất bại.');
-                          } finally {
-                            setIsJoining(false);
-                          }
-                        }}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3.5 rounded-2xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
-                      >
-                        <CheckCircle2 size={16} /> Phê duyệt chuyến
-                      </Button>
-
-                      <Button
-                        type="button"
-                        disabled={isJoining}
-                        onClick={async () => {
-                          const reason = prompt('Nhập lý do từ chối chuyến đi này:');
-                          if (!reason || !reason.trim()) return;
-                          try {
-                            setIsJoining(true);
-                            await adminApi.rejectTrip(trip.id, reason.trim());
-                            toast.success('Đã từ chối chuyến đi.');
-                            setTrip({ ...trip, status: TripStatus.Rejected });
-                          } catch (err: any) {
-                            toast.error(err.response?.data?.message || 'Từ chối thất bại.');
-                          } finally {
-                            setIsJoining(false);
-                          }
-                        }}
-                        className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-3.5 rounded-2xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
-                      >
-                        <XCircle size={16} /> Từ chối chuyến
-                      </Button>
-                    </div>
-                  )}
                 </div>
-              ) : null}
-
-              {hasJoined ? (
-                <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs py-4 rounded-2xl flex items-center justify-center gap-2">
-                  <UserCheck size={18} /> Bạn đã đăng ký chuyến đi này
-                </div>
-              ) : isFull ? (
-                <div className="w-full bg-slate-200 text-slate-600 font-bold text-xs py-4 rounded-2xl flex items-center justify-center gap-2">
-                  Chuyến đi đã hết chỗ
-                </div>
-              ) : (
-                <Button
-                  onClick={handleJoinTrip}
-                  disabled={isJoining}
-                  className="w-full bg-coral-500 hover:bg-coral-600 text-white font-black text-xs py-4 rounded-2xl cursor-pointer shadow-md hover:shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all"
-                >
-                  {isJoining ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" /> Đang gửi yêu cầu...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={18} /> Đăng ký tham gia chuyến đi
-                    </>
-                  )}
-                </Button>
               )}
             </div>
 
+            {/* Action Join Button cho User */}
+            {trip.status === TripStatus.Open && currentUser?.userId !== trip.organizerId && (
+              <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3 font-sans">
+                {hasJoined ? (
+                  <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-2">
+                    <UserCheck size={18} /> Đã gửi yêu cầu tham gia
+                  </div>
+                ) : (
+                  <Button
+                    onClick={handleJoinTrip}
+                    disabled={isJoining || isFull}
+                    className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-2"
+                  >
+                    {isJoining ? <Loader2 size={16} className="animate-spin" /> : isFull ? 'Đã hết chỗ' : 'Đăng ký tham gia ngay'}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
-
         </div>
       </main>
 
+      <Footer />
       <ScrollToTop />
     </div>
   );

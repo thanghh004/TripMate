@@ -26,7 +26,8 @@ public static class TripStatusAutoUpdater
                 if (trip.CurrentMembers <= 1)
                 {
                     trip.Status = TripStatus.Failed;
-                    trip.ModerationNote = "Chuyến đi tự động hủy do không có thành viên tham gia khi đến ngày khởi hành.";
+                    trip.ModerationNote = "Chuyến đi tự động hủy do không đủ thành viên tham gia khi đến ngày khởi hành.";
+                    trip.CancellationReason = "Chuyến đi tự động hủy do không đủ thành viên tham gia khi đến ngày khởi hành.";
                     trip.UpdatedAt = now;
                     isUpdated = true;
                 }

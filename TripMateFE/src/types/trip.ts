@@ -78,6 +78,7 @@ export interface Trip {
   status: number;
   statusName?: string;
   moderationNote?: string;
+  cancellationReason?: string;
   imageUrls: string[];
   createdAt: string;
   updatedAt?: string;

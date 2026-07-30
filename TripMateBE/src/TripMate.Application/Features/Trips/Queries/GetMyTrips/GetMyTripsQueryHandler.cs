@@ -67,6 +67,7 @@ public class GetMyTripsQueryHandler : IRequestHandler<GetMyTripsQuery, List<Trip
             PreferredGender = t.PreferredGender,
             Status = t.Status,
             ModerationNote = t.ModerationNote,
+            CancellationReason = t.CancellationReason,
             ImageUrls = t.Images?.Select(i => i.ImageUrl).ToList() ?? new(),
             CreatedAt = t.CreatedAt,
             UpdatedAt = t.UpdatedAt

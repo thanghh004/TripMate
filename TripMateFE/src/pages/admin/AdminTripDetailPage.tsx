@@ -410,8 +410,8 @@ export const AdminTripDetailPage: React.FC = () => {
                     {renderStatusBadge(trip.status)}
                   </h2>
 
-                  {/* Cảnh báo Lý do bị từ chối nếu chuyến đi bị từ chối */}
-                  {(trip.status === TripStatus.Rejected || trip.moderationNote) && (
+                  {/* Hiển thị Lý Do Hủy / Từ Chối / Thất Bại đầy đủ cho mọi trường hợp */}
+                  {trip.status === TripStatus.Rejected && (
                     <div className="p-4 sm:p-5 bg-rose-50 border border-rose-200/80 rounded-2xl flex items-start gap-3.5 text-xs text-rose-900 font-sans">
                       <AlertCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
                       <div className="space-y-1 min-w-0 flex-1">
@@ -420,6 +420,34 @@ export const AdminTripDetailPage: React.FC = () => {
                         </p>
                         <p className="text-rose-800 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-200/60 whitespace-pre-wrap">
                           {trip.moderationNote || 'Chưa có ghi chú lý do chi tiết từ Admin.'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {trip.status === TripStatus.Cancelled && (
+                    <div className="p-4 sm:p-5 bg-rose-50 border border-rose-200/80 rounded-2xl flex items-start gap-3.5 text-xs text-rose-900 font-sans">
+                      <XCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <p className="font-extrabold text-rose-900 text-xs uppercase tracking-wider">
+                          Lý do chuyến đi đã bị hủy
+                        </p>
+                        <p className="text-rose-800 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-200/60 whitespace-pre-wrap">
+                          {trip.cancellationReason || trip.moderationNote || 'Chuyến đi đã bị hủy bởi người tổ chức hoặc quản trị viên.'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {trip.status === TripStatus.Failed && (
+                    <div className="p-4 sm:p-5 bg-slate-100 border border-slate-200 rounded-2xl flex items-start gap-3.5 text-xs text-slate-800 font-sans">
+                      <AlertCircle size={20} className="text-slate-600 shrink-0 mt-0.5" />
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <p className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
+                          Lý do tạo chuyến đi thất bại
+                        </p>
+                        <p className="text-slate-700 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
+                          {trip.cancellationReason || trip.moderationNote || 'Chuyến đi tự động hủy do không đủ số lượng thành viên tham gia khi đến ngày khởi hành.'}
                         </p>
                       </div>
                     </div>
@@ -437,23 +465,48 @@ export const AdminTripDetailPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Điểm khởi hành & Điểm đến */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Địa điểm khởi hành</label>
-                      <Input
-                        value={`${trip.startLocation}${trip.startCityName ? ` (${trip.startCityName})` : ''}`}
-                        readOnly
-                        leftIcon={<MapPin size={18} className="text-coral-500 shrink-0" />}
-                      />
+                  {/* Lộ trình: Điểm khởi hành & Điểm đến */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-1">
+                    {/* Điểm khởi hành */}
+                    <div className="space-y-3.5 p-5 rounded-2xl bg-white">
+                      <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-2">
+                        <MapPin size={16} className="text-teal-600" /> Điểm khởi hành
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm cụ thể</label>
+                        <Input value={trip.startLocation} readOnly />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Quốc gia</label>
+                          <Input value="Việt Nam" readOnly />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Thành phố / Tỉnh</label>
+                          <Input value={trip.startCityName || 'Chưa chọn'} readOnly />
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Địa điểm đến chính</label>
-                      <Input
-                        value={`${trip.destination}${trip.destinationCityName ? ` (${trip.destinationCityName})` : ''}`}
-                        readOnly
-                        leftIcon={<MapPin size={18} className="text-emerald-500 shrink-0" />}
-                      />
+
+                    {/* Điểm đến */}
+                    <div className="space-y-3.5 p-5 rounded-2xl bg-white">
+                      <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-2">
+                        <MapPin size={16} className="text-coral-500" /> Điểm đến chính
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm cụ thể</label>
+                        <Input value={trip.destination} readOnly />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Quốc gia</label>
+                          <Input value="Việt Nam" readOnly />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Thành phố / Tỉnh</label>
+                          <Input value={trip.destinationCityName || 'Chưa chọn'} readOnly />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
