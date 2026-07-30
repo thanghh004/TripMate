@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useContext, useEffect, useState, useRef } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
 import ScrollToTop from '../../components/common/ScrollToTop';
@@ -10,157 +11,226 @@ import { DatePicker } from '../../components/common/DatePicker';
 import Image from '../../components/common/Image';
 import { useToast } from '../../context/ToastContext';
 import { tripApi } from '../../api/tripApi';
+import { locationApi } from '../../api/locationApi';
 import { tripCategoryApi } from '../../api/tripCategoryApi';
+import type { Country, City } from '../../types/location';
+import type { TripCategory } from '../../types/tripCategory';
 import type { Trip } from '../../types/trip';
 import { TripStatus } from '../../types/trip';
 import {
+  Calendar,
   MapPin,
   Users,
   DollarSign,
   Info,
   ImagePlus,
   Loader2,
-  ShieldCheck,
-  Star,
   Sparkles,
-  FileText,
-  Save,
-  Plus,
   X,
-  Upload
+  UploadCloud,
+  Save,
 } from 'lucide-react';
 
 export const EditTripPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const authContext = useContext(AuthContext);
+  const isAuthenticated = authContext?.isAuthenticated;
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [trip, setTrip] = useState<Trip | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [categories, setCategories] = useState<SelectOption[]>([]);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  // Form States - Cho phép sửa TẤT CẢ
+  // Categories & Location Master Data
+  const [categories, setCategories] = useState<TripCategory[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
+  const [isLoadingMasterData, setIsLoadingMasterData] = useState(true);
+
+  // Form state
   const [title, setTitle] = useState('');
   const [categoryId, setCategoryId] = useState('');
+
+  // Start location & country/city
   const [startLocation, setStartLocation] = useState('');
+  const [startCountryId, setStartCountryId] = useState('');
+  const [startCityId, setStartCityId] = useState('');
+
+  // Destination & country/city
   const [destination, setDestination] = useState('');
+  const [destinationCountryId, setDestinationCountryId] = useState('');
+  const [destinationCityId, setDestinationCityId] = useState('');
+
+  // Dates & Description
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
+
+  // Cost & Members & Others
+  const [maxMembers, setMaxMembers] = useState<number>(5);
+  const [estimatedCost, setEstimatedCost] = useState<string>('');
+  const [costNote, setCostNote] = useState('');
+  const [requirements, setRequirements] = useState('');
+  const [minAge, setMinAge] = useState<string>('');
+  const [maxAge, setMaxAge] = useState<string>('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [estimatedCost, setEstimatedCost] = useState<number | string>('');
-  const [costNote, setCostNote] = useState('');
-  const [maxMembers, setMaxMembers] = useState<number>(10);
-  const [minAge, setMinAge] = useState<number | string>('');
-  const [maxAge, setMaxAge] = useState<number | string>('');
-  const [requirements, setRequirements] = useState('');
 
-  // Load danh mục & chi tiết chuyến đi
+  // Submitting & Uploading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+
+  // Load master data & trip data
   useEffect(() => {
+    if (authContext && !authContext.isLoading && !isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
     const initData = async () => {
       if (!id) return;
       try {
-        setIsLoading(true);
-        // 1. Fetch categories
-        const cats = await tripCategoryApi.getCategories(true);
-        const catOptions = cats.map((c) => ({
-          value: c.id,
-          label: c.name,
-        }));
-        setCategories(catOptions);
+        setIsLoadingMasterData(true);
 
-        // 2. Fetch Trip Detail
+        // Fetch master data: categories, countries, cities
+        const [catsRes, countriesRes, citiesRes] = await Promise.all([
+          tripCategoryApi.getCategories(true),
+          locationApi.getCountries(true),
+          locationApi.getCities(undefined, true),
+        ]);
+        setCategories(catsRes);
+        setCountries(countriesRes);
+        setCities(citiesRes);
+
+        // Fetch Trip Detail
         const tripData: Trip = await tripApi.getTripById(id);
-        
-        // Kiểm tra điều kiện: CHỈ CHO PHÉP SỬA KHI PENDING REVIEW (0)
+
         if (tripData.status !== TripStatus.PendingReview) {
           toast.error('Chỉ có thể chỉnh sửa chuyến đi khi đang ở trạng thái Chờ duyệt.');
           navigate('/my-trips');
           return;
         }
 
-        setTrip(tripData);
+        // Fill Data
         setTitle(tripData.title || '');
         setCategoryId(tripData.categoryId || '');
         setStartLocation(tripData.startLocation || '');
+        setStartCountryId(tripData.startCountryId || '');
+        setStartCityId(tripData.startCityId || '');
         setDestination(tripData.destination || '');
+        setDestinationCountryId(tripData.destinationCountryId || '');
+        setDestinationCityId(tripData.destinationCityId || '');
         setStartDate(tripData.startDate ? tripData.startDate.substring(0, 10) : '');
         setEndDate(tripData.endDate ? tripData.endDate.substring(0, 10) : '');
         setDescription(tripData.description || '');
         setCoverImageUrl(tripData.coverImageUrl || '');
         setImageUrls(tripData.imageUrls || []);
-        setEstimatedCost(tripData.estimatedCost ?? '');
+        setEstimatedCost(tripData.estimatedCost ? String(tripData.estimatedCost) : '');
         setCostNote(tripData.costNote || '');
-        setMaxMembers(tripData.maxMembers || 10);
-        setMinAge(tripData.minAge ?? '');
-        setMaxAge(tripData.maxAge ?? '');
+        setMaxMembers(tripData.maxMembers || 5);
+        setMinAge(tripData.minAge ? String(tripData.minAge) : '');
+        setMaxAge(tripData.maxAge ? String(tripData.maxAge) : '');
         setRequirements(tripData.requirements || '');
       } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Không thể tải thông tin chuyến đi.');
+        toast.error(err.response?.data?.message || 'Không thể lấy thông tin chuyến đi.');
         navigate('/my-trips');
       } finally {
-        setIsLoading(false);
+        setIsLoadingMasterData(false);
       }
     };
 
     initData();
-  }, [id, navigate]);
+  }, [id, authContext, isAuthenticated, navigate]);
 
-  // Upload Ảnh bìa chính từ thiết bị
-  const handleCoverFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload Single Cover Image
+  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    setUploadingCover(true);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCoverImageUrl(reader.result as string);
+      setUploadingCover(false);
+      toast.success('Đã tải ảnh bìa chính mới thành công.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Upload Multiple Gallery Images
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingGallery(true);
+    const newImgs: string[] = [];
+    let processedCount = 0;
+
+    Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setCoverImageUrl(reader.result as string);
-        toast.success('Đã tải ảnh bìa chính mới thành công.');
+        if (reader.result) {
+          newImgs.push(reader.result as string);
+        }
+        processedCount++;
+        if (processedCount === files.length) {
+          setImageUrls((prev) => [...prev, ...newImgs]);
+          setUploadingGallery(false);
+          toast.success(`Đã thêm thành công ${newImgs.length} ảnh vào bộ sưu tập.`);
+        }
       };
       reader.readAsDataURL(file);
-    }
+    });
   };
 
-  // Upload Bộ sưu tập ảnh (Gallery) từ thiết bị
-  const handleGalleryFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImageUrls((prev) => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
-      toast.success('Đã thêm ảnh vào bộ sưu tập.');
-    }
-  };
-
-  // Xóa ảnh bìa chính
-  const handleRemoveCoverImage = () => {
+  // Remove Cover
+  const removeCoverImage = () => {
     setCoverImageUrl('');
+    if (coverInputRef.current) coverInputRef.current.value = '';
   };
 
-  // Xóa 1 ảnh khỏi bộ sưu tập
-  const handleRemoveGalleryImage = (index: number) => {
-    setImageUrls(imageUrls.filter((_, idx) => idx !== index));
+  // Remove Gallery Image
+  const removeGalleryImage = (index: number) => {
+    setImageUrls((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  // Submit form chỉnh sửa
+  // VALIDATION & SUBMIT HANDLER CHUẨN XÁC GIỐNG HỆT CREATE TRIP PAGE
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!id) return;
 
     if (!title.trim()) {
       toast.error('Vui lòng nhập tiêu đề chuyến đi.');
       return;
     }
+    if (!categoryId) {
+      toast.error('Vui lòng chọn danh mục loại hình chuyến đi.');
+      return;
+    }
     if (!startLocation.trim()) {
-      toast.error('Vui lòng nhập điểm khởi hành.');
+      toast.error('Vui lòng nhập địa điểm khởi hành cụ thể.');
+      return;
+    }
+    if (!startCountryId) {
+      toast.error('Vui lòng chọn quốc gia cho điểm khởi hành.');
+      return;
+    }
+    if (!startCityId) {
+      toast.error('Vui lòng chọn thành phố/tỉnh cho điểm khởi hành.');
       return;
     }
     if (!destination.trim()) {
-      toast.error('Vui lòng nhập điểm đến.');
+      toast.error('Vui lòng nhập địa điểm đến chính cụ thể.');
+      return;
+    }
+    if (!destinationCountryId) {
+      toast.error('Vui lòng chọn quốc gia cho điểm đến chính.');
+      return;
+    }
+    if (!destinationCityId) {
+      toast.error('Vui lòng chọn thành phố/tỉnh cho điểm đến chính.');
       return;
     }
     if (!startDate) {
@@ -171,22 +241,38 @@ export const EditTripPage: React.FC = () => {
       toast.error('Vui lòng chọn ngày kết thúc.');
       return;
     }
+    if (new Date(endDate) < new Date(startDate)) {
+      toast.error('Ngày kết thúc phải trùng hoặc sau ngày khởi hành.');
+      return;
+    }
+    if (!coverImageUrl) {
+      toast.error('Vui lòng tải lên ảnh bìa chính cho chuyến đi.');
+      return;
+    }
+    if (!description.trim()) {
+      toast.error('Vui lòng nhập mô tả & kế hoạch chi tiết cho chuyến đi.');
+      return;
+    }
 
     try {
-      setIsSaving(true);
+      setIsSubmitting(true);
       await tripApi.updateTrip(id, {
         categoryId,
         title: title.trim(),
         description: description.trim(),
         startLocation: startLocation.trim(),
+        startCountryId,
+        startCityId,
         destination: destination.trim(),
-        coverImageUrl: coverImageUrl.trim(),
+        destinationCountryId,
+        destinationCityId,
+        coverImageUrl,
         startDate,
         endDate,
-        maxMembers: Number(maxMembers),
+        maxMembers,
         estimatedCost: estimatedCost ? Number(estimatedCost) : undefined,
-        costNote: costNote.trim(),
-        requirements: requirements.trim(),
+        costNote: costNote.trim() || undefined,
+        requirements: requirements.trim() || undefined,
         minAge: minAge ? Number(minAge) : undefined,
         maxAge: maxAge ? Number(maxAge) : undefined,
         imageUrls,
@@ -195,93 +281,72 @@ export const EditTripPage: React.FC = () => {
       toast.success('Cập nhật chuyến đi thành công!');
       navigate('/my-trips');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Cập nhật chuyến đi thất bại.');
+      toast.error(err.response?.data?.message || 'Cập nhật chuyến đi thất bại. Vui lòng thử lại.');
     } finally {
-      setIsSaving(false);
+      setIsSubmitting(false);
     }
   };
+
+  // Convert categories to SelectOptions
+  const categoryOptions: SelectOption[] = categories.map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
+
+  // Convert master data locations to SelectOptions
+  const countryOptions: SelectOption[] = countries.map((c) => ({
+    value: c.id,
+    label: c.name,
+  }));
+
+  const startCityOptions: SelectOption[] = cities
+    .filter((c) => !startCountryId || c.countryId === startCountryId)
+    .map((c) => ({
+      value: c.id,
+      label: c.name,
+    }));
+
+  const destCityOptions: SelectOption[] = cities
+    .filter((c) => !destinationCountryId || c.countryId === destinationCountryId)
+    .map((c) => ({
+      value: c.id,
+      label: c.name,
+    }));
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
       <Header />
 
       <main className="flex-1 pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] mx-auto w-full">
-        {isLoading ? (
+        {isLoadingMasterData ? (
           <div className="bg-white p-16 rounded-3xl border border-slate-200/80 flex flex-col items-center justify-center gap-3 text-slate-500">
             <Loader2 size={36} className="animate-spin text-coral-500" />
             <span className="text-sm font-semibold">Đang tải dữ liệu chuyến đi...</span>
           </div>
-        ) : !trip ? (
-          <div className="bg-white p-12 rounded-3xl border border-slate-200/80 text-center space-y-4">
-            <h2 className="text-lg font-bold text-slate-900">Không tìm thấy chuyến đi</h2>
-            <Button onClick={() => navigate('/my-trips')} className="bg-coral-500 text-white font-bold py-2.5 px-6 rounded-xl">
-              Quay lại danh sách chuyến đi
-            </Button>
-          </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-6 text-left">
-            {/* Header Title Top - CHỈ HIỂN THỊ TIÊU ĐỀ (BỎ CHỮ "CHỈNH SỬA: ") & THẺ HOST GÓC PHẢI */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
-              <div className="space-y-1">
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-                  {title || trip.title} <Sparkles size={24} className="text-coral-500 fill-coral-500/20" />
-                </h1>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                  Cập nhật thông tin chi tiết chuyến đi của bạn trước khi được phê duyệt.
-                </p>
-              </div>
-
-              {/* Thẻ Người Tổ Chức (Host) ở vị trí góc phải */}
-              <div className="shrink-0 flex items-center gap-3 bg-slate-100/80 p-3 rounded-2xl">
-                {trip.organizerAvatarUrl ? (
-                  <Image
-                    src={trip.organizerAvatarUrl}
-                    alt={trip.organizerName}
-                    containerClassName="w-10 h-10 rounded-xl border border-slate-200 shrink-0"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl bg-coral-50 text-coral-600 font-black text-base flex items-center justify-center shrink-0">
-                    {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : 'H'}
-                  </div>
-                )}
-
-                <div className="text-[11px] text-slate-600 font-semibold">
-                  <p className="text-slate-800 font-bold flex items-center gap-1">
-                    Người tổ chức: {trip.organizerName}
-                    <span title="Host đã xác minh CCCD">
-                      <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
-                    </span>
-                  </p>
-                  <p className="text-slate-400 flex items-center gap-1 pt-0.5">
-                    <span>Đã xác minh CCCD</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-0.5 text-slate-600 font-bold">
-                      <Star size={11} className="text-amber-400 fill-amber-400" />
-                      {trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'}
-                    </span>
-                  </p>
-                </div>
-              </div>
+          <form onSubmit={handleSubmit} noValidate className="space-y-6 text-left">
+            {/* Header Top - GIỐNG HỆT CREATE TRIP PAGE */}
+            <div className="space-y-1 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                Chỉnh sửa chuyến đi <Sparkles size={24} className="text-coral-500 fill-coral-500/20" />
+              </h1>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Cập nhật thông tin chi tiết hành trình của bạn trước khi được duyệt.
+              </p>
             </div>
 
-            {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) */}
+            {/* BỐ CỤC 2 CỘT (MAIN FORM 7 COLS + SIDEBAR 5 COLS) GIỐNG HỆT TRANG TẠO MỚI */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
 
               {/* CỘT TRÁI (MAIN FORM - 7 COLS) */}
               <div className="lg:col-span-7 space-y-6">
 
-                {/* Box 1: Thông tin chung về chuyến đi */}
-                <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-6">
-                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-slate-800">
-                      <Info size={18} className="text-coral-500" /> 1. Thông tin chung về chuyến đi
-                    </span>
-                    <span className="text-[11px] font-black text-amber-700 bg-amber-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-                      Đang chờ duyệt
-                    </span>
+                {/* Box 1: Thông tin chung */}
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-2xs space-y-6">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <Info size={18} className="text-coral-500" /> 1. Thông tin chung về chuyến đi
                   </h2>
 
-                  {/* Tiêu đề & Loại hình */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -290,50 +355,133 @@ export const EditTripPage: React.FC = () => {
                       <Input
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Nhập tiêu đề chuyến đi..."
-                        required
+                        placeholder="VD: Chinh phục đỉnh Fansipan 3 ngày 2 đêm..."
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">Loại hình chuyến đi</label>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Loại hình chuyến đi <span className="text-rose-500">*</span>
+                      </label>
                       <Select
-                        options={categories}
+                        options={categoryOptions}
                         value={categoryId}
                         onChange={(val) => setCategoryId(val as string)}
-                        placeholder="Chọn loại hình"
+                        placeholder="-- Chọn loại hình --"
                       />
                     </div>
                   </div>
 
-                  {/* Điểm khởi hành & Điểm đến */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {/* Điểm khởi hành */}
+                  <div className="bg-slate-50/70 p-4.5 rounded-2xl border border-slate-100 space-y-4">
+                    <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <MapPin size={15} className="text-coral-500" /> Điểm khởi hành
+                    </h3>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                        Địa điểm khởi hành <span className="text-rose-500">*</span>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Địa điểm cụ thể <span className="text-rose-500">*</span>
                       </label>
                       <Input
                         value={startLocation}
                         onChange={(e) => setStartLocation(e.target.value)}
-                        placeholder="VD: Bến xe Mỹ Đình, Hà Nội"
-                        leftIcon={<MapPin size={18} className="text-coral-500 shrink-0" />}
-                        required
+                        placeholder="VD: Bến xe Mỹ Đình, Hà Nội..."
                       />
                     </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          Quốc gia <span className="text-rose-500">*</span>
+                        </label>
+                        <Select
+                          options={countryOptions}
+                          value={startCountryId}
+                          onChange={(val) => {
+                            setStartCountryId(val as string);
+                            setStartCityId('');
+                          }}
+                          placeholder="-- Chọn Quốc gia --"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          Thành phố / Tỉnh <span className="text-rose-500">*</span>
+                        </label>
+                        <Select
+                          options={startCityOptions}
+                          value={startCityId}
+                          onChange={(val) => setStartCityId(val as string)}
+                          placeholder="-- Vui lòng chọn --"
+                          disabled={!startCountryId}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Điểm đến chính */}
+                  <div className="bg-slate-50/70 p-4.5 rounded-2xl border border-slate-100 space-y-4">
+                    <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <MapPin size={15} className="text-emerald-500" /> Điểm đến chính
+                    </h3>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                        Địa điểm đến chính <span className="text-rose-500">*</span>
+                      <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                        Địa điểm cụ thể <span className="text-rose-500">*</span>
                       </label>
                       <Input
                         value={destination}
                         onChange={(e) => setDestination(e.target.value)}
-                        placeholder="VD: Hà Giang"
-                        leftIcon={<MapPin size={18} className="text-emerald-500 shrink-0" />}
-                        required
+                        placeholder="VD: Cột cờ Lũng Cú, Hà Giang..."
                       />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          Quốc gia <span className="text-rose-500">*</span>
+                        </label>
+                        <Select
+                          options={countryOptions}
+                          value={destinationCountryId}
+                          onChange={(val) => {
+                            setDestinationCountryId(val as string);
+                            setDestinationCityId('');
+                          }}
+                          placeholder="-- Chọn Quốc gia --"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                          Thành phố / Tỉnh <span className="text-rose-500">*</span>
+                        </label>
+                        <Select
+                          options={destCityOptions}
+                          value={destinationCityId}
+                          onChange={(val) => setDestinationCityId(val as string)}
+                          placeholder="-- Vui lòng chọn --"
+                          disabled={!destinationCountryId}
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Ngày khởi hành & Ngày kết thúc */}
+                  {/* Mô tả & Kế hoạch */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Mô tả & Kế hoạch chi tiết <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                      rows={5}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Viết mô tả lịch trình dự kiến từng ngày, điểm lưu trú, phương tiện di chuyển..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-coral-400 focus:bg-white transition resize-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                {/* Box 2: Thời gian chuyến đi */}
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                    <Calendar size={18} className="text-coral-500" /> 2. Thời gian chuyến đi
+                  </h2>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1.5">
@@ -360,76 +508,19 @@ export const EditTripPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Box 2: Kế hoạch & Mô tả chi tiết */}
-                <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4 font-sans">
-                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
-                    <FileText size={18} className="text-coral-500" /> 2. Kế hoạch & Mô tả chi tiết
-                  </h2>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Nội dung chi tiết chuyến đi</label>
-                    <textarea
-                      rows={6}
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Mô tả chi tiết lịch trình, dụng cụ cần mang theo, điểm tập kết..."
-                      className="w-full bg-white border border-slate-200 rounded-xl p-3.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-coral-400 transition resize-none leading-relaxed"
-                    />
-                  </div>
-                </div>
-
-                {/* Box 3: Danh sách Thành viên tham gia */}
-                <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4 font-sans">
-                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-3.5">
-                    <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                      <Users size={18} className="text-coral-500" /> Thành viên đã tham gia ({trip.currentMembers}/{maxMembers})
-                    </h2>
-                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                      Còn trống {Math.max(0, maxMembers - trip.currentMembers)} chỗ
-                    </span>
-                  </div>
-
-                  {trip.members && trip.members.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      {trip.members.map((member) => (
-                        <div key={member.userId} className="bg-white p-3 rounded-2xl border border-slate-200/80 flex items-center gap-3">
-                          {member.avatarUrl ? (
-                            <Image
-                              src={member.avatarUrl}
-                              alt={member.fullName}
-                              containerClassName="w-10 h-10 rounded-xl border border-slate-200 shrink-0"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-xl bg-coral-50 text-coral-600 font-bold text-sm flex items-center justify-center shrink-0">
-                              {member.fullName.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-slate-800 truncate">{member.fullName}</p>
-                            <span className="text-[10px] font-semibold text-slate-400 block">{member.role || 'Thành viên'}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-white p-5 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-400 font-medium">
-                      Chưa có thành viên nào đăng ký.
-                    </div>
-                  )}
-                </div>
-
               </div>
 
               {/* CỘT PHẢI (SIDEBAR FORM - 5 COLS) */}
               <div className="lg:col-span-5 space-y-6">
 
-                {/* Box 1: Ảnh bìa & Bộ sưu tập ảnh - THIẾT KẾ GIỐNG HỆT CREATE TRIP PAGE */}
-                <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-5 font-sans">
-                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
+                {/* Box 1: Ảnh bìa & Hình ảnh */}
+                <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5 font-sans">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
                     <ImagePlus size={18} className="text-coral-500" /> Ảnh bìa & Hình ảnh
                   </h2>
 
-                  {/* Ảnh bìa chính */}
-                  <div className="space-y-2 font-sans">
+                  {/* Single Cover Image */}
+                  <div className="space-y-2">
                     <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                       Ảnh bìa chính <span className="text-rose-500">*</span>
                     </label>
@@ -444,7 +535,7 @@ export const EditTripPage: React.FC = () => {
                         />
                         <button
                           type="button"
-                          onClick={handleRemoveCoverImage}
+                          onClick={removeCoverImage}
                           className="absolute top-2.5 right-2.5 bg-black/80 hover:bg-black text-white w-7 h-7 rounded-full flex items-center justify-center transition cursor-pointer shadow-md"
                           title="Xóa ảnh bìa chính"
                         >
@@ -452,40 +543,48 @@ export const EditTripPage: React.FC = () => {
                         </button>
                       </div>
                     ) : (
-                      <label className="border-2 border-dashed border-slate-200 hover:border-coral-400 bg-white rounded-2xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer transition group">
+                      <label className="border-2 border-dashed border-slate-200 hover:border-coral-400 bg-slate-50/50 rounded-2xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer transition group">
                         <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 group-hover:bg-coral-50 group-hover:text-coral-500 flex items-center justify-center transition">
-                          <Upload size={20} />
+                          {uploadingCover ? <Loader2 size={20} className="animate-spin text-coral-500" /> : <UploadCloud size={20} />}
                         </div>
                         <span className="text-xs font-bold text-slate-700 group-hover:text-coral-600 transition">
                           Tải ảnh bìa chính *
                         </span>
                         <input
                           type="file"
+                          ref={coverInputRef}
                           accept="image/*"
-                          onChange={handleCoverFileUpload}
+                          onChange={handleCoverUpload}
                           className="hidden"
                         />
                       </label>
                     )}
                   </div>
 
-                  {/* Bộ sưu tập ảnh (Gallery) */}
-                  <div className="space-y-3 pt-3 border-t border-slate-200/60 font-sans">
+                  {/* Multiple Gallery Images */}
+                  <div className="space-y-3 pt-3 border-t border-slate-100">
                     <div className="flex items-center justify-between">
                       <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                         Bộ sưu tập ảnh ({imageUrls.length})
                       </label>
                       <label className="text-xs font-bold text-coral-600 hover:text-coral-700 cursor-pointer flex items-center gap-1">
-                        <Plus size={15} /> Thêm ảnh
+                        + Thêm ảnh
                         <input
                           type="file"
+                          ref={galleryInputRef}
                           multiple
                           accept="image/*"
-                          onChange={handleGalleryFileUpload}
+                          onChange={handleGalleryUpload}
                           className="hidden"
                         />
                       </label>
                     </div>
+
+                    {uploadingGallery && (
+                      <div className="text-xs text-coral-500 font-semibold flex items-center gap-1.5">
+                        <Loader2 size={14} className="animate-spin" /> Đang tải ảnh...
+                      </div>
+                    )}
 
                     {imageUrls.length > 0 && (
                       <div className="grid grid-cols-3 gap-2.5 pt-1">
@@ -499,7 +598,7 @@ export const EditTripPage: React.FC = () => {
                             />
                             <button
                               type="button"
-                              onClick={() => handleRemoveGalleryImage(idx)}
+                              onClick={() => removeGalleryImage(idx)}
                               className="absolute top-1.5 right-1.5 bg-black/80 hover:bg-black text-white w-6 h-6 rounded-full flex items-center justify-center transition cursor-pointer shadow-xs"
                               title="Xóa ảnh"
                             >
@@ -512,36 +611,39 @@ export const EditTripPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Box 2: Chi phí & Quy mô */}
-                <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-4 font-sans">
-                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
+                {/* Box 2: Chi phí & Thành viên */}
+                <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4 font-sans">
+                  <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
                     <DollarSign size={18} className="text-coral-500" /> Chi phí & Thành viên
                   </h2>
 
-                  {/* Chi phí ước tính */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Chi phí ước tính / người (VND)</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Chi phí ước tính / người (VND) <span className="text-rose-500">*</span>
+                    </label>
                     <Input
                       type="number"
                       value={estimatedCost}
                       onChange={(e) => setEstimatedCost(e.target.value)}
-                      placeholder="VD: 1500000"
+                      placeholder="VD: 2500000"
                     />
                   </div>
 
-                  {/* Ghi chú chi phí */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Ghi chú chi phí</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Ghi chú chi phí <span className="text-rose-500">*</span>
+                    </label>
                     <Input
                       value={costNote}
                       onChange={(e) => setCostNote(e.target.value)}
-                      placeholder="VD: Đã bao gồm xe đưa đón và lều trại..."
+                      placeholder="VD: Chi phí gồm xe khách, nhà sàn, ăn uống..."
                     />
                   </div>
 
-                  {/* Số lượng thành viên tối đa */}
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Số lượng thành viên tối đa</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Số lượng thành viên tối đa <span className="text-rose-500">*</span>
+                    </label>
                     <Input
                       type="number"
                       min={2}
@@ -552,7 +654,6 @@ export const EditTripPage: React.FC = () => {
                     />
                   </div>
 
-                  {/* Yêu cầu độ tuổi */}
                   <div className="space-y-1.5 pt-1">
                     <label className="block text-xs font-bold text-slate-700">Yêu cầu độ tuổi (Tùy chọn)</label>
                     <div className="grid grid-cols-2 gap-2">
@@ -571,7 +672,6 @@ export const EditTripPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Yêu cầu khác */}
                   <div className="space-y-1.5 pt-1">
                     <label className="block text-xs font-bold text-slate-700">Yêu cầu khác đối với thành viên</label>
                     <textarea
@@ -579,18 +679,18 @@ export const EditTripPage: React.FC = () => {
                       value={requirements}
                       onChange={(e) => setRequirements(e.target.value)}
                       placeholder="VD: Cần có sức khỏe tốt, chuẩn bị giày leo núi..."
-                      className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-coral-400 transition resize-none"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none focus:border-coral-400 focus:bg-white transition resize-none"
                     />
                   </div>
                 </div>
 
-                {/* Box 3: Action Buttons - DÙNG COMPONENT <Button> ĐỒNG BỘ NÉT BO GÓC THẤP rounded-xl */}
-                <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3 font-sans">
+                {/* Box 3: Action Buttons */}
+                <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3 font-sans">
                   <div className="grid grid-cols-2 gap-4">
                     <Button
                       type="button"
                       variant="outline"
-                      disabled={isSaving}
+                      disabled={isSubmitting}
                       onClick={() => navigate('/my-trips')}
                       className="w-full font-bold text-xs py-3.5 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-100"
                     >
@@ -599,10 +699,10 @@ export const EditTripPage: React.FC = () => {
 
                     <Button
                       type="submit"
-                      disabled={isSaving}
+                      disabled={isSubmitting}
                       className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-1.5"
                     >
-                      {isSaving ? (
+                      {isSubmitting ? (
                         <>
                           <Loader2 size={16} className="animate-spin" /> Đang lưu...
                         </>

@@ -55,9 +55,11 @@ export interface Trip {
   title: string;
   description?: string;
   startLocation: string;
+  startCountryId?: string;
   startCityId?: string;
   startCityName?: string;
   destination: string;
+  destinationCountryId?: string;
   destinationCityId?: string;
   destinationCityName?: string;
   coverImageUrl?: string;
