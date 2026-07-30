@@ -176,8 +176,7 @@ export const TripDetailPage: React.FC = () => {
     );
   }
 
-  const isOrganizer = currentUser?.userId === trip.organizerId;
-  const isFull = trip.currentMembers >= trip.maxMembers;
+  const isFull = trip ? trip.currentMembers >= trip.maxMembers : false;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
@@ -535,14 +534,7 @@ export const TripDetailPage: React.FC = () => {
                 </div>
               ) : null}
 
-              {isOrganizer ? (
-                <Button
-                  onClick={() => navigate(`/trips/${trip.id}/edit`)}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-4 rounded-2xl cursor-pointer shadow-md flex items-center justify-center gap-2"
-                >
-                  Chỉnh sửa chuyến đi của tôi
-                </Button>
-              ) : hasJoined ? (
+              {hasJoined ? (
                 <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs py-4 rounded-2xl flex items-center justify-center gap-2">
                   <UserCheck size={18} /> Bạn đã đăng ký chuyến đi này
                 </div>

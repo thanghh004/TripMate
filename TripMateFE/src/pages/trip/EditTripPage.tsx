@@ -25,8 +25,9 @@ import {
   Sparkles,
   FileText,
   Save,
-  Trash2,
-  Plus
+  Plus,
+  X,
+  Upload
 } from 'lucide-react';
 
 export const EditTripPage: React.FC = () => {
@@ -49,7 +50,6 @@ export const EditTripPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [estimatedCost, setEstimatedCost] = useState<number | string>('');
   const [costNote, setCostNote] = useState('');
   const [maxMembers, setMaxMembers] = useState<number>(10);
@@ -108,28 +108,20 @@ export const EditTripPage: React.FC = () => {
     initData();
   }, [id, navigate]);
 
-  // Chọn/Tải ảnh bìa mới từ máy tính
+  // Upload Ảnh bìa chính từ thiết bị
   const handleCoverFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setCoverImageUrl(reader.result as string);
-        toast.success('Đã chọn ảnh bìa mới thành công.');
+        toast.success('Đã tải ảnh bìa chính mới thành công.');
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Thêm ảnh vào bộ sưu tập (Gallery)
-  const handleAddGalleryUrl = () => {
-    if (!newGalleryUrl.trim()) return;
-    setImageUrls([...imageUrls, newGalleryUrl.trim()]);
-    setNewGalleryUrl('');
-    toast.success('Đã thêm ảnh vào bộ sưu tập.');
-  };
-
-  // Thêm ảnh vào bộ sưu tập từ tệp máy tính
+  // Upload Bộ sưu tập ảnh (Gallery) từ thiết bị
   const handleGalleryFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -144,7 +136,12 @@ export const EditTripPage: React.FC = () => {
     }
   };
 
-  // Xóa ảnh khỏi bộ sưu tập
+  // Xóa ảnh bìa chính
+  const handleRemoveCoverImage = () => {
+    setCoverImageUrl('');
+  };
+
+  // Xóa 1 ảnh khỏi bộ sưu tập
   const handleRemoveGalleryImage = (index: number) => {
     setImageUrls(imageUrls.filter((_, idx) => idx !== index));
   };
@@ -223,14 +220,14 @@ export const EditTripPage: React.FC = () => {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 text-left">
-            {/* Header Title Top - GIỐNG HỆT TRANG XEM CHI TIẾT & BỎ NÚT QUAY LẠI */}
+            {/* Header Title Top - CHỈ HIỂN THỊ TIÊU ĐỀ (BỎ CHỮ "CHỈNH SỬA: ") & THẺ HOST GÓC PHẢI */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
               <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-                  Chỉnh sửa: {title || trip.title} <Sparkles size={24} className="text-coral-500 fill-coral-500/20" />
+                  {title || trip.title} <Sparkles size={24} className="text-coral-500 fill-coral-500/20" />
                 </h1>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                  Cập nhật tất cả các thông tin chuyến đi của bạn trước khi được phê duyệt.
+                  Cập nhật thông tin chi tiết chuyến đi của bạn trước khi được phê duyệt.
                 </p>
               </div>
 
@@ -267,7 +264,7 @@ export const EditTripPage: React.FC = () => {
               </div>
             </div>
 
-            {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) GIỐNG HỆT TRANG XEM CHI TIẾT */}
+            {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
 
               {/* CỘT TRÁI (MAIN FORM - 7 COLS) */}
@@ -425,18 +422,43 @@ export const EditTripPage: React.FC = () => {
               {/* CỘT PHẢI (SIDEBAR FORM - 5 COLS) */}
               <div className="lg:col-span-5 space-y-6">
 
-                {/* Box 1: Ảnh bìa chính & Bộ sưu tập ảnh (CHO PHÉP ĐỔI & THÊM XÓA ẢNH) */}
+                {/* Box 1: Ảnh bìa & Bộ sưu tập ảnh - THIẾT KẾ GIỐNG HỆT CREATE TRIP PAGE */}
                 <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-5 font-sans">
                   <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
-                    <ImagePlus size={18} className="text-coral-500" /> Ảnh bìa & Bộ sưu tập ảnh
+                    <ImagePlus size={18} className="text-coral-500" /> Ảnh bìa & Hình ảnh
                   </h2>
 
                   {/* Ảnh bìa chính */}
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">Ảnh bìa chính</label>
-                      <label className="text-xs font-bold text-coral-600 hover:text-coral-700 cursor-pointer bg-coral-50 px-2.5 py-1 rounded-lg border border-coral-200/80">
-                        Chọn tệp từ máy...
+                  <div className="space-y-2 font-sans">
+                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                      Ảnh bìa chính <span className="text-rose-500">*</span>
+                    </label>
+
+                    {coverImageUrl ? (
+                      <div className="rounded-2xl overflow-hidden aspect-video bg-white border border-slate-200 shadow-2xs relative group">
+                        <Image
+                          src={coverImageUrl}
+                          alt="Cover main preview"
+                          previewable
+                          containerClassName="w-full h-full"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveCoverImage}
+                          className="absolute top-2.5 right-2.5 bg-black/80 hover:bg-black text-white w-7 h-7 rounded-full flex items-center justify-center transition cursor-pointer shadow-md"
+                          title="Xóa ảnh bìa chính"
+                        >
+                          <X size={15} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="border-2 border-dashed border-slate-200 hover:border-coral-400 bg-white rounded-2xl p-8 flex flex-col items-center justify-center gap-2 cursor-pointer transition group">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 group-hover:bg-coral-50 group-hover:text-coral-500 flex items-center justify-center transition">
+                          <Upload size={20} />
+                        </div>
+                        <span className="text-xs font-bold text-slate-700 group-hover:text-coral-600 transition">
+                          Tải ảnh bìa chính *
+                        </span>
                         <input
                           type="file"
                           accept="image/*"
@@ -444,38 +466,17 @@ export const EditTripPage: React.FC = () => {
                           className="hidden"
                         />
                       </label>
-                    </div>
-
-                    <Input
-                      value={coverImageUrl}
-                      onChange={(e) => setCoverImageUrl(e.target.value)}
-                      placeholder="Hoặc dán URL ảnh bìa chính vào đây..."
-                    />
-
-                    {coverImageUrl ? (
-                      <div className="rounded-2xl overflow-hidden aspect-video bg-white border border-slate-200 shadow-2xs relative group">
-                        <Image
-                          src={coverImageUrl}
-                          alt="Cover preview"
-                          previewable
-                          containerClassName="w-full h-full"
-                        />
-                      </div>
-                    ) : (
-                      <div className="p-8 border border-dashed border-slate-300 rounded-2xl text-center text-xs text-slate-400 font-medium">
-                        Chưa có ảnh bìa
-                      </div>
                     )}
                   </div>
 
                   {/* Bộ sưu tập ảnh (Gallery) */}
-                  <div className="space-y-3 pt-3 border-t border-slate-200/60">
+                  <div className="space-y-3 pt-3 border-t border-slate-200/60 font-sans">
                     <div className="flex items-center justify-between">
                       <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
                         Bộ sưu tập ảnh ({imageUrls.length})
                       </label>
-                      <label className="text-xs font-bold text-coral-600 hover:text-coral-700 cursor-pointer bg-coral-50 px-2.5 py-1 rounded-lg border border-coral-200/80">
-                        Tải nhiều ảnh từ máy...
+                      <label className="text-xs font-bold text-coral-600 hover:text-coral-700 cursor-pointer flex items-center gap-1">
+                        <Plus size={15} /> Thêm ảnh
                         <input
                           type="file"
                           multiple
@@ -484,22 +485,6 @@ export const EditTripPage: React.FC = () => {
                           className="hidden"
                         />
                       </label>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Input
-                        value={newGalleryUrl}
-                        onChange={(e) => setNewGalleryUrl(e.target.value)}
-                        placeholder="Dán URL ảnh gallery mới..."
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        onClick={handleAddGalleryUrl}
-                        className="bg-coral-500 text-white font-bold text-xs px-3 rounded-xl shrink-0"
-                      >
-                        <Plus size={16} /> Thêm
-                      </Button>
                     </div>
 
                     {imageUrls.length > 0 && (
@@ -515,10 +500,10 @@ export const EditTripPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleRemoveGalleryImage(idx)}
-                              className="absolute top-1 right-1 bg-rose-600 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition cursor-pointer shadow-xs"
-                              title="Xóa ảnh này"
+                              className="absolute top-1.5 right-1.5 bg-black/80 hover:bg-black text-white w-6 h-6 rounded-full flex items-center justify-center transition cursor-pointer shadow-xs"
+                              title="Xóa ảnh"
                             >
-                              <Trash2 size={13} />
+                              <X size={13} />
                             </button>
                           </div>
                         ))}
@@ -599,22 +584,23 @@ export const EditTripPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Box 3: Action Buttons */}
+                {/* Box 3: Action Buttons - DÙNG COMPONENT <Button> ĐỒNG BỘ NÉT BO GÓC THẤP rounded-xl */}
                 <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3 font-sans">
-                  <div className="flex items-center gap-3">
-                    <button
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button
                       type="button"
-                      onClick={() => navigate('/my-trips')}
+                      variant="outline"
                       disabled={isSaving}
-                      className="w-full bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs py-3.5 rounded-2xl cursor-pointer shadow-2xs transition"
+                      onClick={() => navigate('/my-trips')}
+                      className="w-full font-bold text-xs py-3.5 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-100"
                     >
                       Hủy bỏ
-                    </button>
+                    </Button>
 
                     <Button
                       type="submit"
                       disabled={isSaving}
-                      className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs py-3.5 rounded-2xl cursor-pointer shadow-xs flex items-center justify-center gap-1.5 transition"
+                      className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-1.5"
                     >
                       {isSaving ? (
                         <>
