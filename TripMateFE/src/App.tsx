@@ -11,6 +11,7 @@ import ProfilePage from './pages/user/ProfilePage';
 import CreateTripPage from './pages/trip/CreateTripPage';
 import TripDetailPage from './pages/trip/TripDetailPage';
 import MyTripsPage from './pages/trip/MyTripsPage';
+import EditTripPage from './pages/trip/EditTripPage';
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -136,6 +137,7 @@ function App() {
         <Route path="/create-trip" element={<CreateTripPage />} />
         <Route path="/trips/create" element={<CreateTripPage />} />
         <Route path="/trips/:id" element={<TripDetailPage />} />
+        <Route path="/trips/:id/edit" element={<EditTripPage />} />
         <Route path="/my-trips" element={<MyTripsPage />} />
       </Route>
 

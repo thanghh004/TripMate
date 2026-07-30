@@ -34,15 +34,17 @@ public class UpdateTripCommandHandler : IRequestHandler<UpdateTripCommand, TripD
 
         var dto = request.Dto;
 
-        trip.CategoryId = dto.CategoryId;
+        if (dto.CategoryId != Guid.Empty)
+            trip.CategoryId = dto.CategoryId;
+
         trip.Title = dto.Title.Trim();
         trip.Description = dto.Description?.Trim();
         trip.StartLocation = dto.StartLocation.Trim();
-        trip.StartCountryId = dto.StartCountryId;
-        trip.StartCityId = dto.StartCityId;
+        if (dto.StartCountryId.HasValue) trip.StartCountryId = dto.StartCountryId;
+        if (dto.StartCityId.HasValue) trip.StartCityId = dto.StartCityId;
         trip.Destination = dto.Destination.Trim();
-        trip.DestinationCountryId = dto.DestinationCountryId;
-        trip.DestinationCityId = dto.DestinationCityId;
+        if (dto.DestinationCountryId.HasValue) trip.DestinationCountryId = dto.DestinationCountryId;
+        if (dto.DestinationCityId.HasValue) trip.DestinationCityId = dto.DestinationCityId;
         trip.CoverImageUrl = dto.CoverImageUrl?.Trim();
         trip.StartDate = dto.StartDate;
         trip.EndDate = dto.EndDate;

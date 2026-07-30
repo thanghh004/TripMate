@@ -10,32 +10,11 @@ public class UpdateTripCommandValidator : AbstractValidator<UpdateTripCommand>
             .NotEmpty().WithMessage("Tiêu đề chuyến đi không được để trống.")
             .MaximumLength(200).WithMessage("Tiêu đề chuyến đi không được vượt quá 200 ký tự.");
 
-        RuleFor(x => x.Dto.CategoryId)
-            .NotEmpty().WithMessage("Vui lòng chọn danh mục loại hình chuyến đi.");
-
         RuleFor(x => x.Dto.StartLocation)
             .NotEmpty().WithMessage("Điểm khởi hành cụ thể không được để trống.");
 
-        RuleFor(x => x.Dto.StartCountryId)
-            .NotEmpty().WithMessage("Vui lòng chọn Quốc gia cho điểm khởi hành.");
-
-        RuleFor(x => x.Dto.StartCityId)
-            .NotEmpty().WithMessage("Vui lòng chọn Thành phố / Tỉnh cho điểm khởi hành.");
-
         RuleFor(x => x.Dto.Destination)
             .NotEmpty().WithMessage("Điểm đến chính cụ thể không được để trống.");
-
-        RuleFor(x => x.Dto.DestinationCountryId)
-            .NotEmpty().WithMessage("Vui lòng chọn Quốc gia cho điểm đến chính.");
-
-        RuleFor(x => x.Dto.DestinationCityId)
-            .NotEmpty().WithMessage("Vui lòng chọn Thành phố / Tỉnh cho điểm đến chính.");
-
-        RuleFor(x => x.Dto.Description)
-            .NotEmpty().WithMessage("Mô tả & Kế hoạch chi tiết không được để trống.");
-
-        RuleFor(x => x.Dto.CoverImageUrl)
-            .NotEmpty().WithMessage("Vui lòng tải lên Ảnh bìa chính cho chuyến đi.");
 
         RuleFor(x => x.Dto.StartDate)
             .GreaterThanOrEqualTo(DateTime.UtcNow.Date.AddDays(7))
