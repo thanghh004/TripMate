@@ -381,7 +381,7 @@ export const EditTripPage: React.FC = () => {
                 <span className="flex items-center gap-2 text-slate-800">
                   <Info size={18} className="text-coral-500" /> 1. Thông tin chung về chuyến đi
                 </span>
-                <span className="text-[11px] font-bold text-coral-600 bg-coral-50 px-2.5 py-0.5 rounded-full">
+                <span className="text-[11px] font-black text-amber-700 bg-amber-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
                   Đang chờ duyệt
                 </span>
               </h2>
