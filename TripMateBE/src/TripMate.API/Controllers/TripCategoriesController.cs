@@ -25,7 +25,7 @@ public class TripCategoriesController : BaseApiController
     /// Tạo mới Loại chuyến đi (Dành cho Admin)
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     public async Task<IActionResult> CreateCategory([FromBody] CreateTripCategoryDto dto)
     {
         var command = new CreateTripCategoryCommand(dto.Name, dto.Slug, dto.Icon, dto.Description, dto.DisplayOrder);
@@ -37,7 +37,7 @@ public class TripCategoriesController : BaseApiController
     /// Cập nhật Loại chuyến đi (Dành cho Admin)
     /// </summary>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] UpdateTripCategoryDto dto)
     {
         var command = new UpdateTripCategoryCommand(id, dto.Name, dto.Slug, dto.Icon, dto.Description, dto.DisplayOrder, dto.IsActive);
@@ -49,7 +49,7 @@ public class TripCategoriesController : BaseApiController
     /// Xóa mềm Loại chuyến đi (Dành cho Admin)
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     public async Task<IActionResult> DeleteCategory(Guid id)
     {
         await Mediator.Send(new DeleteTripCategoryCommand(id));

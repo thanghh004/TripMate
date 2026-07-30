@@ -152,7 +152,7 @@ public class UsersController : BaseApiController
     /// Lấy danh sách toàn bộ người dùng trong CSDL (Admin)
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
     {
@@ -170,7 +170,7 @@ public class UsersController : BaseApiController
     /// Lấy danh sách các yêu cầu xác thực Host đang chờ duyệt (Admin)
     /// </summary>
     [HttpGet("host-verifications/pending")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPendingHostVerifications(CancellationToken cancellationToken)
     {
@@ -188,7 +188,7 @@ public class UsersController : BaseApiController
     /// Admin phê duyệt yêu cầu xác thực Host
     /// </summary>
     [HttpPost("host-verifications/{userId:guid}/approve")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ApproveHostVerification(Guid userId, CancellationToken cancellationToken)
     {

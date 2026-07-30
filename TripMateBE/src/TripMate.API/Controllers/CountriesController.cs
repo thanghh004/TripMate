@@ -41,7 +41,7 @@ public class CountriesController : BaseApiController
     /// Tạo mới một quốc gia (Admin)
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(typeof(CountryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -56,7 +56,7 @@ public class CountriesController : BaseApiController
     /// Cập nhật thông tin quốc gia (Admin)
     /// </summary>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(typeof(CountryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -71,7 +71,7 @@ public class CountriesController : BaseApiController
     /// Xóa mềm một quốc gia (Admin)
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCountry(Guid id, CancellationToken cancellationToken = default)

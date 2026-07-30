@@ -21,6 +21,8 @@ import AdminTripDetailPage from './pages/admin/AdminTripDetailPage';
 import CountryManagementPage from './pages/admin/country-manager';
 import CityManagementPage from './pages/admin/city-manager';
 import CategoryManagementPage from './pages/admin/category-manager';
+import { UserOnlyRoute } from './components/auth/UserOnlyRoute';
+import { AdminRoute } from './components/auth/AdminRoute';
 import { MapPin, Calendar, ShieldCheck, Sparkles } from 'lucide-react';
 import './App.css';
 
@@ -121,26 +123,34 @@ function Home() {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      {/* Auth Public Routes (Cho phép truy cập) */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-otp" element={<VerifyOtpPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/create-trip" element={<CreateTripPage />} />
-      <Route path="/trips/create" element={<CreateTripPage />} />
-      <Route path="/trips/:id" element={<TripDetailPage />} />
-      <Route path="/my-trips" element={<MyTripsPage />} />
 
-      {/* Admin Routes */}
-      <Route path="/admin" element={<AdminDashboardPage />} />
-      <Route path="/admin/host-verifications" element={<HostVerificationPage />} />
-      <Route path="/admin/users" element={<UserManagementPage />} />
-      <Route path="/admin/trips" element={<TripManagementPage />} />
-      <Route path="/admin/trips/:id" element={<AdminTripDetailPage />} />
-      <Route path="/admin/countries" element={<CountryManagementPage />} />
-      <Route path="/admin/cities" element={<CityManagementPage />} />
-      <Route path="/admin/categories" element={<CategoryManagementPage />} />
+      {/* User Only Routes (Admin cố vào sẽ bị Redirect về /admin/users) */}
+      <Route element={<UserOnlyRoute />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/create-trip" element={<CreateTripPage />} />
+        <Route path="/trips/create" element={<CreateTripPage />} />
+        <Route path="/trips/:id" element={<TripDetailPage />} />
+        <Route path="/my-trips" element={<MyTripsPage />} />
+      </Route>
+
+      {/* Admin Only Routes (User thường cố vào sẽ bị Redirect về /403) */}
+      <Route element={<AdminRoute />}>
+        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route path="/admin/host-verifications" element={<HostVerificationPage />} />
+        <Route path="/admin/users" element={<UserManagementPage />} />
+        <Route path="/admin/trips" element={<TripManagementPage />} />
+        <Route path="/admin/trips/:id" element={<AdminTripDetailPage />} />
+        <Route path="/admin/countries" element={<CountryManagementPage />} />
+        <Route path="/admin/cities" element={<CityManagementPage />} />
+        <Route path="/admin/categories" element={<CategoryManagementPage />} />
+      </Route>
+
       {/* Error & Fallback Routes */}
       <Route path="/403" element={<ForbiddenPage />} />
       <Route path="*" element={<NotFoundPage />} />

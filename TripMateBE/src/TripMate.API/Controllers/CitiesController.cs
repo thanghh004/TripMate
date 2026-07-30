@@ -41,7 +41,7 @@ public class CitiesController : BaseApiController
     /// Tạo mới một thành phố / tỉnh (Admin)
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(typeof(CityDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -57,7 +57,7 @@ public class CitiesController : BaseApiController
     /// Cập nhật thông tin thành phố / tỉnh (Admin)
     /// </summary>
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(typeof(CityDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -72,7 +72,7 @@ public class CitiesController : BaseApiController
     /// Xóa mềm một thành phố / tỉnh (Admin)
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCity(Guid id, CancellationToken cancellationToken = default)

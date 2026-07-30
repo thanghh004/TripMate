@@ -29,10 +29,10 @@ public class TripsController : BaseApiController
     }
 
     /// <summary>
-    /// Tạo chuyến đi mới (Yêu cầu tài khoản đã được duyệt quyền Host)
+    /// Tạo chuyến đi mới (Yêu cầu tài khoản đã được duyệt quyền Host và vai trò User)
     /// </summary>
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "User,0")]
     public async Task<ActionResult<TripDto>> CreateTrip([FromBody] CreateTripDto dto)
     {
         var command = new CreateTripCommand(CurrentUserId, dto);
@@ -44,7 +44,7 @@ public class TripsController : BaseApiController
     /// Chỉnh sửa chuyến đi do mình tạo
     /// </summary>
     [HttpPut("{id:guid}")]
-    [Authorize]
+    [Authorize(Roles = "User,0")]
     public async Task<ActionResult<TripDto>> UpdateTrip(Guid id, [FromBody] UpdateTripDto dto)
     {
         var command = new UpdateTripCommand(id, CurrentUserId, dto);
@@ -59,7 +59,7 @@ public class TripsController : BaseApiController
     [Authorize]
     public async Task<IActionResult> CancelTrip(Guid id, [FromBody] CancelTripDto? dto)
     {
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsInRole("Admin") || User.IsInRole("1");
         var command = new CancelTripCommand(id, CurrentUserId, isAdmin, dto?.Reason);
         await Mediator.Send(command);
         return Ok(new { message = "Đã hủy chuyến đi thành công." });
@@ -69,7 +69,7 @@ public class TripsController : BaseApiController
     /// Lấy danh sách chuyến đi do người dùng hiện tại làm Organizer
     /// </summary>
     [HttpGet("my-trips")]
-    [Authorize]
+    [Authorize(Roles = "User,0")]
     public async Task<ActionResult<List<TripDto>>> GetMyTrips()
     {
         var result = await Mediator.Send(new GetMyTripsQuery(CurrentUserId));
@@ -82,7 +82,7 @@ public class TripsController : BaseApiController
     /// [Admin] Lấy danh sách toàn bộ chuyến đi trong hệ thống
     /// </summary>
     [HttpGet("admin/all")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     public async Task<ActionResult<List<TripDto>>> GetAdminAllTrips()
     {
         var result = await Mediator.Send(new Application.Features.Trips.Queries.GetAdminAllTrips.GetAdminAllTripsQuery());
@@ -93,7 +93,7 @@ public class TripsController : BaseApiController
     /// [Admin] Lấy danh sách chuyến đi chờ duyệt (PendingReview)
     /// </summary>
     [HttpGet("admin/pending")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     public async Task<ActionResult<List<TripDto>>> GetPendingTrips()
     {
         var result = await Mediator.Send(new GetPendingTripsQuery());
@@ -104,7 +104,7 @@ public class TripsController : BaseApiController
     /// [Admin] Phê duyệt chuyến đi
     /// </summary>
     [HttpPatch("admin/{id:guid}/approve")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     public async Task<ActionResult<TripDto>> ApproveTrip(Guid id)
     {
         var result = await Mediator.Send(new ApproveTripCommand(id));
@@ -115,7 +115,7 @@ public class TripsController : BaseApiController
     /// [Admin] Từ chối chuyến đi kèm lý do
     /// </summary>
     [HttpPatch("admin/{id:guid}/reject")]
-    [Authorize(Roles = "Admin,0")]
+    [Authorize(Roles = "Admin,1")]
     public async Task<ActionResult<TripDto>> RejectTrip(Guid id, [FromBody] RejectTripDto dto)
     {
         var result = await Mediator.Send(new RejectTripCommand(id, dto));
