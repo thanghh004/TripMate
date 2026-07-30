@@ -16,9 +16,11 @@ public class TripDto
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string StartLocation { get; set; } = string.Empty;
+    public Guid? StartCountryId { get; set; }
     public Guid? StartCityId { get; set; }
     public string? StartCityName { get; set; }
     public string Destination { get; set; } = string.Empty;
+    public Guid? DestinationCountryId { get; set; }
     public Guid? DestinationCityId { get; set; }
     public string? DestinationCityName { get; set; }
     public string? CoverImageUrl { get; set; }
