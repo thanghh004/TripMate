@@ -108,6 +108,11 @@ public class TripRepository : ITripRepository
         return await query.AnyAsync(t => t.StartDate.Date <= endDate.Date && t.EndDate.Date >= startDate.Date, cancellationToken);
     }
 
+    public async Task AddMemberAsync(TripMember member, CancellationToken cancellationToken = default)
+    {
+        await _context.TripMembers.AddAsync(member, cancellationToken);
+    }
+
     public async Task AddAsync(Trip trip, CancellationToken cancellationToken = default)
     {
         await _context.Trips.AddAsync(trip, cancellationToken);

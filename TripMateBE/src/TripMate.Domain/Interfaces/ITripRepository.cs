@@ -39,6 +39,11 @@ public interface ITripRepository
     Task<bool> HasOverlappingTripAsync(Guid userId, DateTime startDate, DateTime endDate, Guid? excludeTripId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Thêm thành viên vào chuyến đi
+    /// </summary>
+    Task AddMemberAsync(TripMember member, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Thêm mới một chuyến đi
     /// </summary>
     Task AddAsync(Trip trip, CancellationToken cancellationToken = default);

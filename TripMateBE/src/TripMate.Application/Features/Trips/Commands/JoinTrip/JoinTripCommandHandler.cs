@@ -36,7 +36,7 @@ public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
             throw new BusinessRuleException("Chuyến đi đã đủ số lượng thành viên tối đa.");
 
         // Rule 4: Kiểm tra đã tham gia chưa
-        if (trip.Members.Any(m => m.UserId == request.UserId))
+        if (trip.Members != null && trip.Members.Any(m => m.UserId == request.UserId))
             throw new BusinessRuleException("Bạn đã đăng ký tham gia chuyến đi này trước đó.");
 
         // Rule 5: BẮT BỘC KIỂM TRA TRÙNG LỊCH THỜI GIAN
@@ -49,19 +49,22 @@ public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
 
         if (hasOverlap)
         {
-            throw new BusinessRuleException("Bạn đã có lịch trình chuyến đi khác trùng với khoảng thời gian này. Không thể đăng ký!");
+            throw new BusinessRuleException("Bạn đã có lịch trình chuyến đi khác (tổ chức hoặc tham gia) trùng với khoảng thời gian này. Không thể đăng ký!");
         }
 
-        // Thêm thành viên mới
+        // Thêm thành viên mới thông qua ITripRepository
         var newMember = new TripMember
         {
+            Id = Guid.NewGuid(),
             TripId = trip.Id,
             UserId = request.UserId,
             JoinedAt = DateTime.UtcNow,
             Role = TripMemberRole.Member
         };
 
-        trip.Members.Add(newMember);
+        await _tripRepository.AddMemberAsync(newMember, cancellationToken);
+
+        // Tăng số lượng thành viên hiện tại
         trip.CurrentMembers += 1;
 
         // Nếu đã đủ thành viên tối đa ➔ Đổi trạng thái sang Full
