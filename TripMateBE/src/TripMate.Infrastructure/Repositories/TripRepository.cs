@@ -70,6 +70,30 @@ public class TripRepository : ITripRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<bool> HasOverlappingTripAsync(Guid userId, DateTime startDate, DateTime endDate, Guid? excludeTripId = null, CancellationToken cancellationToken = default)
+    {
+        var activeStatuses = new List<TripStatus>
+        {
+            TripStatus.PendingReview,
+            TripStatus.Open,
+            TripStatus.Full,
+            TripStatus.Ongoing
+        };
+
+        var query = _context.Trips
+            .AsNoTracking()
+            .Where(t => activeStatuses.Contains(t.Status))
+            .Where(t => t.OrganizerId == userId || t.Members.Any(m => m.UserId == userId));
+
+        if (excludeTripId.HasValue)
+        {
+            query = query.Where(t => t.Id != excludeTripId.Value);
+        }
+
+        // Logic trùng lịch: (StartA <= EndB) AND (EndA >= StartB)
+        return await query.AnyAsync(t => t.StartDate.Date <= endDate.Date && t.EndDate.Date >= startDate.Date, cancellationToken);
+    }
+
     public async Task AddAsync(Trip trip, CancellationToken cancellationToken = default)
     {
         await _context.Trips.AddAsync(trip, cancellationToken);

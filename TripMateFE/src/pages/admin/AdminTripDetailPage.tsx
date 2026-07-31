@@ -671,28 +671,34 @@ export const AdminTripDetailPage: React.FC = () => {
                   </div>
 
                   {/* Giới hạn độ tuổi */}
-                  {(trip.minAge || trip.maxAge) && (
-                    <div className="space-y-1.5 pt-1">
-                      <label className="block text-xs font-bold text-slate-700">Yêu cầu độ tuổi</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input value={`Min: ${trip.minAge || 'Không có'}`} readOnly />
-                        <Input value={`Max: ${trip.maxAge || 'Không có'}`} readOnly />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Yêu cầu khác */}
-                  {trip.requirements && (
-                    <div className="space-y-1.5 pt-1">
-                      <label className="block text-xs font-bold text-slate-700">Yêu cầu khác đối với thành viên</label>
-                      <textarea
-                        rows={3}
-                        value={trip.requirements}
+                  <div className="space-y-1.5 pt-1">
+                    <label className="block text-xs font-bold text-slate-700">Yêu cầu độ tuổi (Nếu có)</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        type="number"
+                        value={trip.minAge || ''}
                         readOnly
-                        className="w-full bg-white border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none transition resize-none"
+                        placeholder="Min (VD: 18)"
+                      />
+                      <Input
+                        type="number"
+                        value={trip.maxAge || ''}
+                        readOnly
+                        placeholder="Max (VD: 40)"
                       />
                     </div>
-                  )}
+                  </div>
+
+                  {/* Yêu cầu khác */}
+                  <div className="space-y-1.5 pt-1">
+                    <label className="block text-xs font-bold text-slate-700">Yêu cầu khác đối với thành viên</label>
+                    <textarea
+                      rows={3}
+                      value={trip.requirements || 'Chưa có yêu cầu khác.'}
+                      readOnly
+                      className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none transition resize-none"
+                    />
+                  </div>
                 </div>
 
                 {/* Box 3: Thanh công cụ Duyệt / Từ chối dành riêng cho ADMIN */}

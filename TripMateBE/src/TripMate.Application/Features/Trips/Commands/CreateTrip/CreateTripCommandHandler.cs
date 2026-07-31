@@ -52,6 +52,19 @@ public class CreateTripCommandHandler : IRequestHandler<CreateTripCommand, TripD
 
         var dto = request.Dto;
 
+        // Rule: Kiểm tra trùng lịch thời gian với các chuyến đi khác (Host hoặc Member)
+        bool hasOverlap = await _tripRepository.HasOverlappingTripAsync(
+            request.OrganizerId,
+            dto.StartDate,
+            dto.EndDate,
+            null,
+            cancellationToken);
+
+        if (hasOverlap)
+        {
+            throw new BusinessRuleException("Bạn đã có lịch trình chuyến đi khác trùng với khoảng thời gian này. Vui lòng chọn khoảng thời gian khác!");
+        }
+
         var trip = new Trip
         {
             OrganizerId = request.OrganizerId,

@@ -342,9 +342,12 @@ export const TripDetailPage: React.FC = () => {
                 <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <FileText size={15} className="text-slate-500" /> Mô tả & Kế hoạch chi tiết
                 </label>
-                <div className="w-full bg-white border border-slate-300 rounded-xl p-4 text-xs font-medium text-slate-800 leading-relaxed whitespace-pre-wrap">
-                  {trip.description || 'Chưa có thông tin mô tả lịch trình.'}
-                </div>
+                <textarea
+                  rows={6}
+                  value={trip.description || 'Chưa có thông tin mô tả lịch trình.'}
+                  readOnly
+                  className="w-full bg-white border border-slate-300 rounded-xl p-4 text-xs font-medium text-slate-800 focus:outline-none transition resize-none leading-relaxed"
+                />
               </div>
             </div>
 
@@ -455,21 +458,35 @@ export const TripDetailPage: React.FC = () => {
                 <Input value={`${trip.currentMembers}/${trip.maxMembers} thành viên`} readOnly rightIcon={<Users size={18} className="text-slate-400" />} />
               </div>
 
-              {(trip.minAge || trip.maxAge) && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Yêu cầu độ tuổi</label>
-                  <Input value={`${trip.minAge || 0} - ${trip.maxAge || 'Không giới hạn'} tuổi`} readOnly />
+              {/* Giới hạn độ tuổi */}
+              <div className="space-y-1.5 pt-1">
+                <label className="block text-xs font-bold text-slate-700">Yêu cầu độ tuổi (Nếu có)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    value={trip.minAge || ''}
+                    readOnly
+                    placeholder="Min (VD: 18)"
+                  />
+                  <Input
+                    type="number"
+                    value={trip.maxAge || ''}
+                    readOnly
+                    placeholder="Max (VD: 40)"
+                  />
                 </div>
-              )}
+              </div>
 
-              {trip.requirements && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Yêu cầu khác</label>
-                  <div className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 whitespace-pre-wrap">
-                    {trip.requirements}
-                  </div>
-                </div>
-              )}
+              {/* Yêu cầu khác đối với thành viên */}
+              <div className="space-y-1.5 pt-1">
+                <label className="block text-xs font-bold text-slate-700">Yêu cầu khác đối với thành viên</label>
+                <textarea
+                  rows={3}
+                  value={trip.requirements || 'Chưa có yêu cầu khác.'}
+                  readOnly
+                  className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none transition resize-none"
+                />
+              </div>
             </div>
 
             {/* Action Join Button cho User */}
