@@ -161,23 +161,6 @@ export const TripDetailPage: React.FC = () => {
   const handleJoinTrip = async () => {
     if (!trip) return;
 
-    // Kiểm tra thông tin hồ sơ cá nhân của user
-    if (currentUser) {
-      const isProfileIncomplete =
-        !currentUser.fullName ||
-        !currentUser.phoneNumber ||
-        !currentUser.gender ||
-        !currentUser.identityCardNumber ||
-        !currentUser.identityCardFrontUrl ||
-        !currentUser.identityCardBackUrl;
-
-      if (isProfileIncomplete) {
-        toast.error('Bạn cần cập nhật đầy đủ thông tin cá nhân (Họ tên, SĐT, Giới tính, Ngày sinh, Số CCCD và 2 mặt ảnh CCCD) trong Hồ sơ cá nhân trước khi đăng ký tham gia chuyến đi!');
-        navigate('/profile');
-        return;
-      }
-    }
-
     try {
       setIsJoining(true);
       const response = await tripApi.joinTrip(trip.id);
@@ -191,6 +174,10 @@ export const TripDetailPage: React.FC = () => {
         err.message ||
         'Đã có lỗi xảy ra khi gửi yêu cầu tham gia chuyến đi.';
       toast.error(errorMsg);
+      // Nếu lỗi do chưa cập nhật hồ sơ ➔ Chuyển sang /profile
+      if (errorMsg.includes('cập nhật đầy đủ thông tin cá nhân') || errorMsg.includes('Hồ sơ cá nhân')) {
+        navigate('/profile');
+      }
     } finally {
       setIsJoining(false);
     }
