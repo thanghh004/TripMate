@@ -49,6 +49,17 @@ public class UsersController : BaseApiController
     }
 
     /// <summary>
+    /// Lấy hồ sơ công khai của một Host / Người dùng
+    /// </summary>
+    [HttpGet("{id:guid}/public-profile")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublicProfile(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new Application.Features.Users.Queries.GetHostPublicProfile.GetHostPublicProfileQuery(id), cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Upload ảnh (avatar, CCCD mặt trước/sau) và trả về URL truy cập công khai
     /// </summary>
     [HttpPost("upload")]

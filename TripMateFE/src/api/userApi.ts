@@ -44,4 +44,19 @@ export const userApi = {
     const res = await axiosClient.get<ApiResponse<AdminUserListItem>>(`/api/users/${userId}`);
     return res.data;
   },
+
+  // API 6: Lấy hồ sơ công khai của Host (Người tổ chức)
+  getHostPublicProfile: async (hostId: string): Promise<{
+    id: string;
+    fullName: string;
+    email: string;
+    avatarUrl?: string;
+    rating: number;
+    totalCreatedTrips: number;
+    completedTripsCount: number;
+    uncompletedTripsCount: number;
+  }> => {
+    const res = await axiosClient.get(`/api/users/${hostId}/public-profile`);
+    return res.data;
+  },
 };

@@ -1,0 +1,80 @@
+using MediatR;
+using TripMate.Domain.Entities;
+using TripMate.Domain.Enums;
+using TripMate.Domain.Exceptions;
+using TripMate.Domain.Interfaces;
+
+namespace TripMate.Application.Features.Trips.Commands.JoinTrip;
+
+public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
+{
+    private readonly ITripRepository _tripRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public JoinTripCommandHandler(ITripRepository tripRepository, IUnitOfWork unitOfWork)
+    {
+        _tripRepository = tripRepository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<bool> Handle(JoinTripCommand request, CancellationToken cancellationToken)
+    {
+        var trip = await _tripRepository.GetByIdWithDetailsAsync(request.TripId, cancellationToken);
+        if (trip == null)
+            throw new NotFoundException("Không tìm thấy chuyến đi.");
+
+        // Rule 1: Host không cần đăng ký tham gia chuyến đi của mình
+        if (trip.OrganizerId == request.UserId)
+            throw new BusinessRuleException("Bạn là Trưởng đoàn của chuyến đi này.");
+
+        // Rule 2: Chỉ đăng ký được khi chuyến đi ở trạng thái Open
+        if (trip.Status != TripStatus.Open)
+            throw new BusinessRuleException("Chuyến đi hiện không mở nhận đăng ký.");
+
+        // Rule 3: Đã đủ thành viên
+        if (trip.CurrentMembers >= trip.MaxMembers)
+            throw new BusinessRuleException("Chuyến đi đã đủ số lượng thành viên tối đa.");
+
+        // Rule 4: Kiểm tra đã tham gia chưa
+        if (trip.Members.Any(m => m.UserId == request.UserId))
+            throw new BusinessRuleException("Bạn đã đăng ký tham gia chuyến đi này trước đó.");
+
+        // Rule 5: BẮT BỘC KIỂM TRA TRÙNG LỊCH THỜI GIAN
+        bool hasOverlap = await _tripRepository.HasOverlappingTripAsync(
+            request.UserId,
+            trip.StartDate,
+            trip.EndDate,
+            null,
+            cancellationToken);
+
+        if (hasOverlap)
+        {
+            throw new BusinessRuleException("Bạn đã có lịch trình chuyến đi khác trùng với khoảng thời gian này. Không thể đăng ký!");
+        }
+
+        // Thêm thành viên mới
+        var newMember = new TripMember
+        {
+            TripId = trip.Id,
+            UserId = request.UserId,
+            JoinedAt = DateTime.UtcNow,
+            Role = TripMemberRole.Member
+        };
+
+        trip.Members.Add(newMember);
+        trip.CurrentMembers += 1;
+
+        // Nếu đã đủ thành viên tối đa ➔ Đổi trạng thái sang Full
+        if (trip.CurrentMembers >= trip.MaxMembers)
+        {
+            trip.Status = TripStatus.Full;
+        }
+
+        trip.UpdatedAt = DateTime.UtcNow;
+
+        _tripRepository.Update(trip);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+}

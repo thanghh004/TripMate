@@ -64,6 +64,18 @@ public class TripsController : BaseApiController
     }
 
     /// <summary>
+    /// Đăng ký tham gia chuyến đi
+    /// </summary>
+    [HttpPost("{id:guid}/join")]
+    [Authorize]
+    public async Task<IActionResult> JoinTrip(Guid id)
+    {
+        var command = new Application.Features.Trips.Commands.JoinTrip.JoinTripCommand(id, CurrentUserId);
+        await Mediator.Send(command);
+        return Ok(new { message = "Đăng ký tham gia chuyến đi thành công!" });
+    }
+
+    /// <summary>
     /// Hủy chuyến đi (Dành cho Organizer hoặc Admin)
     /// </summary>
     [HttpPatch("{id:guid}/cancel")]

@@ -1,61 +1,68 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { tripApi } from '../../api/tripApi';
+import { userApi } from '../../api/userApi';
+import type { Trip } from '../../types/trip';
+import { TripStatus } from '../../types/trip';
 import { Header } from '../../components/common/Header';
-import { Footer } from '../../components/common/Footer';
-import ScrollToTop from '../../components/common/ScrollToTop';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Image from '../../components/common/Image';
+import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
-import { tripApi } from '../../api/tripApi';
-import type { Trip } from '../../types/trip';
-import { TripStatus } from '../../types/trip';
 import { formatDate } from '../../utils/formatters';
 import {
   Calendar,
-  MapPin,
   Users,
   DollarSign,
-  Info,
-  ImagePlus,
-  Loader2,
+  FileText,
   ShieldCheck,
   Star,
-  UserCheck,
-  Sparkles,
+  Loader2,
   AlertCircle,
-  FileText,
-  XCircle,
+  Sparkles,
+  MapPin,
+  ImagePlus,
+  Mail,
+  User as UserIcon,
 } from 'lucide-react';
+
+interface HostPublicProfile {
+  id: string;
+  fullName: string;
+  email: string;
+  avatarUrl?: string;
+  rating: number;
+  totalCreatedTrips: number;
+  completedTripsCount: number;
+  uncompletedTripsCount: number;
+}
 
 export const TripDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const authContext = useContext(AuthContext);
-  const currentUser = authContext?.user;
-  const { toast } = useToast();
 
   const [trip, setTrip] = useState<Trip | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isJoining, setIsJoining] = useState(false);
-  const [hasJoined, setHasJoined] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isJoining, setIsJoining] = useState<boolean>(false);
+
+  const { toast } = useToast();
+
+  // State Host Profile Modal
+  const [isHostModalOpen, setIsHostModalOpen] = useState<boolean>(false);
+  const [hostProfile, setHostProfile] = useState<HostPublicProfile | null>(null);
+  const [isLoadingHostProfile, setIsLoadingHostProfile] = useState<boolean>(false);
 
   useEffect(() => {
     if (!id) return;
-
     const fetchTripDetail = async () => {
       try {
         setIsLoading(true);
         const data = await tripApi.getTripById(id);
         setTrip(data);
-
-        if (currentUser && data.members) {
-          const joined = data.members.some((m) => m.userId === currentUser.userId);
-          setHasJoined(joined);
-        }
       } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Không thể tải thông tin chuyến đi.');
+        console.error('Lỗi khi lấy chi tiết chuyến đi:', err);
       } finally {
         setIsLoading(false);
       }
@@ -64,87 +71,37 @@ export const TripDetailPage: React.FC = () => {
     fetchTripDetail();
   }, [id]);
 
-  const handleJoinTrip = async () => {
-    if (!authContext?.isAuthenticated) {
-      toast.error('Vui lòng đăng nhập để đăng ký tham gia chuyến đi.');
-      navigate('/login');
-      return;
-    }
-
-    if (!id) return;
-
+  const handleOpenHostModal = async () => {
+    if (!trip || !trip.organizerId) return;
+    setIsHostModalOpen(true);
     try {
-      setIsJoining(true);
-      await tripApi.joinTrip(id);
-      toast.success('Gửi yêu cầu tham gia chuyến đi thành công!');
-      setHasJoined(true);
-      if (trip) {
-        setTrip({ ...trip, currentMembers: trip.currentMembers + 1 });
-      }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Không thể gửi yêu cầu tham gia.');
+      setIsLoadingHostProfile(true);
+      const data = await userApi.getHostPublicProfile(trip.organizerId);
+      setHostProfile(data);
+    } catch (err) {
+      console.error('Lỗi khi tải hồ sơ Host:', err);
     } finally {
-      setIsJoining(false);
+      setIsLoadingHostProfile(false);
     }
   };
 
-  const renderStatusBadge = (status: number) => {
-    switch (status) {
-      case TripStatus.PendingReview:
-        return (
-          <span className="text-[11px] font-black text-amber-700 bg-amber-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đang chờ duyệt
-          </span>
-        );
-      case TripStatus.Approved:
-      case TripStatus.Open:
-        return (
-          <span className="text-[11px] font-black text-emerald-700 bg-emerald-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đang nhận đăng ký
-          </span>
-        );
-      case TripStatus.Full:
-        return (
-          <span className="text-[11px] font-black text-blue-700 bg-blue-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đã đủ thành viên
-          </span>
-        );
-      case TripStatus.Ongoing:
-        return (
-          <span className="text-[11px] font-black text-purple-700 bg-purple-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đang diễn ra
-          </span>
-        );
-      case TripStatus.Completed:
-        return (
-          <span className="text-[11px] font-black text-slate-700 bg-slate-200/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Hoàn thành
-          </span>
-        );
-      case TripStatus.Cancelled:
-        return (
-          <span className="text-[11px] font-black text-rose-700 bg-rose-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đã hủy
-          </span>
-        );
-      case TripStatus.Failed:
-        return (
-          <span className="text-[11px] font-black text-slate-600 bg-slate-200 px-3 py-1 rounded-full uppercase tracking-wider">
-            Tạo thất bại
-          </span>
-        );
-      case TripStatus.Rejected:
-        return (
-          <span className="text-[11px] font-black text-rose-800 bg-rose-200 px-3 py-1 rounded-full uppercase tracking-wider">
-            Bị từ chối
-          </span>
-        );
-      default:
-        return (
-          <span className="text-[11px] font-black text-emerald-700 bg-emerald-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-            Đang nhận đăng ký
-          </span>
-        );
+  const handleJoinTrip = async () => {
+    if (!trip) return;
+    try {
+      setIsJoining(true);
+      const response = await tripApi.joinTrip(trip.id);
+      toast.success(response.message || 'Đăng ký tham gia chuyến đi thành công!');
+      // Reload lại thông tin chuyến đi sau khi join
+      const updated = await tripApi.getTripById(trip.id);
+      setTrip(updated);
+    } catch (err: any) {
+      const errorMsg =
+        err.response?.data?.message ||
+        err.message ||
+        'Đã có lỗi xảy ra khi đăng ký tham gia chuyến đi.';
+      toast.error(errorMsg);
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -174,7 +131,21 @@ export const TripDetailPage: React.FC = () => {
     );
   }
 
+  const authContext = useContext(AuthContext);
+  const isAuthenticated = authContext?.isAuthenticated;
+  const currentUser = authContext?.user;
+
   const isFull = trip ? trip.currentMembers >= trip.maxMembers : false;
+  const isOrganizer = currentUser && trip ? currentUser.userId === trip.organizerId : false;
+  const isAlreadyMember = currentUser && trip?.members ? trip.members.some((m) => m.userId === currentUser.userId) : false;
+
+  const handleButtonClick = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    handleJoinTrip();
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
@@ -192,7 +163,12 @@ export const TripDetailPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="shrink-0 flex items-center gap-3 bg-slate-100/80 p-3 rounded-2xl">
+          {/* Thẻ Người tổ chức (Click vào để mở Modal Hồ Sơ Host) */}
+          <button
+            type="button"
+            onClick={handleOpenHostModal}
+            className="shrink-0 flex items-center gap-3 bg-white hover:bg-slate-100/90 p-3 rounded-2xl border border-slate-200/80 shadow-2xs transition cursor-pointer text-left group"
+          >
             {trip.organizerAvatarUrl ? (
               <Image
                 src={trip.organizerAvatarUrl}
@@ -206,134 +182,138 @@ export const TripDetailPage: React.FC = () => {
             )}
 
             <div className="text-[11px] text-slate-600 font-semibold">
-              <p className="text-slate-800 font-bold flex items-center gap-1">
+              <p className="text-slate-800 font-bold flex items-center gap-1 group-hover:text-coral-600 transition">
                 Người tổ chức: {trip.organizerName}
-                <span title="Host đã xác minh CCCD">
-                  <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
-                </span>
+                <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
               </p>
-              <p className="text-slate-400 flex items-center gap-1 pt-0.5">
-                <span>Đã xác minh CCCD</span>
-                <span>•</span>
+              <p className="text-slate-400 flex items-center gap-1.5 pt-0.5">
                 <span className="flex items-center gap-0.5 text-slate-600 font-bold">
                   <Star size={11} className="text-amber-400 fill-amber-400" />
                   {trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'}
                 </span>
+                <span>•</span>
+                <span className="text-coral-600 font-bold">Xem thông tin Host ➔</span>
               </p>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) chuẩn CreateTripPage */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
           {/* CỘT TRÁI (MAIN FORM - 7 COLS) */}
           <div className="lg:col-span-7 space-y-6">
-            {/* Box 1: Thông tin chung về chuyến đi */}
-            <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-6">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center justify-between">
-                <span className="flex items-center gap-2 text-slate-800">
-                  <Info size={18} className="text-coral-500" /> 1. Thông tin chung về chuyến đi
-                </span>
-                {renderStatusBadge(trip.status)}
-              </h2>
-
-              {/* Hiển thị Lý Do Hủy / Từ Chối / Thất Bại đầy đủ cho mọi trường hợp */}
-              {trip.status === TripStatus.Rejected && (
-                <div className="p-4 sm:p-5 bg-rose-50 border border-rose-200/80 rounded-2xl flex items-start gap-3.5 text-xs text-rose-900 font-sans">
-                  <AlertCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <p className="font-extrabold text-rose-900 text-xs uppercase tracking-wider">
-                      Lý do bị từ chối phê duyệt bởi Admin
-                    </p>
-                    <p className="text-rose-800 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-200/60 whitespace-pre-wrap">
-                      {trip.moderationNote || 'Chưa có ghi chú lý do chi tiết từ Admin.'}
-                    </p>
-                  </div>
+            {/* THÔNG BÁO LÝ DO NẾU CHUYẾN ĐI BỊ HỦY HOẶC TỪ CHỐI DUYỆT */}
+            {(trip.status === TripStatus.Cancelled || trip.status === TripStatus.Rejected || trip.status === TripStatus.Failed) && (
+              <div className="p-5 bg-rose-50 border border-rose-200/90 rounded-3xl space-y-2">
+                <div className="flex items-center gap-2 text-xs font-black text-rose-800 uppercase tracking-wider">
+                  <AlertCircle size={16} /> Thông báo trạng thái chuyến đi
                 </div>
-              )}
+                <p className="text-xs text-rose-700 font-medium leading-relaxed">
+                  Lý do: <strong className="font-bold">{trip.cancellationReason || trip.moderationNote || 'Chuyến đi đã kết thúc hoặc bị hủy.'}</strong>
+                </p>
+              </div>
+            )}
 
-              {trip.status === TripStatus.Cancelled && (
-                <div className="p-4 sm:p-5 bg-rose-50 border border-rose-200/80 rounded-2xl flex items-start gap-3.5 text-xs text-rose-900 font-sans">
-                  <XCircle size={20} className="text-rose-600 shrink-0 mt-0.5" />
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <p className="font-extrabold text-rose-900 text-xs uppercase tracking-wider">
-                      Lý do chuyến đi đã bị hủy
-                    </p>
-                    <p className="text-rose-800 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-200/60 whitespace-pre-wrap">
-                      {trip.cancellationReason || trip.moderationNote || 'Chuyến đi đã bị hủy bởi người tổ chức hoặc quản trị viên.'}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {trip.status === TripStatus.Failed && (
-                <div className="p-4 sm:p-5 bg-slate-100 border border-slate-200 rounded-2xl flex items-start gap-3.5 text-xs text-slate-800 font-sans">
-                  <AlertCircle size={20} className="text-slate-600 shrink-0 mt-0.5" />
-                  <div className="space-y-1 min-w-0 flex-1">
-                    <p className="font-extrabold text-slate-900 text-xs uppercase tracking-wider">
-                      Lý do tạo chuyến đi thất bại
-                    </p>
-                    <p className="text-slate-700 font-medium leading-relaxed bg-white/70 p-3 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
-                      {trip.cancellationReason || trip.moderationNote || 'Chuyến đi tự động hủy do không đủ số lượng thành viên tham gia khi đến ngày khởi hành.'}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Tiêu đề & Loại hình */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Tiêu đề chuyến đi</label>
-                  <Input value={trip.title} readOnly />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Loại hình chuyến đi</label>
-                  <Input value={trip.categoryName || 'Chưa phân loại'} readOnly />
+            {/* Box 1: Thông tin chung */}
+            <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-5 font-sans">
+              <div className="flex items-center justify-between border-b border-slate-200/60 pb-3.5">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                  <FileText size={18} className="text-coral-500" /> 1. Thông tin chung về chuyến đi
+                </h2>
+                <div className="flex items-center gap-2">
+                  {trip.status === TripStatus.Open && (
+                    <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-full uppercase tracking-wider">
+                      Đang nhận đăng ký
+                    </span>
+                  )}
+                  {trip.status === TripStatus.Full && (
+                    <span className="text-[11px] font-extrabold text-blue-800 bg-blue-100/80 px-3 py-1 rounded-full uppercase tracking-wider">
+                      Đã đủ chỗ
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Lộ trình: Điểm khởi hành & Điểm đến */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-1">
-                {/* Điểm khởi hành */}
-                <div className="space-y-3.5 p-5 rounded-2xl bg-white">
-                  <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-2">
-                    <MapPin size={16} className="text-teal-600" /> Điểm khởi hành
+              {/* Tiêu đề & Loại hình */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Tiêu đề chuyến đi</label>
+                  <Input value={trip.title} readOnly />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">Loại hình chuyến đi</label>
+                  <Input value={trip.categoryName || 'Chưa chọn'} readOnly />
+                </div>
+              </div>
+
+              {/* Lộ trình Chuyến đi (2 Card con tách biệt) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 1. Điểm khởi hành */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200/80 space-y-3 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-teal-700 border-b border-slate-100 pb-2">
+                    <MapPin size={16} className="text-teal-600 shrink-0" />
+                    <span>Điểm khởi hành</span>
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm cụ thể</label>
-                    <Input value={trip.startLocation} readOnly />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-2">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Quốc gia</label>
-                      <Input value="Việt Nam" readOnly />
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm cụ thể</label>
+                      <Input value={trip.startLocation} readOnly />
                     </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Thành phố / Tỉnh</label>
-                      <Input value={trip.startCityName || 'Chưa chọn'} readOnly />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Quốc gia</label>
+                        <Input value="Việt Nam" readOnly />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Thành phố / Tỉnh</label>
+                        <Input value={trip.startCityName || 'Chưa chọn'} readOnly />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Điểm đến */}
-                <div className="space-y-3.5 p-5 rounded-2xl bg-white">
-                  <div className="flex items-center gap-2 text-xs font-extrabold text-slate-800 border-b border-slate-100 pb-2">
-                    <MapPin size={16} className="text-coral-500" /> Điểm đến chính
+                {/* 2. Điểm đến chính */}
+                <div className="p-4 bg-white rounded-2xl border border-slate-200/80 space-y-3 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-coral-700 border-b border-slate-100 pb-2">
+                    <MapPin size={16} className="text-coral-500 shrink-0" />
+                    <span>Điểm đến chính</span>
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm cụ thể</label>
-                    <Input value={trip.destination} readOnly />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-2">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Quốc gia</label>
-                      <Input value="Việt Nam" readOnly />
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Địa điểm cụ thể</label>
+                      <Input value={trip.destination} readOnly />
                     </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Thành phố / Tỉnh</label>
-                      <Input value={trip.destinationCityName || 'Chưa chọn'} readOnly />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Quốc gia</label>
+                        <Input value="Việt Nam" readOnly />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 mb-1">Thành phố / Tỉnh</label>
+                        <Input value={trip.destinationCityName || 'Chưa chọn'} readOnly />
+                      </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Ngày khởi hành & Ngày kết thúc */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Ngày khởi hành</label>
+                  <Input
+                    value={formatDate(trip.startDate)}
+                    readOnly
+                    leftIcon={<Calendar size={18} className="text-coral-500 shrink-0" />}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Ngày kết thúc</label>
+                  <Input
+                    value={formatDate(trip.endDate)}
+                    readOnly
+                    leftIcon={<Calendar size={18} className="text-coral-500 shrink-0" />}
+                  />
                 </div>
               </div>
 
@@ -351,51 +331,54 @@ export const TripDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Box 2: Thời gian chuyến đi */}
-            <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-5">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
-                <Calendar size={18} className="text-coral-500" /> 2. Thời gian chuyến đi
-              </h2>
+            {/* Box 3: Danh sách Thành viên tham gia */}
+            <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4 font-sans">
+              <div className="flex items-center justify-between border-b border-slate-200/60 pb-3.5">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                  <Users size={18} className="text-coral-500" /> Thành viên đã tham gia ({trip.currentMembers}/{trip.maxMembers})
+                </h2>
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                  Còn trống {Math.max(0, trip.maxMembers - trip.currentMembers)} chỗ
+                </span>
+              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Ngày khởi hành</label>
-                  <Input value={formatDate(trip.startDate)} readOnly />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* 1. Trưởng đoàn (Host) */}
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-coral-200/80 shadow-2xs">
+                  {trip.organizerAvatarUrl ? (
+                    <Image src={trip.organizerAvatarUrl} alt={trip.organizerName} containerClassName="w-10 h-10 rounded-xl border border-slate-200 shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-coral-100 text-coral-600 font-bold text-xs flex items-center justify-center shrink-0">
+                      {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : 'H'}
+                    </div>
+                  )}
+                  <div className="text-xs min-w-0 flex-1">
+                    <p className="font-bold text-slate-900 truncate flex items-center gap-1">
+                      {trip.organizerName}
+                      <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+                    </p>
+                    <p className="text-[11px] font-extrabold text-coral-600">Trưởng đoàn (Host)</p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Ngày kết thúc</label>
-                  <Input value={formatDate(trip.endDate)} readOnly />
-                </div>
+
+                {/* 2. Các thành viên khác nếu có */}
+                {trip.members && trip.members.length > 0 && trip.members.map((m) => (
+                  <div key={m.userId} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200/70">
+                    {m.avatarUrl ? (
+                      <Image src={m.avatarUrl} alt={m.fullName} containerClassName="w-10 h-10 rounded-xl border border-slate-100 shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                        {m.fullName ? m.fullName.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                    )}
+                    <div className="text-xs min-w-0 flex-1">
+                      <p className="font-bold text-slate-800 truncate">{m.fullName}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{m.role || 'Thành viên'}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-
-            {/* Thành viên tham gia */}
-            {trip.members && trip.members.length > 0 && (
-              <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4">
-                <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-slate-800">
-                    <Users size={18} className="text-coral-500" /> Thành viên tham gia ({trip.members.length}/{trip.maxMembers})
-                  </span>
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {trip.members.map((m) => (
-                    <div key={m.userId} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200/70">
-                      {m.avatarUrl ? (
-                        <Image src={m.avatarUrl} alt={m.fullName} containerClassName="w-9 h-9 rounded-xl border border-slate-100 shrink-0" />
-                      ) : (
-                        <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
-                          {m.fullName ? m.fullName.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                      )}
-                      <div className="text-xs min-w-0 flex-1">
-                        <p className="font-bold text-slate-800 truncate">{m.fullName}</p>
-                        <p className="text-[11px] text-slate-400 truncate">{m.role || 'Thành viên'}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* CỘT PHẢI (SIDEBAR FORM - 5 COLS) */}
@@ -490,29 +473,99 @@ export const TripDetailPage: React.FC = () => {
             </div>
 
             {/* Action Join Button cho User */}
-            {trip.status === TripStatus.Open && currentUser?.userId !== trip.organizerId && (
-              <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3 font-sans">
-                {hasJoined ? (
-                  <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-2">
-                    <UserCheck size={18} /> Đã gửi yêu cầu tham gia
-                  </div>
+            <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3 font-sans">
+              <Button
+                disabled={isJoining || isOrganizer || isAlreadyMember || isFull || trip.status !== TripStatus.Open}
+                onClick={handleButtonClick}
+                className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg transition-transform cursor-pointer flex items-center justify-center gap-2 ${
+                  isOrganizer || isAlreadyMember || isFull || trip.status !== TripStatus.Open
+                    ? 'bg-slate-300 text-slate-600 shadow-none cursor-not-allowed'
+                    : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 hover:scale-[1.02]'
+                }`}
+              >
+                {isJoining ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" /> Đang xử lý đăng ký...
+                  </>
+                ) : !isAuthenticated ? (
+                  <>
+                    <Users size={18} /> Đăng nhập để tham gia chuyến đi
+                  </>
+                ) : isOrganizer ? (
+                  'Bạn là Trưởng đoàn của chuyến đi này'
+                ) : isAlreadyMember ? (
+                  'Bạn đã tham gia chuyến đi này'
+                ) : isFull ? (
+                  'Chuyến đi đã đủ thành viên'
+                ) : trip.status !== TripStatus.Open ? (
+                  'Chuyến đi tạm ngưng nhận chỗ'
                 ) : (
-                  <Button
-                    onClick={handleJoinTrip}
-                    disabled={isJoining || isFull}
-                    className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-2"
-                  >
-                    {isJoining ? <Loader2 size={16} className="animate-spin" /> : isFull ? 'Đã hết chỗ' : 'Đăng ký tham gia ngay'}
-                  </Button>
+                  <>
+                    <Users size={18} /> Đăng ký tham gia chuyến đi ngay
+                  </>
                 )}
-              </div>
-            )}
+              </Button>
+            </div>
           </div>
         </div>
       </main>
 
-      <Footer />
-      <ScrollToTop />
+      {/* DÙNG REUSABLE MODAL COMPONENT TỪ SRC/COMPONENTS/COMMON/MODAL.TSX */}
+      <Modal
+        isOpen={isHostModalOpen}
+        onClose={() => setIsHostModalOpen(false)}
+        title="Thông tin Người tổ chức"
+        maxWidth="md"
+      >
+        {isLoadingHostProfile ? (
+          <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
+            <Loader2 size={32} className="animate-spin text-coral-500" />
+            <span className="text-xs font-semibold">Đang nạp thông tin...</span>
+          </div>
+        ) : hostProfile ? (
+          <div className="space-y-4 text-left font-sans pt-1">
+            {/* Tên người dùng */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Họ và tên</label>
+              <Input value={hostProfile.fullName} readOnly leftIcon={<UserIcon size={16} className="text-slate-400" />} />
+            </div>
+
+            {/* Email người dùng */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Email liên hệ</label>
+              <Input value={hostProfile.email} readOnly leftIcon={<Mail size={16} className="text-slate-400" />} />
+            </div>
+
+            {/* Đánh giá sao */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Đánh giá uy tín</label>
+              <Input value={`${hostProfile.rating.toFixed(1)} / 5.0 ⭐`} readOnly leftIcon={<Star size={16} className="text-amber-400 fill-amber-400" />} />
+            </div>
+
+            {/* Số chuyến đi tạo HIỂN THỊ CHÍNH XÁC 100% NHƯ ẢNH YÊU CẦU */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Số chuyến đi tạo</label>
+              <Input
+                value={`${hostProfile.totalCreatedTrips} chuyến (${hostProfile.uncompletedTripsCount} không hoàn thành)`}
+                readOnly
+              />
+            </div>
+
+            <div className="pt-3">
+              <Button
+                onClick={() => setIsHostModalOpen(false)}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-xl cursor-pointer"
+              >
+                Đóng
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="py-8 text-center text-xs text-slate-500">
+            Không thể tải thông tin người dùng.
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
