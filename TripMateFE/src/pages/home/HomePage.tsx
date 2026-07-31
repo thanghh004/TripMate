@@ -20,6 +20,7 @@ import {
   Globe,
   MoreHorizontal,
   ImagePlus,
+  User,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
@@ -55,6 +56,14 @@ export const HomePage: React.FC = () => {
     );
   };
 
+  const handleInputClick = () => {
+    if (isAuthenticated) {
+      navigate('/create-trip');
+    } else {
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
       {/* Header / Navbar */}
@@ -63,39 +72,43 @@ export const HomePage: React.FC = () => {
       {/* Main Content Feed - Tăng kích thước (max-w-3xl) & khoảng cách hẹp lại (space-y-4) */}
       <main className="flex-1 pt-26 pb-16 px-4 max-w-3xl mx-auto w-full space-y-4 text-left">
 
-        {/* Khung "Đăng tin chuyến đi" TO HƠN, NGUYÊN BẢN FACEBOOK, KHOẢNG CÁCH GẦN LẠI BÀI VIẾT */}
-        {isAuthenticated && (
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-3">
-            {currentUser?.avatarUrl ? (
-              <Image src={currentUser.avatarUrl} alt={currentUser.fullName || ''} containerClassName="w-11 h-11 rounded-full border border-slate-200 shrink-0" />
-            ) : (
-              <div className="w-11 h-11 rounded-full bg-coral-50 text-coral-600 font-bold text-sm flex items-center justify-center shrink-0 border border-coral-200">
-                {currentUser?.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => navigate('/create-trip')}
-              className="flex-1 text-left bg-slate-100/90 hover:bg-slate-200/60 text-slate-600 text-sm font-medium px-5 py-3 rounded-full transition cursor-pointer truncate"
-            >
-              {currentUser?.fullName ? `${currentUser.fullName} ơi, bạn muốn đi đâu thế? Tạo chuyến đi ngay...` : 'Tạo chuyến đi ngay...'}
-            </button>
-
-            {/* 3 Icon Trang Trí Bên Phải (Chỉ để đẹp, Click KHÔNG xảy ra gì) */}
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0 pointer-events-none select-none">
-              <span className="p-2 text-rose-500">
-                <Sparkles size={20} />
-              </span>
-              <span className="p-2 text-emerald-500">
-                <MapPin size={20} />
-              </span>
-              <span className="p-2 text-amber-500">
-                <ImagePlus size={20} />
-              </span>
+        {/* Khung "Đăng tin chuyến đi" - HIỆN CẢ KHI ĐÃ ĐĂNG NHẬP HOẶC CHƯA ĐĂNG NHẬP */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          {isAuthenticated && currentUser?.avatarUrl ? (
+            <Image src={currentUser.avatarUrl} alt={currentUser.fullName || ''} containerClassName="w-11 h-11 rounded-full border border-slate-200 shrink-0" />
+          ) : isAuthenticated && currentUser?.fullName ? (
+            <div className="w-11 h-11 rounded-full bg-coral-50 text-coral-600 font-bold text-sm flex items-center justify-center shrink-0 border border-coral-200">
+              {currentUser.fullName.charAt(0).toUpperCase()}
             </div>
+          ) : (
+            <div className="w-11 h-11 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200">
+              <User size={20} />
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleInputClick}
+            className="flex-1 text-left bg-slate-100/90 hover:bg-slate-200/60 text-slate-600 text-sm font-medium px-5 py-3 rounded-full transition cursor-pointer truncate"
+          >
+            {isAuthenticated && currentUser?.fullName
+              ? `${currentUser.fullName} ơi, bạn muốn đi đâu thế? Tạo chuyến đi ngay...`
+              : 'Bạn muốn đi đâu thế? Tạo chuyến đi ngay...'}
+          </button>
+
+          {/* 3 Icon Trang Trí Bên Phải (Chỉ để đẹp, Click KHÔNG xảy ra gì) */}
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0 pointer-events-none select-none">
+            <span className="p-2 text-rose-500">
+              <Sparkles size={20} />
+            </span>
+            <span className="p-2 text-emerald-500">
+              <MapPin size={20} />
+            </span>
+            <span className="p-2 text-amber-500">
+              <ImagePlus size={20} />
+            </span>
           </div>
-        )}
+        </div>
 
         {/* Danh sách Feeds Bài viết Chuyến đi */}
         {isLoading ? (
