@@ -594,55 +594,55 @@ export const TripDetailPage: React.FC = () => {
                   className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none transition resize-none"
                 />
               </div>
-            </div>
 
-            {/* DÙNG REUSABLE BUTTON COMPONENT CHUẨN TRONG COMPONENTS */}
-            <div className="bg-slate-50 p-4 sm:p-5 rounded-3xl font-sans">
-              <Button
-                disabled={isJoining || isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open}
-                onClick={handleButtonClick}
-                className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg transition-transform cursor-pointer flex items-center justify-center gap-2 ${
-                  isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open
-                    ? 'bg-slate-300 text-slate-600 shadow-none cursor-not-allowed'
-                    : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 hover:scale-[1.02]'
-                }`}
-              >
-                {isJoining ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" /> Đang xử lý...
-                  </>
-                ) : !isAuthenticated ? (
-                  <>
-                    <Users size={18} /> Đăng nhập để tham gia chuyến đi
-                  </>
-                ) : isOrganizer ? (
-                  'Bạn là Trưởng đoàn của chuyến đi này'
-                ) : isPending ? (
-                  <>
-                    <Clock size={18} className="text-amber-600" /> Đã gửi yêu cầu (Chờ duyệt)
-                  </>
-                ) : isApproved ? (
-                  <>
-                    <CheckCircle2 size={18} className="text-emerald-600" /> Bạn đã tham gia chuyến đi này
-                  </>
-                ) : isRejected ? (
-                  <>
-                    <XCircle size={18} className="text-rose-600" /> Yêu cầu tham gia đã bị từ chối
-                  </>
-                ) : isMemberCompleted ? (
-                  'Đã hoàn thành chuyến đi'
-                ) : isMemberCancelled ? (
-                  'Đã hủy yêu cầu tham gia'
-                ) : isFull ? (
-                  'Chuyến đi đã đủ thành viên'
-                ) : trip.status !== TripStatus.Open ? (
-                  'Chuyến đi tạm ngưng nhận chỗ'
-                ) : (
-                  <>
-                    <Users size={18} /> Đăng ký tham gia chuyến đi ngay
-                  </>
-                )}
-              </Button>
+              {/* DÙNG REUSABLE BUTTON COMPONENT ĐẶT SÁT NGAY BÊN TRONG CARD CHI PHÍ */}
+              <div className="pt-3 font-sans border-t border-slate-200/60 mt-4">
+                <Button
+                  disabled={isJoining || isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open}
+                  onClick={handleButtonClick}
+                  className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg transition-transform cursor-pointer flex items-center justify-center gap-2 ${
+                    isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open
+                      ? 'bg-slate-300 text-slate-600 shadow-none cursor-not-allowed'
+                      : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 hover:scale-[1.02]'
+                  }`}
+                >
+                  {isJoining ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" /> Đang xử lý...
+                    </>
+                  ) : !isAuthenticated ? (
+                    <>
+                      <Users size={18} /> Đăng nhập để tham gia chuyến đi
+                    </>
+                  ) : isOrganizer ? (
+                    'Bạn là Trưởng đoàn của chuyến đi này'
+                  ) : isPending ? (
+                    <>
+                      <Clock size={18} className="text-amber-600" /> Đã gửi yêu cầu (Chờ duyệt)
+                    </>
+                  ) : isApproved ? (
+                    <>
+                      <CheckCircle2 size={18} className="text-emerald-600" /> Bạn đã tham gia chuyến đi này
+                    </>
+                  ) : isRejected ? (
+                    <>
+                      <XCircle size={18} className="text-rose-600" /> Yêu cầu tham gia đã bị từ chối
+                    </>
+                  ) : isMemberCompleted ? (
+                    'Đã hoàn thành chuyến đi'
+                  ) : isMemberCancelled ? (
+                    'Đã hủy yêu cầu tham gia'
+                  ) : isFull ? (
+                    'Chuyến đi đã đủ thành viên'
+                  ) : trip.status !== TripStatus.Open ? (
+                    'Chuyến đi tạm ngưng nhận chỗ'
+                  ) : (
+                    <>
+                      <Users size={18} /> Đăng ký tham gia chuyến đi ngay
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
