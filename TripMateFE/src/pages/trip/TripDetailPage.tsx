@@ -229,6 +229,7 @@ export const TripDetailPage: React.FC = () => {
   const userMemberRecord = currentUser && trip.members ? trip.members.find((m) => m.userId === currentUser.userId) : null;
   const isPending = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Pending : false;
   const isApproved = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Approved : false;
+  const isRejected = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Rejected : false;
   const isMemberCancelled = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Cancelled : false;
   const isMemberCompleted = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Completed : false;
 
@@ -505,7 +506,7 @@ export const TripDetailPage: React.FC = () => {
           </div>
 
           {/* CỘT PHẢI (SIDEBAR FORM - 5 COLS) */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-4">
             {/* Box 3: Ảnh bìa & Hình ảnh */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-5">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
@@ -596,12 +597,12 @@ export const TripDetailPage: React.FC = () => {
             </div>
 
             {/* DÙNG REUSABLE BUTTON COMPONENT CHUẨN TRONG COMPONENTS */}
-            <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3 font-sans">
+            <div className="bg-slate-50 p-4 sm:p-5 rounded-3xl font-sans">
               <Button
-                disabled={isJoining || isOrganizer || isPending || isApproved || isMemberCompleted || isFull || trip.status !== TripStatus.Open}
+                disabled={isJoining || isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open}
                 onClick={handleButtonClick}
                 className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg transition-transform cursor-pointer flex items-center justify-center gap-2 ${
-                  isOrganizer || isPending || isApproved || isMemberCompleted || isFull || trip.status !== TripStatus.Open
+                  isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open
                     ? 'bg-slate-300 text-slate-600 shadow-none cursor-not-allowed'
                     : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 hover:scale-[1.02]'
                 }`}
@@ -623,6 +624,10 @@ export const TripDetailPage: React.FC = () => {
                 ) : isApproved ? (
                   <>
                     <CheckCircle2 size={18} className="text-emerald-600" /> Bạn đã tham gia chuyến đi này
+                  </>
+                ) : isRejected ? (
+                  <>
+                    <XCircle size={18} className="text-rose-600" /> Yêu cầu tham gia đã bị từ chối
                   </>
                 ) : isMemberCompleted ? (
                   'Đã hoàn thành chuyến đi'

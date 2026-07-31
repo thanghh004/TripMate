@@ -58,9 +58,16 @@ public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
         if (trip.CurrentMembers >= trip.MaxMembers)
             throw new BusinessRuleException("Chuyến đi đã đủ số lượng thành viên tối đa.");
 
-        // Rule 4: Kiểm tra đã tham gia chưa
-        if (trip.Members != null && trip.Members.Any(m => m.UserId == request.UserId && (m.Status == TripMemberStatus.Pending || m.Status == TripMemberStatus.Approved)))
-            throw new BusinessRuleException("Bạn đã đăng ký tham gia chuyến đi này trước đó.");
+        // Rule 4: Kiểm tra đã tham gia hoặc bị từ chối chưa
+        var existingMember = trip.Members?.FirstOrDefault(m => m.UserId == request.UserId);
+        if (existingMember != null)
+        {
+            if (existingMember.Status == TripMemberStatus.Rejected)
+                throw new BusinessRuleException("Yêu cầu tham gia của bạn cho chuyến đi này đã bị Trưởng đoàn từ chối.");
+
+            if (existingMember.Status == TripMemberStatus.Pending || existingMember.Status == TripMemberStatus.Approved)
+                throw new BusinessRuleException("Bạn đã gửi yêu cầu hoặc tham gia chuyến đi này trước đó.");
+        }
 
         // Rule 5: BẮT BỘC KIỂM TRA TRÙNG LỊCH THỜI GIAN
         bool hasOverlap = await _tripRepository.HasOverlappingTripAsync(
