@@ -11,10 +11,8 @@ import { TripStatus } from '../../types/trip';
 import { formatDate } from '../../utils/formatters';
 import {
   MapPin,
-  Calendar,
   ShieldCheck,
   Sparkles,
-  Users,
   Heart,
   MessageSquare,
   Compass,
@@ -62,16 +60,16 @@ export const HomePage: React.FC = () => {
       {/* Header / Navbar */}
       <Header />
 
-      {/* Main Content Feed - Tăng kích thước rộng rãi hơn (max-w-3xl) */}
-      <main className="flex-1 pt-28 pb-16 px-4 max-w-3xl mx-auto w-full space-y-6 text-left">
+      {/* Main Content Feed - Tăng kích thước (max-w-3xl) & khoảng cách hẹp lại (space-y-4) */}
+      <main className="flex-1 pt-26 pb-16 px-4 max-w-3xl mx-auto w-full space-y-4 text-left">
 
-        {/* Khung "Đăng tin chuyến đi" NGUYÊN BẢN PHONG CÁCH FACEBOOK 100% NHƯ ẢNH MẪU */}
+        {/* Khung "Đăng tin chuyến đi" TO HƠN, NGUYÊN BẢN FACEBOOK, KHOẢNG CÁCH GẦN LẠI BÀI VIẾT */}
         {isAuthenticated && (
-          <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-3">
             {currentUser?.avatarUrl ? (
-              <Image src={currentUser.avatarUrl} alt={currentUser.fullName || ''} containerClassName="w-10 h-10 rounded-full border border-slate-200 shrink-0" />
+              <Image src={currentUser.avatarUrl} alt={currentUser.fullName || ''} containerClassName="w-11 h-11 rounded-full border border-slate-200 shrink-0" />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-coral-50 text-coral-600 font-bold text-xs flex items-center justify-center shrink-0 border border-coral-200">
+              <div className="w-11 h-11 rounded-full bg-coral-50 text-coral-600 font-bold text-sm flex items-center justify-center shrink-0 border border-coral-200">
                 {currentUser?.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
               </div>
             )}
@@ -79,39 +77,22 @@ export const HomePage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/create-trip')}
-              className="flex-1 text-left bg-slate-100/80 hover:bg-slate-200/60 text-slate-500 text-xs font-medium px-4 py-2.5 rounded-full transition cursor-pointer truncate"
+              className="flex-1 text-left bg-slate-100/90 hover:bg-slate-200/60 text-slate-600 text-sm font-medium px-5 py-3 rounded-full transition cursor-pointer truncate"
             >
               {currentUser?.fullName ? `${currentUser.fullName} ơi, bạn muốn đi đâu thế? Tạo chuyến đi ngay...` : 'Tạo chuyến đi ngay...'}
             </button>
 
-            {/* 3 Icon Phía Bên Phải NGUYÊN BẢN FACEBOOK */}
-            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => navigate('/create-trip')}
-                className="p-2 text-rose-500 hover:bg-rose-50 rounded-full transition cursor-pointer"
-                title="Lên lịch trình mới"
-              >
+            {/* 3 Icon Trang Trí Bên Phải (Chỉ để đẹp, Click KHÔNG xảy ra gì) */}
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0 pointer-events-none select-none">
+              <span className="p-2 text-rose-500">
                 <Sparkles size={20} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/create-trip')}
-                className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-full transition cursor-pointer"
-                title="Chọn địa điểm đến"
-              >
+              </span>
+              <span className="p-2 text-emerald-500">
                 <MapPin size={20} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/create-trip')}
-                className="p-2 text-amber-500 hover:bg-amber-50 rounded-full transition cursor-pointer"
-                title="Thêm ảnh chuyến đi"
-              >
+              </span>
+              <span className="p-2 text-amber-500">
                 <ImagePlus size={20} />
-              </button>
+              </span>
             </div>
           </div>
         )}
@@ -179,13 +160,13 @@ export const HomePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2. Post Title & Route Badges */}
+                {/* 2. Post Title & Badges Lộ Trình / Loại Hình */}
                 <div className="px-4.5 space-y-2.5">
                   <h2 className="text-lg font-black text-slate-900 leading-snug hover:text-coral-600 transition">
                     {trip.title}
                   </h2>
 
-                  {/* Badges Lộ Trình & Loại Hình - Chỉnh viền và nền dịu nhẹ mượt mà */}
+                  {/* Badges Lộ Trình & Loại Hình */}
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-800 bg-teal-50/90 border border-teal-200/80 px-3 py-1 rounded-full">
                       <MapPin size={13} className="text-teal-600" />
@@ -204,27 +185,7 @@ export const HomePage: React.FC = () => {
                   )}
                 </div>
 
-                {/* 3. Dải Thông Tin Chuyến Đi Đầy Đặn (Ngày đi, Số chỗ, Chi phí) */}
-                <div className="mx-4.5 p-3 sm:p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-slate-700">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar size={14} className="text-coral-500 shrink-0" />
-                    <span>Lịch trình: <strong className="text-slate-900 font-bold">{formatDate(trip.startDate)} - {formatDate(trip.endDate)}</strong></span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <Users size={14} className="text-teal-600 shrink-0" />
-                    <span>Thành viên: <strong className="text-slate-900 font-bold">{trip.currentMembers}/{trip.maxMembers} người</strong></span>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <span className="text-[11px] text-slate-400 font-medium">Chi phí:</span>
-                    <span className="text-coral-600 font-black text-sm">
-                      {trip.estimatedCost ? `${trip.estimatedCost.toLocaleString('vi-VN')}đ / người` : 'Miễn phí'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 4. Post Cover Image */}
+                {/* 3. Post Cover Image */}
                 {trip.coverImageUrl && (
                   <div className="relative aspect-video bg-slate-100 overflow-hidden">
                     <Image
@@ -235,34 +196,40 @@ export const HomePage: React.FC = () => {
                   </div>
                 )}
 
-                {/* 5. Action Bar CĂN TRÁI (Heart + Count, Comment + Count) */}
-                <div className="px-4.5 pt-2 flex items-center justify-start gap-4 border-t border-slate-100 text-xs font-bold">
-                  {/* Icon Trái Tim + Số lượt thích */}
-                  <button
-                    type="button"
-                    onClick={(e) => toggleLike(trip.id, e)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer hover:bg-rose-50 ${
-                      isLiked ? 'text-rose-600 font-black' : 'text-slate-600 hover:text-rose-600'
-                    }`}
-                    title="Thích bài viết"
-                  >
-                    <Heart size={18} className={isLiked ? 'fill-rose-600 text-rose-600' : ''} />
-                    <span className="text-xs">{isLiked ? 1 : 0}</span>
-                  </button>
+                {/* 4. Action Bar (Icons Trái Tim & Bình Luận) + Dòng Chữ Ở Dưới */}
+                <div className="px-4.5 pt-2 border-t border-slate-100 space-y-2">
+                  {/* Hàng 1: Icon Trái Tim & Bình Luận Căn Trái */}
+                  <div className="flex items-center justify-start gap-4 text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={(e) => toggleLike(trip.id, e)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer hover:bg-rose-50 ${
+                        isLiked ? 'text-rose-600 font-black' : 'text-slate-600 hover:text-rose-600'
+                      }`}
+                      title="Thích bài viết"
+                    >
+                      <Heart size={18} className={isLiked ? 'fill-rose-600 text-rose-600' : ''} />
+                      <span className="text-xs">{isLiked ? 1 : 0}</span>
+                    </button>
 
-                  {/* Icon Bình Luận + Số bình luận */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/trips/${trip.id}`);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-slate-600 hover:text-coral-600 hover:bg-coral-50 transition cursor-pointer"
-                    title="Bình luận & Thảo luận"
-                  >
-                    <MessageSquare size={18} />
-                    <span className="text-xs">0</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/trips/${trip.id}`);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-slate-600 hover:text-coral-600 hover:bg-coral-50 transition cursor-pointer"
+                      title="Bình luận & Thảo luận"
+                    >
+                      <MessageSquare size={18} />
+                      <span className="text-xs">0</span>
+                    </button>
+                  </div>
+
+                  {/* Hàng 2: Dòng Chữ Ở Nằm Bên Dưới Icon Và Ở CHÍNH GIỮA CARD */}
+                  <div className="text-center text-[11px] font-semibold text-slate-400 pt-0.5 pb-1 hover:text-coral-500 transition">
+                    Nhấn vào bài viết để xem chi tiết
+                  </div>
                 </div>
               </article>
             );
