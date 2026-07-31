@@ -14,8 +14,7 @@ import {
   Loader2,
   ShieldCheck,
   Compass,
-  Image as ImageIcon,
-  MoreHorizontal,
+  ImagePlus,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
@@ -55,11 +54,11 @@ export const HomePage: React.FC = () => {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
       <Header />
 
-      {/* Container Feed Căn Giữa Nguyên Bản */}
       <main className="flex-1 pt-24 pb-16 px-4 max-w-2xl mx-auto w-full space-y-6">
-        {/* Box Đăng bài */}
-        <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-2xs text-left space-y-4">
+        {/* Box Đăng bài phong cách Facebook: CÙNG HÀNG VỚI INPUT, ICON KHÔNG CÓ CHỮ */}
+        <div className="bg-white p-3.5 sm:p-4 rounded-3xl border border-slate-200/80 shadow-2xs text-left">
           <div className="flex items-center gap-3">
+            {/* Avatar */}
             {isAuthenticated && user?.avatarUrl ? (
               <Image
                 src={user.avatarUrl}
@@ -72,6 +71,7 @@ export const HomePage: React.FC = () => {
               </div>
             )}
 
+            {/* Thanh Input dài */}
             <button
               type="button"
               onClick={handleCreateTripClick}
@@ -81,20 +81,33 @@ export const HomePage: React.FC = () => {
                 ? `${user?.fullName || 'Bạn'}, bạn muốn đi đâu thế? Tạo chuyến đi ngay...`
                 : 'Bạn muốn đi đâu thế? Đăng nhập để tạo chuyến đi ngay...'}
             </button>
-          </div>
 
-          <div className="border-t border-slate-100 pt-3 flex items-center justify-around text-slate-500 text-xs font-semibold">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition cursor-default">
-              <Sparkles size={18} className="text-rose-500" />
-              <span>Loại hình</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition cursor-default">
-              <MapPin size={18} className="text-emerald-500" />
-              <span>Điểm đến</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition cursor-default">
-              <ImageIcon size={18} className="text-amber-500" />
-              <span>Hình ảnh</span>
+            {/* 3 Icon nằm CÙNG HÀNG bên phải KHÔNG CÓ CHỮ */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleCreateTripClick}
+                title="Loại hình chuyến đi"
+                className="p-2 rounded-full hover:bg-rose-50 text-rose-500 transition cursor-pointer"
+              >
+                <Sparkles size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateTripClick}
+                title="Địa điểm đến"
+                className="p-2 rounded-full hover:bg-emerald-50 text-emerald-500 transition cursor-pointer"
+              >
+                <MapPin size={20} />
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateTripClick}
+                title="Hình ảnh"
+                className="p-2 rounded-full hover:bg-amber-50 text-amber-500 transition cursor-pointer"
+              >
+                <ImagePlus size={20} />
+              </button>
             </div>
           </div>
         </div>
@@ -144,25 +157,18 @@ export const HomePage: React.FC = () => {
                       {trip.organizerName}
                       <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
                     </div>
-                    <div className="text-[11px] text-slate-400 font-medium pt-0.5 flex items-center gap-1">
-                      <span>{formatDate(trip.createdAt)}</span>
-                      <span>•</span>
-                      <span className="text-slate-500 font-semibold">🌐 Mọi người</span>
+                    <div className="text-[11px] text-slate-400 font-medium pt-0.5">
+                      {formatDate(trip.createdAt)}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
-                    Đang nhận đăng ký
-                  </span>
-                  <button className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition">
-                    <MoreHorizontal size={18} />
-                  </button>
-                </div>
+                <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100/90 px-3 py-1 rounded-full uppercase tracking-wider">
+                  Đang nhận đăng ký
+                </span>
               </div>
 
-              {/* Tiêu đề & Tag Nguyên bản */}
+              {/* Tiêu đề & Tag */}
               <div className="px-4 sm:px-5 pb-3 space-y-2">
                 <h2 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-coral-500 transition leading-snug">
                   {trip.title}
