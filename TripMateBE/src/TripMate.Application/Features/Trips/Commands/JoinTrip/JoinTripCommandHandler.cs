@@ -24,22 +24,26 @@ public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
 
     public async Task<bool> Handle(JoinTripCommand request, CancellationToken cancellationToken)
     {
-        // 1. Kiểm tra Hồ sơ cá nhân của User xem đã cập nhật đầy đủ thông tin chưa
+        // 1. Kiểm tra tài khoản người dùng
         var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
         if (user == null)
-            throw new NotFoundException("Không tìm thấy thông tin tài khoản.");
+            throw new NotFoundException("Không tìm thấy thông tin tài khoản người dùng.");
 
-        bool isProfileIncomplete = string.IsNullOrWhiteSpace(user.FullName) ||
-                                  string.IsNullOrWhiteSpace(user.PhoneNumber) ||
-                                  string.IsNullOrWhiteSpace(user.Gender) ||
-                                  !user.BirthDate.HasValue ||
-                                  string.IsNullOrWhiteSpace(user.IdentityCardNumber) ||
-                                  string.IsNullOrWhiteSpace(user.IdentityCardFrontUrl) ||
-                                  string.IsNullOrWhiteSpace(user.IdentityCardBackUrl);
+        // 2. Kiểm tra đầy đủ 7 thông tin bắt buộc (Tham chiếu y hệt RequestHostVerificationCommandHandler)
+        var missingFields = new List<string>();
 
-        if (isProfileIncomplete)
+        if (string.IsNullOrWhiteSpace(user.FullName)) missingFields.Add("Họ và tên");
+        if (!user.BirthDate.HasValue) missingFields.Add("Ngày sinh");
+        if (string.IsNullOrWhiteSpace(user.Gender)) missingFields.Add("Giới tính");
+        if (string.IsNullOrWhiteSpace(user.PhoneNumber)) missingFields.Add("Số điện thoại");
+        if (string.IsNullOrWhiteSpace(user.IdentityCardNumber)) missingFields.Add("Số CCCD");
+        if (string.IsNullOrWhiteSpace(user.IdentityCardFrontUrl)) missingFields.Add("Ảnh CCCD mặt trước");
+        if (string.IsNullOrWhiteSpace(user.IdentityCardBackUrl)) missingFields.Add("Ảnh CCCD mặt sau");
+
+        if (missingFields.Count > 0)
         {
-            throw new BusinessRuleException("Bạn cần cập nhật đầy đủ thông tin cá nhân (Họ tên, SĐT, Giới tính, Ngày sinh, Số CCCD và 2 mặt ảnh CCCD) trong trang Hồ sơ cá nhân trước khi đăng ký tham gia chuyến đi!");
+            var fieldList = string.Join(", ", missingFields);
+            throw new BusinessRuleException($"Vui lòng bổ sung đầy đủ các thông tin cá nhân sau trong Hồ sơ cá nhân trước khi đăng ký tham gia chuyến đi: {fieldList}.");
         }
 
         var trip = await _tripRepository.GetByIdWithDetailsAsync(request.TripId, cancellationToken);

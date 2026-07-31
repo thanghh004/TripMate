@@ -672,13 +672,14 @@ export const TripDetailPage: React.FC = () => {
               />
             </div>
 
-            <div className="pt-3">
-              <Button
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+              <button
+                type="button"
                 onClick={() => setIsHostModalOpen(false)}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-xl cursor-pointer"
+                className="px-6 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-100 font-bold text-xs transition cursor-pointer"
               >
                 Đóng
-              </Button>
+              </button>
             </div>
           </div>
         ) : (
@@ -752,13 +753,14 @@ export const TripDetailPage: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <div className="pt-3">
-                <Button
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+                <button
+                  type="button"
                   onClick={() => setIsApplicantModalOpen(false)}
-                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-xl cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-100 font-bold text-xs transition cursor-pointer"
                 >
                   Đóng
-                </Button>
+                </button>
               </div>
             )}
           </div>
