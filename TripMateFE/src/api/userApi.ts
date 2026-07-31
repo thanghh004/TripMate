@@ -59,4 +59,9 @@ export const userApi = {
     const res = await axiosClient.get(`/api/users/${hostId}/public-profile`);
     return res.data;
   },
+
+  getApplicantProfile: async (userId: string) => {
+    const res = await axiosClient.get(`/api/users/${userId}/applicant-profile`);
+    return res.data;
+  },
 };

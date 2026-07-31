@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { tripApi } from '../../api/tripApi';
 import { userApi } from '../../api/userApi';
-import type { Trip } from '../../types/trip';
+import type { Trip, TripMember } from '../../types/trip';
 import { TripStatus, TripMemberStatus } from '../../types/trip';
 import { Header } from '../../components/common/Header';
 import Button from '../../components/common/Button';
@@ -28,6 +28,8 @@ import {
   User as UserIcon,
   Clock,
   CheckCircle2,
+  XCircle,
+  ChevronRight,
 } from 'lucide-react';
 
 interface HostPublicProfile {
@@ -39,6 +41,16 @@ interface HostPublicProfile {
   totalCreatedTrips: number;
   completedTripsCount: number;
   uncompletedTripsCount: number;
+}
+
+interface ApplicantProfile {
+  userId: string;
+  fullName: string;
+  email: string;
+  gender?: string;
+  birthDate?: string;
+  avatarUrl?: string;
+  avgRating: number;
 }
 
 export const TripDetailPage: React.FC = () => {
@@ -59,6 +71,13 @@ export const TripDetailPage: React.FC = () => {
   const [isHostModalOpen, setIsHostModalOpen] = useState<boolean>(false);
   const [hostProfile, setHostProfile] = useState<HostPublicProfile | null>(null);
   const [isLoadingHostProfile, setIsLoadingHostProfile] = useState<boolean>(false);
+
+  // State Applicant Detail Modal (Dành cho Host bấm vào tên thành viên trong bảng)
+  const [isApplicantModalOpen, setIsApplicantModalOpen] = useState<boolean>(false);
+  const [applicantProfile, setApplicantProfile] = useState<ApplicantProfile | null>(null);
+  const [selectedApplicantMember, setSelectedApplicantMember] = useState<TripMember | null>(null);
+  const [isLoadingApplicant, setIsLoadingApplicant] = useState<boolean>(false);
+  const [isActionProcessing, setIsActionProcessing] = useState<boolean>(false);
 
   useEffect(() => {
     if (!id) return;
@@ -91,8 +110,74 @@ export const TripDetailPage: React.FC = () => {
     }
   };
 
+  const handleOpenApplicantModal = async (member: TripMember) => {
+    setSelectedApplicantMember(member);
+    setIsApplicantModalOpen(true);
+    try {
+      setIsLoadingApplicant(true);
+      const data = await userApi.getApplicantProfile(member.userId);
+      setApplicantProfile(data);
+    } catch (err) {
+      console.error('Lỗi khi tải thông tin người xin tham gia:', err);
+    } finally {
+      setIsLoadingApplicant(false);
+    }
+  };
+
+  const handleApproveMember = async (userId: string) => {
+    if (!trip) return;
+    try {
+      setIsActionProcessing(true);
+      const res = await tripApi.approveMember(trip.id, userId);
+      toast.success(res.message || 'Đã phê duyệt thành viên tham gia!');
+      setIsApplicantModalOpen(false);
+      // Reload lại trip detail
+      const updated = await tripApi.getTripById(trip.id);
+      setTrip(updated);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Không thể duyệt thành viên.');
+    } finally {
+      setIsActionProcessing(false);
+    }
+  };
+
+  const handleRejectMember = async (userId: string) => {
+    if (!trip) return;
+    try {
+      setIsActionProcessing(true);
+      const res = await tripApi.rejectMember(trip.id, userId);
+      toast.success(res.message || 'Đã từ chối yêu cầu tham gia.');
+      setIsApplicantModalOpen(false);
+      // Reload lại trip detail
+      const updated = await tripApi.getTripById(trip.id);
+      setTrip(updated);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Không thể từ chối thành viên.');
+    } finally {
+      setIsActionProcessing(false);
+    }
+  };
+
   const handleJoinTrip = async () => {
     if (!trip) return;
+
+    // Kiểm tra thông tin hồ sơ cá nhân của user
+    if (currentUser) {
+      const isProfileIncomplete =
+        !currentUser.fullName ||
+        !currentUser.phoneNumber ||
+        !currentUser.gender ||
+        !currentUser.identityCardNumber ||
+        !currentUser.identityCardFrontUrl ||
+        !currentUser.identityCardBackUrl;
+
+      if (isProfileIncomplete) {
+        toast.error('Bạn cần cập nhật đầy đủ thông tin cá nhân (Họ tên, SĐT, Giới tính, Ngày sinh, Số CCCD và 2 mặt ảnh CCCD) trong Hồ sơ cá nhân trước khi đăng ký tham gia chuyến đi!');
+        navigate('/profile');
+        return;
+      }
+    }
+
     try {
       setIsJoining(true);
       const response = await tripApi.joinTrip(trip.id);
@@ -155,8 +240,8 @@ export const TripDetailPage: React.FC = () => {
     handleJoinTrip();
   };
 
-  // Danh sách các thành viên chính thức khác ngoại trừ Trưởng đoàn (Host)
-  const approvedMembersOnly = trip.members ? trip.members.filter((m) => m.userId !== trip.organizerId && (m.status === TripMemberStatus.Approved || m.status === undefined)) : [];
+  // Danh sách các thành viên khác đăng ký ngoại trừ Trưởng đoàn (Host)
+  const allMembersOnly = trip.members ? trip.members.filter((m) => m.userId !== trip.organizerId) : [];
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
@@ -209,7 +294,7 @@ export const TripDetailPage: React.FC = () => {
           </button>
         </div>
 
-        {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) chuẩn CreateTripPage */}
+        {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
           {/* CỘT TRÁI (MAIN FORM - 7 COLS) */}
           <div className="lg:col-span-7 space-y-6">
@@ -353,29 +438,66 @@ export const TripDetailPage: React.FC = () => {
                 </span>
               </div>
 
-              {/* CHỈ HIỂN THỊ DANH SÁCH Ô THẺ THÀNH VIÊN KHI LÀ HOST HOẶC ADMIN */}
+              {/* BẢNG / LIST RÕ RÀNG 2 CỘT DÀNH CHO HOST VÀ ADMIN */}
               {(isOrganizer || isAdmin) ? (
-                approvedMembersOnly.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {approvedMembersOnly.map((m) => (
-                      <div key={m.userId} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200/70">
-                        {m.avatarUrl ? (
-                          <Image src={m.avatarUrl} alt={m.fullName} containerClassName="w-10 h-10 rounded-xl border border-slate-100 shrink-0" />
-                        ) : (
-                          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
-                            {m.fullName ? m.fullName.charAt(0).toUpperCase() : 'U'}
-                          </div>
-                        )}
-                        <div className="text-xs min-w-0 flex-1">
-                          <p className="font-bold text-slate-800 truncate">{m.fullName}</p>
-                          <p className="text-[11px] text-slate-400 truncate">Thành viên chính thức</p>
-                        </div>
-                      </div>
-                    ))}
+                allMembersOnly.length > 0 ? (
+                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
+                        <tr>
+                          <th className="py-3 px-4">Tên người dùng</th>
+                          <th className="py-3 px-4 text-right">Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-medium">
+                        {allMembersOnly.map((m) => (
+                          <tr key={m.userId} className="hover:bg-slate-50/80 transition">
+                            {/* Cột 1: Tên người dùng (Nhấn vào mở Modal thông tin chi tiết) */}
+                            <td className="py-3 px-4">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenApplicantModal(m)}
+                                className="flex items-center gap-2.5 text-slate-900 font-bold hover:text-coral-600 transition cursor-pointer text-left group"
+                              >
+                                {m.avatarUrl ? (
+                                  <Image src={m.avatarUrl} alt={m.fullName} containerClassName="w-8 h-8 rounded-xl border border-slate-200 shrink-0" />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-xl bg-coral-50 text-coral-600 font-bold text-xs flex items-center justify-center shrink-0">
+                                    {m.fullName ? m.fullName.charAt(0).toUpperCase() : 'U'}
+                                  </div>
+                                )}
+                                <span className="group-hover:underline flex items-center gap-1">
+                                  {m.fullName} <ChevronRight size={14} className="text-slate-400 group-hover:text-coral-600" />
+                                </span>
+                              </button>
+                            </td>
+
+                            {/* Cột 2: Trạng thái (Chờ duyệt, Đã duyệt, Từ chối) */}
+                            <td className="py-3 px-4 text-right">
+                              {m.status === TripMemberStatus.Pending ? (
+                                <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-full font-bold text-[11px]">
+                                  <Clock size={12} /> Chờ duyệt
+                                </span>
+                              ) : m.status === TripMemberStatus.Approved || m.status === undefined ? (
+                                <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full font-bold text-[11px]">
+                                  <CheckCircle2 size={12} /> Đã duyệt
+                                </span>
+                              ) : m.status === TripMemberStatus.Rejected ? (
+                                <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 border border-rose-200/80 px-2.5 py-1 rounded-full font-bold text-[11px]">
+                                  <XCircle size={12} /> Bị từ chối
+                                </span>
+                              ) : (
+                                <span className="text-slate-500 font-semibold text-[11px]">Khác</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 ) : (
                   <div className="py-6 text-center text-xs text-slate-400 italic">
-                    Chưa có thành viên khác tham gia.
+                    Chưa có danh sách yêu cầu thành viên.
                   </div>
                 )
               ) : null}
@@ -521,7 +643,7 @@ export const TripDetailPage: React.FC = () => {
         </div>
       </main>
 
-      {/* DÙNG REUSABLE MODAL COMPONENT TỪ SRC/COMPONENTS/COMMON/MODAL.TSX */}
+      {/* MODAL 1: DÙNG REUSABLE MODAL TỪ SRC/COMPONENTS/COMMON/MODAL.TSX - THÔNG TIN HOST */}
       <Modal
         isOpen={isHostModalOpen}
         onClose={() => setIsHostModalOpen(false)}
@@ -535,25 +657,21 @@ export const TripDetailPage: React.FC = () => {
           </div>
         ) : hostProfile ? (
           <div className="space-y-4 text-left font-sans pt-1">
-            {/* Tên người dùng */}
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700">Họ và tên</label>
               <Input value={hostProfile.fullName} readOnly leftIcon={<UserIcon size={16} className="text-slate-400" />} />
             </div>
 
-            {/* Email người dùng */}
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700">Email liên hệ</label>
               <Input value={hostProfile.email} readOnly leftIcon={<Mail size={16} className="text-slate-400" />} />
             </div>
 
-            {/* Đánh giá sao */}
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700">Đánh giá uy tín</label>
               <Input value={`${hostProfile.rating.toFixed(1)} / 5.0 ⭐`} readOnly leftIcon={<Star size={16} className="text-amber-400 fill-amber-400" />} />
             </div>
 
-            {/* Số chuyến đi tạo HIỂN THỊ CHÍNH XÁC 100% NHƯ ẢNH YÊU CẦU */}
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700">Số chuyến đi tạo</label>
               <Input
@@ -574,6 +692,87 @@ export const TripDetailPage: React.FC = () => {
         ) : (
           <div className="py-8 text-center text-xs text-slate-500">
             Không thể tải thông tin người dùng.
+          </div>
+        )}
+      </Modal>
+
+      {/* MODAL 2: DÙNG REUSABLE MODAL - XEM CHI TIẾT NGƯỜI XIN THAM GIA (DÀNH CHO HOST KHI BẤM VÀO TÊN) */}
+      <Modal
+        isOpen={isApplicantModalOpen}
+        onClose={() => setIsApplicantModalOpen(false)}
+        title="Chi tiết thành viên xin tham gia"
+        maxWidth="md"
+      >
+        {isLoadingApplicant ? (
+          <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
+            <Loader2 size={32} className="animate-spin text-coral-500" />
+            <span className="text-xs font-semibold">Đang tải hồ sơ thành viên...</span>
+          </div>
+        ) : applicantProfile ? (
+          <div className="space-y-4 text-left font-sans pt-1">
+            {/* Tên */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Họ và tên</label>
+              <Input value={applicantProfile.fullName} readOnly leftIcon={<UserIcon size={16} className="text-slate-400" />} />
+            </div>
+
+            {/* Email */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Email liên hệ</label>
+              <Input value={applicantProfile.email} readOnly leftIcon={<Mail size={16} className="text-slate-400" />} />
+            </div>
+
+            {/* Giới tính & Ngày sinh */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Giới tính</label>
+                <Input value={applicantProfile.gender || 'Chưa cập nhật'} readOnly />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Ngày sinh</label>
+                <Input value={applicantProfile.birthDate ? formatDate(applicantProfile.birthDate) : 'Chưa cập nhật'} readOnly />
+              </div>
+            </div>
+
+            {/* Đánh giá */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Đánh giá trung bình</label>
+              <Input value={`${applicantProfile.avgRating.toFixed(1)} / 5.0 ⭐`} readOnly leftIcon={<Star size={16} className="text-amber-400 fill-amber-400" />} />
+            </div>
+
+            {/* 2 Nút Hành động Từ chối và Duyệt (Chỉ hiển thị cho Host đối với thành viên Chờ duyệt) */}
+            {isOrganizer && selectedApplicantMember?.status === TripMemberStatus.Pending ? (
+              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+                <Button
+                  disabled={isActionProcessing}
+                  onClick={() => handleRejectMember(applicantProfile.userId)}
+                  className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <XCircle size={16} /> Từ chối
+                </Button>
+
+                <Button
+                  disabled={isActionProcessing}
+                  onClick={() => handleApproveMember(applicantProfile.userId)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <CheckCircle2 size={16} /> Duyệt tham gia
+                </Button>
+              </div>
+            ) : (
+              <div className="pt-3">
+                <Button
+                  onClick={() => setIsApplicantModalOpen(false)}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-3 rounded-xl cursor-pointer"
+                >
+                  Đóng
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-xs text-slate-500">
+            Không thể tải hồ sơ người dùng.
           </div>
         )}
       </Modal>

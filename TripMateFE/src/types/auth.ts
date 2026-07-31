@@ -68,6 +68,9 @@ export interface User {
   role: string | number;
   avatarUrl?: string;
   phoneNumber?: string;
+  gender?: string;
+  birthDate?: string;
+  identityCardNumber?: string;
   identityCardFrontUrl?: string;
   identityCardBackUrl?: string;
   bio?: string;

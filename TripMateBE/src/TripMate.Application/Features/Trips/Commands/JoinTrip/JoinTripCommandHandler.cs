@@ -9,16 +9,39 @@ namespace TripMate.Application.Features.Trips.Commands.JoinTrip;
 public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
 {
     private readonly ITripRepository _tripRepository;
+    private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public JoinTripCommandHandler(ITripRepository tripRepository, IUnitOfWork unitOfWork)
+    public JoinTripCommandHandler(
+        ITripRepository tripRepository,
+        IUserRepository userRepository,
+        IUnitOfWork unitOfWork)
     {
         _tripRepository = tripRepository;
+        _userRepository = userRepository;
         _unitOfWork = unitOfWork;
     }
 
     public async Task<bool> Handle(JoinTripCommand request, CancellationToken cancellationToken)
     {
+        // 1. Kiểm tra Hồ sơ cá nhân của User xem đã cập nhật đầy đủ thông tin chưa
+        var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
+        if (user == null)
+            throw new NotFoundException("Không tìm thấy thông tin tài khoản.");
+
+        bool isProfileIncomplete = string.IsNullOrWhiteSpace(user.FullName) ||
+                                  string.IsNullOrWhiteSpace(user.PhoneNumber) ||
+                                  string.IsNullOrWhiteSpace(user.Gender) ||
+                                  !user.BirthDate.HasValue ||
+                                  string.IsNullOrWhiteSpace(user.IdentityCardNumber) ||
+                                  string.IsNullOrWhiteSpace(user.IdentityCardFrontUrl) ||
+                                  string.IsNullOrWhiteSpace(user.IdentityCardBackUrl);
+
+        if (isProfileIncomplete)
+        {
+            throw new BusinessRuleException("Bạn cần cập nhật đầy đủ thông tin cá nhân (Họ tên, SĐT, Giới tính, Ngày sinh, Số CCCD và 2 mặt ảnh CCCD) trong trang Hồ sơ cá nhân trước khi đăng ký tham gia chuyến đi!");
+        }
+
         var trip = await _tripRepository.GetByIdWithDetailsAsync(request.TripId, cancellationToken);
         if (trip == null)
             throw new NotFoundException("Không tìm thấy chuyến đi.");
@@ -36,7 +59,7 @@ public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
             throw new BusinessRuleException("Chuyến đi đã đủ số lượng thành viên tối đa.");
 
         // Rule 4: Kiểm tra đã tham gia chưa
-        if (trip.Members != null && trip.Members.Any(m => m.UserId == request.UserId))
+        if (trip.Members != null && trip.Members.Any(m => m.UserId == request.UserId && (m.Status == TripMemberStatus.Pending || m.Status == TripMemberStatus.Approved)))
             throw new BusinessRuleException("Bạn đã đăng ký tham gia chuyến đi này trước đó.");
 
         // Rule 5: BẮT BỘC KIỂM TRA TRÙNG LỊCH THỜI GIAN

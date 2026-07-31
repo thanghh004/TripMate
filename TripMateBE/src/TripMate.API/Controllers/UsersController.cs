@@ -49,13 +49,24 @@ public class UsersController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy hồ sơ công khai của một Host / Người dùng
+    /// Lấy thông tin hồ sơ công khai của Host để hiển thị cho thành viên
     /// </summary>
     [HttpGet("{id:guid}/public-profile")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetPublicProfile(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<HostPublicProfileDto>> GetHostPublicProfile(Guid id)
     {
-        var result = await Mediator.Send(new Application.Features.Users.Queries.GetHostPublicProfile.GetHostPublicProfileQuery(id), cancellationToken);
+        var result = await Mediator.Send(new Application.Features.Users.Queries.GetHostPublicProfile.GetHostPublicProfileQuery(id));
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Lấy thông tin người đăng ký tham gia chuyến đi dành cho Host xem duyệt
+    /// </summary>
+    [HttpGet("{id:guid}/applicant-profile")]
+    [Authorize]
+    public async Task<ActionResult<ApplicantProfileDto>> GetApplicantProfile(Guid id)
+    {
+        var result = await Mediator.Send(new Application.Features.Users.Queries.GetApplicantProfile.GetApplicantProfileQuery(id));
         return Ok(result);
     }
 

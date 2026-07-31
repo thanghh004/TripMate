@@ -72,7 +72,31 @@ public class TripsController : BaseApiController
     {
         var command = new Application.Features.Trips.Commands.JoinTrip.JoinTripCommand(id, CurrentUserId);
         await Mediator.Send(command);
-        return Ok(new { message = "Đăng ký tham gia chuyến đi thành công!" });
+        return Ok(new { message = "Đã gửi yêu cầu tham gia chuyến đi, vui lòng chờ Trưởng đoàn phê duyệt!" });
+    }
+
+    /// <summary>
+    /// Trưởng đoàn phê duyệt thành viên tham gia chuyến đi
+    /// </summary>
+    [HttpPost("{id:guid}/members/{memberUserId:guid}/approve")]
+    [Authorize]
+    public async Task<IActionResult> ApproveMember(Guid id, Guid memberUserId)
+    {
+        var command = new Application.Features.Trips.Commands.ApproveTripMember.ApproveTripMemberCommand(id, memberUserId, CurrentUserId);
+        await Mediator.Send(command);
+        return Ok(new { message = "Đã phê duyệt thành viên tham gia chuyến đi!" });
+    }
+
+    /// <summary>
+    /// Trưởng đoàn từ chối thành viên tham gia chuyến đi
+    /// </summary>
+    [HttpPost("{id:guid}/members/{memberUserId:guid}/reject")]
+    [Authorize]
+    public async Task<IActionResult> RejectMember(Guid id, Guid memberUserId)
+    {
+        var command = new Application.Features.Trips.Commands.RejectTripMember.RejectTripMemberCommand(id, memberUserId, CurrentUserId);
+        await Mediator.Send(command);
+        return Ok(new { message = "Đã từ chối yêu cầu tham gia của thành viên!" });
     }
 
     /// <summary>

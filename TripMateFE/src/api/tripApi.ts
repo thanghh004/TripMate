@@ -32,6 +32,16 @@ export const tripApi = {
     return res.data;
   },
 
+  approveMember: async (tripId: string, memberUserId: string): Promise<{ message: string }> => {
+    const res = await axiosClient.post<{ message: string }>(`/api/trips/${tripId}/members/${memberUserId}/approve`);
+    return res.data;
+  },
+
+  rejectMember: async (tripId: string, memberUserId: string): Promise<{ message: string }> => {
+    const res = await axiosClient.post<{ message: string }>(`/api/trips/${tripId}/members/${memberUserId}/reject`);
+    return res.data;
+  },
+
   // API Lấy chuyến đi của tôi
   getMyTrips: async (): Promise<Trip[]> => {
     const res = await axiosClient.get<Trip[]>('/api/trips/my-trips');
