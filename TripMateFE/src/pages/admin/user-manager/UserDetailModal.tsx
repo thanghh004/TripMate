@@ -73,7 +73,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({ user, onClose 
         <InfoField 
           label="Số chuyến đi tạo" 
           value={(() => {
-            const created = (user.createdCompletedTripsCount ?? 0) + (user.createdUncompletedTripsCount ?? 0);
+            const created = user.createdTotalTripsCount ?? ((user.createdCompletedTripsCount ?? 0) + (user.createdUncompletedTripsCount ?? 0));
             const createdUncomplete = user.createdUncompletedTripsCount ?? 0;
             return createdUncomplete > 0
               ? `${created} chuyến (${createdUncomplete} không hoàn thành)`

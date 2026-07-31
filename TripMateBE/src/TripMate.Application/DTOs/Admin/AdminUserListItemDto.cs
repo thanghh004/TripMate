@@ -25,6 +25,7 @@ public class AdminUserListItemDto
     public HostVerificationStatus HostVerificationStatus { get; set; }
     public decimal AvgRating { get; set; }
     public int TotalTrips { get; set; }
+    public int CreatedTotalTripsCount { get; set; }
     public int CreatedCompletedTripsCount { get; set; }
     public int CreatedUncompletedTripsCount { get; set; }
     public int JoinedCompletedTripsCount { get; set; }

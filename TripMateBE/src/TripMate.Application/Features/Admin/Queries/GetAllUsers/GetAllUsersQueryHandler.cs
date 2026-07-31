@@ -40,6 +40,7 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, List<Ad
             HostVerificationStatus = u.HostVerificationStatus,
             AvgRating = u.AvgRating,
             TotalTrips = (u.OrganizedTrips?.Count ?? 0) + (u.JoinedTrips?.Count ?? 0),
+            CreatedTotalTripsCount = u.OrganizedTrips?.Count ?? 0,
             CreatedCompletedTripsCount = u.OrganizedTrips?.Count(t => t.Status == TripMate.Domain.Enums.TripStatus.Completed) ?? 0,
             CreatedUncompletedTripsCount = u.OrganizedTrips?.Count(t => 
                 t.Status == TripMate.Domain.Enums.TripStatus.Cancelled || 

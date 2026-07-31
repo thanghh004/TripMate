@@ -28,7 +28,11 @@ public class GetHostPublicProfileQueryHandler : IRequestHandler<GetHostPublicPro
 
         int total = trips.Count;
         int completed = trips.Count(t => t.Status == TripStatus.Completed);
-        int uncompleted = total - completed;
+        // Chỉ những chuyến bị Cancelled, Rejected hoặc Failed mới tính là Không hoàn thành
+        int uncompleted = trips.Count(t =>
+            t.Status == TripStatus.Cancelled ||
+            t.Status == TripStatus.Rejected ||
+            t.Status == TripStatus.Failed);
 
         return new HostPublicProfileDto
         {
