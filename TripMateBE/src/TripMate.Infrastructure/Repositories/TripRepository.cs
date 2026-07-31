@@ -44,6 +44,20 @@ public class TripRepository : ITripRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Trip>> GetPublicTripsAsync(CancellationToken cancellationToken = default)
+    {
+        var publicStatuses = new[] { TripStatus.Open, TripStatus.Full };
+        return await _context.Trips
+            .AsNoTracking()
+            .Where(t => publicStatuses.Contains(t.Status))
+            .Include(t => t.Category)
+            .Include(t => t.StartCity)
+            .Include(t => t.DestinationCity)
+            .Include(t => t.Organizer)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Trip>> GetPendingTripsAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Trips

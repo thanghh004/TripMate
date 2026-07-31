@@ -19,6 +19,11 @@ public interface ITripRepository
     Task<List<Trip>> GetMyTripsAsync(Guid organizerId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Lấy danh sách chuyến đi công khai đã duyệt (Open, Full) cho Trang chủ & Khám phá
+    /// </summary>
+    Task<List<Trip>> GetPublicTripsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Lấy danh sách chuyến đi đang chờ Admin duyệt (PendingReview)
     /// </summary>
     Task<List<Trip>> GetPendingTripsAsync(CancellationToken cancellationToken = default);

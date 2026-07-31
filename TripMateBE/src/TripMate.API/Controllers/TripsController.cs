@@ -18,6 +18,17 @@ namespace TripMate.API.Controllers;
 public class TripsController : BaseApiController
 {
     /// <summary>
+    /// Lấy danh sách chuyến đi công khai đã duyệt (Status Open hoặc Full) cho Trang chủ và Trang Khám phá
+    /// </summary>
+    [HttpGet("public")]
+    [AllowAnonymous]
+    public async Task<ActionResult<List<TripDto>>> GetPublicTrips()
+    {
+        var result = await Mediator.Send(new Application.Features.Trips.Queries.GetPublicTrips.GetPublicTripsQuery());
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Lấy chi tiết thông tin 1 chuyến đi theo ID
     /// </summary>
     [HttpGet("{id:guid}")]

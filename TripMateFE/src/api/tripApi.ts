@@ -37,4 +37,10 @@ export const tripApi = {
     const res = await axiosClient.get<Trip[]>('/api/trips/my-trips');
     return res.data;
   },
+
+  // API Lấy danh sách chuyến đi công khai đã duyệt (Open, Full) cho Trang chủ & Khám phá
+  getPublicTrips: async (): Promise<Trip[]> => {
+    const res = await axiosClient.get<Trip[]>('/api/trips/public');
+    return res.data;
+  },
 };
