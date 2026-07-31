@@ -401,17 +401,14 @@ export const TripDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Mô tả chuyến đi */}
+              {/* Mô tả chuyến đi tự động co giãn hiển thị trọn vẹn */}
               <div className="space-y-1.5 pt-1">
                 <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <FileText size={15} className="text-slate-500" /> Mô tả & Kế hoạch chi tiết
                 </label>
-                <textarea
-                  rows={6}
-                  value={trip.description || 'Chưa có thông tin mô tả lịch trình.'}
-                  readOnly
-                  className="w-full bg-white border border-slate-300 rounded-xl p-4 text-xs font-medium text-slate-800 focus:outline-none transition resize-none leading-relaxed"
-                />
+                <div className="w-full bg-white border border-slate-300 rounded-xl p-4 text-xs font-medium text-slate-800 leading-relaxed whitespace-pre-wrap break-words min-h-[120px]">
+                  {trip.description || 'Chưa có thông tin mô tả lịch trình.'}
+                </div>
               </div>
             </div>
 
@@ -574,12 +571,9 @@ export const TripDetailPage: React.FC = () => {
               {/* Yêu cầu khác đối với thành viên */}
               <div className="space-y-1.5 pt-1">
                 <label className="block text-xs font-bold text-slate-700">Yêu cầu khác đối với thành viên</label>
-                <textarea
-                  rows={3}
-                  value={trip.requirements || 'Chưa có yêu cầu khác.'}
-                  readOnly
-                  className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 focus:outline-none transition resize-none"
-                />
+                <div className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 leading-relaxed whitespace-pre-wrap break-words min-h-[70px]">
+                  {trip.requirements || 'Chưa có yêu cầu khác.'}
+                </div>
               </div>
 
               {/* DÙNG REUSABLE BUTTON COMPONENT ĐẶT SÁT NGAY BÊN TRONG CARD CHI PHÍ */}
@@ -587,10 +581,10 @@ export const TripDetailPage: React.FC = () => {
                 <Button
                   disabled={isJoining || isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open}
                   onClick={handleButtonClick}
-                  className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg transition-transform cursor-pointer flex items-center justify-center gap-2 ${
+                  className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg transition-transform flex items-center justify-center gap-2 ${
                     isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open
-                      ? 'bg-slate-300 text-slate-600 shadow-none cursor-not-allowed'
-                      : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 hover:scale-[1.02]'
+                      ? 'bg-slate-600 text-white shadow-none opacity-100 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 hover:scale-[1.02] cursor-pointer'
                   }`}
                 >
                   {isJoining ? (
@@ -605,15 +599,15 @@ export const TripDetailPage: React.FC = () => {
                     'Bạn là Trưởng đoàn của chuyến đi này'
                   ) : isPending ? (
                     <>
-                      <Clock size={18} className="text-amber-600" /> Đã gửi yêu cầu (Chờ duyệt)
+                      <Clock size={18} className="text-white" /> Đã gửi yêu cầu (Chờ duyệt)
                     </>
                   ) : isApproved ? (
                     <>
-                      <CheckCircle2 size={18} className="text-emerald-600" /> Bạn đã tham gia chuyến đi này
+                      <CheckCircle2 size={18} className="text-white" /> Bạn đã tham gia chuyến đi này
                     </>
                   ) : isRejected ? (
                     <>
-                      <XCircle size={18} className="text-rose-600" /> Yêu cầu tham gia đã bị từ chối
+                      <XCircle size={18} className="text-white" /> Yêu cầu tham gia đã bị từ chối
                     </>
                   ) : isMemberCompleted ? (
                     'Đã hoàn thành chuyến đi'
