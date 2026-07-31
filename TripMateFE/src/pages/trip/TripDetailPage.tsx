@@ -42,12 +42,14 @@ interface HostPublicProfile {
 export const TripDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const authContext = useContext(AuthContext);
+  const isAuthenticated = authContext?.isAuthenticated;
+  const currentUser = authContext?.user;
+  const { toast } = useToast();
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isJoining, setIsJoining] = useState<boolean>(false);
-
-  const { toast } = useToast();
 
   // State Host Profile Modal
   const [isHostModalOpen, setIsHostModalOpen] = useState<boolean>(false);
@@ -130,10 +132,6 @@ export const TripDetailPage: React.FC = () => {
       </div>
     );
   }
-
-  const authContext = useContext(AuthContext);
-  const isAuthenticated = authContext?.isAuthenticated;
-  const currentUser = authContext?.user;
 
   const isFull = trip ? trip.currentMembers >= trip.maxMembers : false;
   const isOrganizer = currentUser && trip ? currentUser.userId === trip.organizerId : false;
