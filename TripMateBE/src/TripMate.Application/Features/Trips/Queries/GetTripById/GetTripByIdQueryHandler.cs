@@ -25,6 +25,23 @@ public class GetTripByIdQueryHandler : IRequestHandler<GetTripByIdQuery, TripDto
             throw new NotFoundException($"Không tìm thấy chuyến đi với ID: {request.Id}");
         }
 
+        var members = new List<TripMemberDetailDto>();
+        if (t.Members != null)
+        {
+            foreach (var m in t.Members)
+            {
+                members.Add(new TripMemberDetailDto
+                {
+                    UserId = m.UserId,
+                    FullName = m.User?.FullName ?? string.Empty,
+                    AvatarUrl = m.User?.AvatarUrl,
+                    Role = m.Role,
+                    Status = m.Status,
+                    JoinedAt = m.JoinedAt
+                });
+            }
+        }
+
         return new TripDto
         {
             Id = t.Id,
@@ -59,15 +76,7 @@ public class GetTripByIdQueryHandler : IRequestHandler<GetTripByIdQuery, TripDto
             ModerationNote = t.ModerationNote,
             CancellationReason = t.CancellationReason,
             ImageUrls = t.Images?.Select(i => i.ImageUrl).ToList() ?? new(),
-            Members = t.Members?.Select(m => new TripMemberDetailDto
-            {
-                UserId = m.UserId,
-                FullName = m.User?.FullName ?? string.Empty,
-                AvatarUrl = m.User?.AvatarUrl,
-                Role = m.Role,
-                Status = m.Status,
-                JoinedAt = m.JoinedAt
-            }).ToList() ?? new(),
+            Members = members,
             CreatedAt = t.CreatedAt,
             UpdatedAt = t.UpdatedAt
         };
