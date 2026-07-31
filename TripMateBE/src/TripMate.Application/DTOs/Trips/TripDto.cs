@@ -40,6 +40,7 @@ public class TripDto
     public string? ModerationNote { get; set; }
     public string? CancellationReason { get; set; }
     public List<string> ImageUrls { get; set; } = new();
+    public List<TripMemberDetailDto> Members { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

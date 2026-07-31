@@ -12,6 +12,16 @@ export const TripStatus = {
 
 export type TripStatus = number;
 
+export const TripMemberStatus = {
+  Pending: 0,
+  Approved: 1,
+  Rejected: 2,
+  Cancelled: 3,
+  Completed: 4,
+} as const;
+
+export type TripMemberStatus = number;
+
 export interface CreateTripRequest {
   categoryId: string;
   title: string;
@@ -40,7 +50,8 @@ export interface TripMember {
   userId: string;
   fullName: string;
   avatarUrl?: string;
-  role?: string;
+  role?: string | number;
+  status?: number; // 0: Pending, 1: Approved, 2: Rejected
   joinedAt?: string;
 }
 

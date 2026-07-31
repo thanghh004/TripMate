@@ -24,6 +24,11 @@ public class TripMember : BaseEntity
     public TripMemberRole Role { get; set; } = TripMemberRole.Member;
 
     /// <summary>
+    /// Trạng thái duyệt tham gia (Pending, Approved, Rejected)
+    /// </summary>
+    public TripMemberStatus Status { get; set; } = TripMemberStatus.Pending;
+
+    /// <summary>
     /// Thời gian gia nhập chuyến đi
     /// </summary>
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;

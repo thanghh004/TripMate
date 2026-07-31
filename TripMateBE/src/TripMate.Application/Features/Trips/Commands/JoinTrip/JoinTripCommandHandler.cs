@@ -52,26 +52,18 @@ public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
             throw new BusinessRuleException("Bạn đã có lịch trình chuyến đi khác (tổ chức hoặc tham gia) trùng với khoảng thời gian này. Không thể đăng ký!");
         }
 
-        // Thêm thành viên mới thông qua ITripRepository
+        // Thêm thành viên mới với trạng thái Chờ duyệt (Pending)
         var newMember = new TripMember
         {
             Id = Guid.NewGuid(),
             TripId = trip.Id,
             UserId = request.UserId,
             JoinedAt = DateTime.UtcNow,
-            Role = TripMemberRole.Member
+            Role = TripMemberRole.Member,
+            Status = TripMemberStatus.Pending
         };
 
         await _tripRepository.AddMemberAsync(newMember, cancellationToken);
-
-        // Tăng số lượng thành viên hiện tại
-        trip.CurrentMembers += 1;
-
-        // Nếu đã đủ thành viên tối đa ➔ Đổi trạng thái sang Full
-        if (trip.CurrentMembers >= trip.MaxMembers)
-        {
-            trip.Status = TripStatus.Full;
-        }
 
         trip.UpdatedAt = DateTime.UtcNow;
 

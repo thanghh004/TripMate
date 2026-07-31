@@ -4,7 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { tripApi } from '../../api/tripApi';
 import { userApi } from '../../api/userApi';
 import type { Trip } from '../../types/trip';
-import { TripStatus } from '../../types/trip';
+import { TripStatus, TripMemberStatus } from '../../types/trip';
 import { Header } from '../../components/common/Header';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
@@ -26,6 +26,8 @@ import {
   ImagePlus,
   Mail,
   User as UserIcon,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface HostPublicProfile {
@@ -45,6 +47,8 @@ export const TripDetailPage: React.FC = () => {
   const authContext = useContext(AuthContext);
   const isAuthenticated = authContext?.isAuthenticated;
   const currentUser = authContext?.user;
+  const isAdmin = currentUser?.role === 'Admin' || currentUser?.role === 1 || currentUser?.role === '1';
+
   const { toast } = useToast();
 
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -92,7 +96,7 @@ export const TripDetailPage: React.FC = () => {
     try {
       setIsJoining(true);
       const response = await tripApi.joinTrip(trip.id);
-      toast.success(response.message || 'Đăng ký tham gia chuyến đi thành công!');
+      toast.success(response.message || 'Đã gửi yêu cầu tham gia chuyến đi, vui lòng chờ Trưởng đoàn phê duyệt!');
       // Reload lại thông tin chuyến đi sau khi join
       const updated = await tripApi.getTripById(trip.id);
       setTrip(updated);
@@ -100,7 +104,7 @@ export const TripDetailPage: React.FC = () => {
       const errorMsg =
         err.response?.data?.message ||
         err.message ||
-        'Đã có lỗi xảy ra khi đăng ký tham gia chuyến đi.';
+        'Đã có lỗi xảy ra khi gửi yêu cầu tham gia chuyến đi.';
       toast.error(errorMsg);
     } finally {
       setIsJoining(false);
@@ -133,9 +137,15 @@ export const TripDetailPage: React.FC = () => {
     );
   }
 
-  const isFull = trip ? trip.currentMembers >= trip.maxMembers : false;
-  const isOrganizer = currentUser && trip ? currentUser.userId === trip.organizerId : false;
-  const isAlreadyMember = currentUser && trip?.members ? trip.members.some((m) => m.userId === currentUser.userId) : false;
+  const isFull = trip.currentMembers >= trip.maxMembers;
+  const isOrganizer = currentUser ? currentUser.userId === trip.organizerId : false;
+
+  // Lấy thông tin trạng thái thành viên của user hiện tại
+  const userMemberRecord = currentUser && trip.members ? trip.members.find((m) => m.userId === currentUser.userId) : null;
+  const isPending = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Pending : false;
+  const isApproved = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Approved : false;
+  const isMemberCancelled = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Cancelled : false;
+  const isMemberCompleted = userMemberRecord ? userMemberRecord.status === TripMemberStatus.Completed : false;
 
   const handleButtonClick = () => {
     if (!isAuthenticated) {
@@ -144,6 +154,9 @@ export const TripDetailPage: React.FC = () => {
     }
     handleJoinTrip();
   };
+
+  // Danh sách các thành viên chính thức khác ngoại trừ Trưởng đoàn (Host)
+  const approvedMembersOnly = trip.members ? trip.members.filter((m) => m.userId !== trip.organizerId && (m.status === TripMemberStatus.Approved || m.status === undefined)) : [];
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
@@ -340,42 +353,32 @@ export const TripDetailPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* 1. Trưởng đoàn (Host) */}
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-coral-200/80 shadow-2xs">
-                  {trip.organizerAvatarUrl ? (
-                    <Image src={trip.organizerAvatarUrl} alt={trip.organizerName} containerClassName="w-10 h-10 rounded-xl border border-slate-200 shrink-0" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-coral-100 text-coral-600 font-bold text-xs flex items-center justify-center shrink-0">
-                      {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : 'H'}
-                    </div>
-                  )}
-                  <div className="text-xs min-w-0 flex-1">
-                    <p className="font-bold text-slate-900 truncate flex items-center gap-1">
-                      {trip.organizerName}
-                      <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
-                    </p>
-                    <p className="text-[11px] font-extrabold text-coral-600">Trưởng đoàn (Host)</p>
-                  </div>
-                </div>
-
-                {/* 2. Các thành viên khác nếu có */}
-                {trip.members && trip.members.length > 0 && trip.members.map((m) => (
-                  <div key={m.userId} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200/70">
-                    {m.avatarUrl ? (
-                      <Image src={m.avatarUrl} alt={m.fullName} containerClassName="w-10 h-10 rounded-xl border border-slate-100 shrink-0" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
-                        {m.fullName ? m.fullName.charAt(0).toUpperCase() : 'U'}
+              {/* CHỈ HIỂN THỊ DANH SÁCH Ô THẺ THÀNH VIÊN KHI LÀ HOST HOẶC ADMIN */}
+              {(isOrganizer || isAdmin) ? (
+                approvedMembersOnly.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {approvedMembersOnly.map((m) => (
+                      <div key={m.userId} className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-200/70">
+                        {m.avatarUrl ? (
+                          <Image src={m.avatarUrl} alt={m.fullName} containerClassName="w-10 h-10 rounded-xl border border-slate-100 shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                            {m.fullName ? m.fullName.charAt(0).toUpperCase() : 'U'}
+                          </div>
+                        )}
+                        <div className="text-xs min-w-0 flex-1">
+                          <p className="font-bold text-slate-800 truncate">{m.fullName}</p>
+                          <p className="text-[11px] text-slate-400 truncate">Thành viên chính thức</p>
+                        </div>
                       </div>
-                    )}
-                    <div className="text-xs min-w-0 flex-1">
-                      <p className="font-bold text-slate-800 truncate">{m.fullName}</p>
-                      <p className="text-[11px] text-slate-400 truncate">{m.role || 'Thành viên'}</p>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div className="py-6 text-center text-xs text-slate-400 italic">
+                    Chưa có thành viên khác tham gia.
+                  </div>
+                )
+              ) : null}
             </div>
           </div>
 
@@ -470,20 +473,20 @@ export const TripDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Join Button cho User */}
+            {/* DÙNG REUSABLE BUTTON COMPONENT CHUẨN TRONG COMPONENTS */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3 font-sans">
               <Button
-                disabled={isJoining || isOrganizer || isAlreadyMember || isFull || trip.status !== TripStatus.Open}
+                disabled={isJoining || isOrganizer || isPending || isApproved || isMemberCompleted || isFull || trip.status !== TripStatus.Open}
                 onClick={handleButtonClick}
                 className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg transition-transform cursor-pointer flex items-center justify-center gap-2 ${
-                  isOrganizer || isAlreadyMember || isFull || trip.status !== TripStatus.Open
+                  isOrganizer || isPending || isApproved || isMemberCompleted || isFull || trip.status !== TripStatus.Open
                     ? 'bg-slate-300 text-slate-600 shadow-none cursor-not-allowed'
                     : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 hover:scale-[1.02]'
                 }`}
               >
                 {isJoining ? (
                   <>
-                    <Loader2 size={18} className="animate-spin" /> Đang xử lý đăng ký...
+                    <Loader2 size={18} className="animate-spin" /> Đang xử lý...
                   </>
                 ) : !isAuthenticated ? (
                   <>
@@ -491,8 +494,18 @@ export const TripDetailPage: React.FC = () => {
                   </>
                 ) : isOrganizer ? (
                   'Bạn là Trưởng đoàn của chuyến đi này'
-                ) : isAlreadyMember ? (
-                  'Bạn đã tham gia chuyến đi này'
+                ) : isPending ? (
+                  <>
+                    <Clock size={18} className="text-amber-600" /> Đã gửi yêu cầu (Chờ duyệt)
+                  </>
+                ) : isApproved ? (
+                  <>
+                    <CheckCircle2 size={18} className="text-emerald-600" /> Bạn đã tham gia chuyến đi này
+                  </>
+                ) : isMemberCompleted ? (
+                  'Đã hoàn thành chuyến đi'
+                ) : isMemberCancelled ? (
+                  'Đã hủy yêu cầu tham gia'
                 ) : isFull ? (
                   'Chuyến đi đã đủ thành viên'
                 ) : trip.status !== TripStatus.Open ? (
