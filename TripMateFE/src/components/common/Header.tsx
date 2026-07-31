@@ -1,64 +1,107 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { useToast } from '../../context/ToastContext';
-import { userApi } from '../../api/userApi';
-import { HostVerificationStatus } from '../../types/auth';
-import { LogOut, Search, MessageSquare, Bell, Plus, Settings, Compass, Loader2 } from 'lucide-react';
+import { tripApi } from '../../api/tripApi';
+import type { Trip } from '../../types/trip';
+import { matchSearch } from '../../utils/formatters';
+import Image from '../common/Image';
+import { LogOut, Search, MessageSquare, Bell, Settings, MapPin, ArrowRight } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const authContext = useContext(AuthContext);
   const user = authContext?.user;
   const isAuthenticated = authContext?.isAuthenticated;
   const navigate = useNavigate();
-  const { toast } = useToast();
+
   const [showDropdown, setShowDropdown] = useState(false);
-  const [isCheckingHostPermission, setIsCheckingHostPermission] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleCreateTripClick = async () => {
-    setShowDropdown(false);
-    setIsCheckingHostPermission(true);
-    try {
-      // Gọi API lấy hồ sơ chính xác từ Backend CSDL
-      const res = await userApi.getProfile();
-      const profile = res.data;
-      const status = profile.hostVerificationStatus;
+  // SEARCH STATES
+  const [searchInput, setSearchInput] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [allTrips, setAllTrips] = useState<Trip[]>([]);
+  const [searchSuggestions, setSearchSuggestions] = useState<Trip[]>([]);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
-      // HostVerificationStatus: Unverified=0, Pending=1, Approved=2, Rejected=3, Blocked=4
-      if (status === HostVerificationStatus.Approved) {
-        navigate('/create-trip');
-      } else if (status === HostVerificationStatus.Pending) {
-        toast.warning('Tài khoản của bạn đang chờ Admin xét duyệt quyền tạo chuyến. Vui lòng quay lại sau!');
-      } else if (status === HostVerificationStatus.Rejected) {
-        toast.error('Yêu cầu cấp quyền tạo chuyến của bạn đã bị từ chối. Vui lòng quay lại sau!');
-      } else if (status === HostVerificationStatus.Blocked) {
-        toast.error('Quyền tạo chuyến đi của bạn đã bị khóa vĩnh viễn bởi Quản trị viên.');
-      } else {
-        toast.error('Bạn chưa đăng ký quyền Tạo chuyến. Vui lòng gửi yêu cầu trong phần cài đặt!');
-        navigate('/profile');
+  // Đọc danh sách chuyến đi công khai để làm dữ liệu gợi ý cho Dropdown
+  useEffect(() => {
+    const loadSearchData = async () => {
+      try {
+        const data = await tripApi.getPublicTrips();
+        setAllTrips(data);
+      } catch (err) {
+        console.error('Lỗi nạp dữ liệu gợi ý tìm kiếm:', err);
       }
-    } catch {
-      toast.error('Không thể xác thực thông tin quyền tạo chuyến. Vui lòng thử lại.');
-    } finally {
-      setIsCheckingHostPermission(false);
+    };
+    loadSearchData();
+  }, []);
+
+  // Đọc từ khóa tìm kiếm ban đầu từ URL query parameter ?search=...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const searchParam = params.get('search') || '';
+    setSearchInput(searchParam);
+  }, []);
+
+  // Lắng nghe thay đổi của searchInput để tạo gợi ý
+  useEffect(() => {
+    if (!searchInput.trim()) {
+      setSearchSuggestions([]);
+      return;
+    }
+
+    const query = searchInput.trim();
+    const matches = allTrips.filter(
+      (trip) =>
+        matchSearch(trip.title, query) ||
+        matchSearch(trip.startLocation, query) ||
+        matchSearch(trip.startCityName, query) ||
+        matchSearch(trip.destination, query) ||
+        matchSearch(trip.destinationCityName, query) ||
+        matchSearch(trip.categoryName, query) ||
+        matchSearch(trip.organizerName, query)
+    );
+
+    setSearchSuggestions(matches.slice(0, 6)); // Lấy tối đa 6 gợi ý mượt mà
+  }, [searchInput, allTrips]);
+
+  const executeSearch = () => {
+    setIsSearchOpen(false);
+    const query = searchInput.trim();
+    if (query) {
+      navigate(`/?search=${encodeURIComponent(query)}`);
+    } else {
+      navigate('/');
     }
   };
 
-  // Click outside listener to automatically close dropdown
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      executeSearch();
+    }
+  };
+
+  const handleSelectTripSuggestion = (tripId: string) => {
+    setIsSearchOpen(false);
+    navigate(`/trips/${tripId}`);
+  };
+
+  // Click outside listener cho cả User Profile Dropdown & Search Dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
     };
-    if (showDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showDropdown]);
+  }, []);
 
   return (
     <>
@@ -67,7 +110,7 @@ export const Header: React.FC = () => {
         .font-logo { font-family: 'Satisfy', cursive; }
       `}</style>
 
-      {/* 1. Header / Navbar */}
+      {/* Header / Navbar */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-slate-50 px-6 py-4 transition-all">
         <div className="w-full flex items-center justify-between px-2 sm:px-4">
           {/* Logo & Left Navigation Elements */}
@@ -77,157 +120,197 @@ export const Header: React.FC = () => {
               TripMate
             </Link>
 
-            {/* Dribbble Search Bar & Menu Items */}
-            <div className="hidden md:flex items-center gap-6">
-              {/* Search Bar */}
+            {/* Dribbble / Facebook Style Search Bar */}
+            <div className="hidden md:flex items-center gap-6 relative" ref={searchContainerRef}>
               <div className="flex items-center bg-slate-200/80 rounded-full pl-4 pr-1.5 py-1.5 border border-transparent focus-within:border-slate-300/40 focus-within:bg-slate-50 transition-all w-[320px] lg:w-[380px]">
                 <input
                   type="text"
-                  placeholder="Tìm kiếm địa điểm bạn muốn đến "
+                  value={searchInput}
+                  onFocus={() => setIsSearchOpen(true)}
+                  onChange={(e) => {
+                    setSearchInput(e.target.value);
+                    setIsSearchOpen(true);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Tìm kiếm địa điểm bạn muốn đến..."
                   className="bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 w-full font-medium"
                 />
-                <button className="w-9 h-9 rounded-full bg-[#ea4c89] hover:bg-[#df3f7c] text-white flex items-center justify-center transition-colors cursor-pointer shrink-0">
+                <button
+                  type="button"
+                  onClick={executeSearch}
+                  title="Tìm kiếm"
+                  className="w-9 h-9 rounded-full bg-[#ea4c89] hover:bg-[#df3f7c] text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                >
                   <Search size={16} />
                 </button>
               </div>
 
-              {/* Menu Links */}
-              <nav className="hidden lg:flex items-center gap-7">
-                <Link to="/" className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
-                  Trang chủ
-                </Link>
-                <a className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
-                  Khám phá
-                </a>
-                <a className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
-                  Tuyển dụng
-                </a>
-                <a className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
-                  Tìm việc làm
-                </a>
-                <a className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
-                  Cộng đồng
-                </a>
-              </nav>
-            </div>
-          </div>
-
-          {/* User Auth Action / User Profile */}
-          <div className="flex items-center gap-4">
-            {isAuthenticated && user ? (
-              <div className="flex items-center gap-4 relative">
-                {/* Message Icon */}
-                <button className="text-slate-600 hover:text-slate-900 transition-colors cursor-pointer relative p-2 rounded-full hover:bg-slate-200/60 select-none">
-                  <MessageSquare size={19} />
-                </button>
-
-                {/* Bell Icon with dot */}
-                <button className="text-slate-600 hover:text-slate-900 transition-colors cursor-pointer relative p-2 rounded-full hover:bg-slate-200/60 select-none">
-                  <Bell size={19} />
-                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-coral-500" />
-                </button>
-
-                {/* User Avatar & Dropdown */}
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setShowDropdown(!showDropdown)}
-                    className="w-10 h-10 rounded-full bg-coral-500 text-white font-bold text-sm flex items-center justify-center shadow-xs border border-slate-200 cursor-pointer relative focus:outline-none select-none transition-transform active:scale-95 overflow-visible"
-                    aria-label="User Menu"
+              {/* DROPDOWN KẾT QUẢ GỢI Ý CHUẨN FACEBOOK */}
+              {isSearchOpen && searchInput.trim().length > 0 && (
+                <div className="absolute top-14 left-0 w-full bg-slate-50 rounded-2xl border border-slate-200/90 py-2 z-50 overflow-hidden text-left space-y-0.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                  {/* Dòng 1: Tìm kiếm tất cả theo từ khóa */}
+                  <div
+                    onClick={executeSearch}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-200/60 cursor-pointer transition text-xs font-semibold text-slate-800 border-b border-slate-200/70"
                   >
-                    {user.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.fullName}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      user.fullName.charAt(0).toUpperCase()
-                    )}
-                    <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
-                  </button>
+                    <div className="w-8 h-8 rounded-full bg-slate-200/80 text-slate-600 flex items-center justify-center shrink-0">
+                      <Search size={15} />
+                    </div>
+                    <div className="flex-1 truncate">
+                      <span>Tìm kiếm từ khóa "</span>
+                      <span className="font-bold text-coral-600">{searchInput.trim()}</span>
+                      <span>"</span>
+                    </div>
+                    <ArrowRight size={14} className="text-slate-400 shrink-0" />
+                  </div>
 
-                  {/* Dropdown Menu (Dribbble Style) */}
-                  {showDropdown && (
-                    <>
-                      {/* Invisible Backdrop to close dropdown on click outside */}
+                  {/* Danh sách các chuyến đi gợi ý */}
+                  {searchSuggestions.length > 0 ? (
+                    searchSuggestions.map((trip) => (
                       <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setShowDropdown(false)}
-                      />
+                        key={trip.id}
+                        onClick={() => handleSelectTripSuggestion(trip.id)}
+                        className="flex items-center gap-3 px-4 py-2 hover:bg-slate-200/60 cursor-pointer transition"
+                      >
+                        {trip.coverImageUrl ? (
+                          <Image
+                            src={trip.coverImageUrl}
+                            alt={trip.title}
+                            containerClassName="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-coral-50 text-coral-600 flex items-center justify-center shrink-0 font-bold text-xs">
+                            <MapPin size={16} />
+                          </div>
+                        )}
 
-                      <div className="absolute right-0 mt-1.5 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/80 p-2.5 z-50 flex flex-col select-none animate-in fade-in duration-150">
-                        {/* Actions & Links */}
-                        <div className="w-full space-y-1.5 text-left">
-                          {/* Create Trip Action inside Dropdown */}
-                          <button
-                            onClick={handleCreateTripClick}
-                            disabled={isCheckingHostPermission}
-                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer disabled:opacity-60"
-                          >
-                            {isCheckingHostPermission ? (
-                              <Loader2 size={15} className="animate-spin text-coral-500" />
-                            ) : (
-                              <Plus size={15} />
-                            )}
-                            <span>Tạo chuyến đi mới</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setShowDropdown(false);
-                              navigate('/my-trips');
-                            }}
-                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer"
-                          >
-                            <Compass size={15} />
-                            <span>Chuyến đi đã tạo</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setShowDropdown(false);
-                              navigate('/profile');
-                            }}
-                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer"
-                          >
-                            <Settings size={15} />
-                            <span>Cài đặt</span>
-                          </button>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-slate-900 truncate">
+                            {trip.title}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 font-medium truncate flex items-center gap-1">
+                            <MapPin size={11} className="text-teal-600 shrink-0" />
+                            <span>
+                              {trip.startCityName || trip.startLocation} ➔ {trip.destinationCityName || trip.destination}
+                            </span>
+                          </p>
                         </div>
-
-                        <hr className="w-full border-slate-100 my-2.5" />
-
-                        {/* Sign Out */}
-                        <button
-                          onClick={() => {
-                            setShowDropdown(false);
-                            authContext?.logout();
-                            navigate('/');
-                          }}
-                          className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors text-left cursor-pointer"
-                        >
-                          <LogOut size={15} />
-                          <span>Đăng xuất</span>
-                        </button>
                       </div>
-                    </>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-center text-xs text-slate-400">
+                      Không tìm thấy chuyến đi gợi ý phù hợp
+                    </div>
                   )}
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 h-10">
+              )}
+            </div>
+
+            {/* Menu Links */}
+            <nav className="hidden lg:flex items-center gap-7">
+              <Link to="/" className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
+                Trang chủ
+              </Link>
+              <a className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
+                Khám phá
+              </a>
+              <a className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
+                Tuyển dụng
+              </a>
+              <a className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
+                Tìm việc làm
+              </a>
+              <a className="text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center gap-0.5 cursor-pointer">
+                Cộng đồng
+              </a>
+            </nav>
+          </div>
+
+          {/* Right Controls */}
+          <div className="flex items-center gap-4">
+            {isAuthenticated ? (
+              <>
                 <button
-                  onClick={() => navigate('/register')}
-                  className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors cursor-pointer select-none"
+                  type="button"
+                  className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 rounded-full transition-colors cursor-pointer"
                 >
-                  Đăng ký
+                  <MessageSquare size={19} />
                 </button>
                 <button
-                  onClick={() => navigate('/login')}
-                  className="px-5 py-2.5 text-sm font-medium text-white bg-slate-900 hover:bg-slate-900/80 rounded-full transition-all shadow-xs cursor-pointer select-none"
+                  type="button"
+                  className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 rounded-full transition-colors cursor-pointer relative"
+                >
+                  <Bell size={19} />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#ea4c89]" />
+                </button>
+
+                {/* Avatar User Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="flex items-center gap-2 cursor-pointer focus:outline-none"
+                  >
+                    {user?.avatarUrl ? (
+                      <Image
+                        src={user.avatarUrl}
+                        alt={user.fullName || 'User'}
+                        containerClassName="w-9 h-9 rounded-full border border-slate-200"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-coral-100 text-coral-600 font-bold text-sm flex items-center justify-center">
+                        {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                    )}
+                  </button>
+
+                  {showDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-50 font-sans text-left">
+                      <div className="px-4 py-2 border-b border-slate-100">
+                        <p className="text-xs font-bold text-slate-900 truncate">{user?.fullName}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDropdown(false);
+                          navigate('/profile');
+                        }}
+                        className="w-full px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer"
+                      >
+                        <Settings size={15} /> Trang cá nhân
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowDropdown(false);
+                          authContext?.logout();
+                          navigate('/login');
+                        }}
+                        className="w-full px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer"
+                      >
+                        <LogOut size={15} /> Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/login"
+                  className="text-xs font-bold text-slate-700 hover:text-slate-900 px-3 py-2 rounded-xl transition"
                 >
                   Đăng nhập
-                </button>
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-xs font-bold text-white bg-coral-500 hover:bg-coral-600 px-4 py-2 rounded-xl shadow-xs transition"
+                >
+                  Đăng ký
+                </Link>
               </div>
             )}
           </div>
@@ -236,3 +319,5 @@ export const Header: React.FC = () => {
     </>
   );
 };
+
+export default Header;

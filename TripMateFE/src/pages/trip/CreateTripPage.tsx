@@ -711,25 +711,24 @@ export const CreateTripPage: React.FC = () => {
                   className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 transition resize-none"
                 />
               </div>
-            </div>
-
-            {/* Nút Submit Form */}
-            <div className="pt-1">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-coral-500 hover:bg-coral-600 text-white font-black text-xs py-4 rounded-2xl cursor-pointer shadow-md hover:shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" /> Đang tạo chuyến đi...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={18} /> Hoàn tất & Gửi duyệt chuyến đi
-                  </>
-                )}
-              </Button>
+              {/* Nút Submit Form - ĐỒNG BỘ SÁT VÀO BÊN TRONG CARD CHI PHÍ */}
+              <div className="pt-3 border-t border-slate-200/60 mt-4 font-sans">
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-gradient-to-r from-coral-500 to-amber-500 hover:from-coral-600 hover:to-amber-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-coral-500/30 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" /> Đang tạo chuyến đi...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} /> Hoàn tất & Gửi duyệt chuyến đi
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </form>

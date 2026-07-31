@@ -39,6 +39,7 @@ function App() {
         <Route path="/create-trip" element={<CreateTripPage />} />
         <Route path="/trips/create" element={<CreateTripPage />} />
         <Route path="/trips/:id" element={<TripDetailPage />} />
+        <Route path="/trip/:id" element={<TripDetailPage />} />
         <Route path="/trips/:id/edit" element={<EditTripPage />} />
         <Route path="/my-trips" element={<MyTripsPage />} />
       </Route>

@@ -237,8 +237,8 @@ export const TripDetailPage: React.FC = () => {
 
       <main className="flex-1 pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] mx-auto w-full">
         {/* Header Title Seamless Top */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 bg-slate-50 p-4 sm:p-6 rounded-3xl">
-          <div className="space-y-1">
+        <div className="mb-6 bg-slate-50 p-4 sm:p-6 rounded-3xl">
+          <div className="space-y-1 text-left">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
               {trip.title} <Sparkles size={24} className="text-coral-500 fill-coral-500/20" />
             </h1>
@@ -246,40 +246,6 @@ export const TripDetailPage: React.FC = () => {
               Thông tin chi tiết hành trình và thành viên tham gia chuyến đi.
             </p>
           </div>
-
-          {/* Thẻ Người tổ chức (Click vào để mở Modal Hồ Sơ Host) */}
-          <button
-            type="button"
-            onClick={handleOpenHostModal}
-            className="shrink-0 flex items-center gap-3 bg-white hover:bg-slate-100/90 p-3 rounded-2xl border border-slate-200/80 shadow-2xs transition cursor-pointer text-left group"
-          >
-            {trip.organizerAvatarUrl ? (
-              <Image
-                src={trip.organizerAvatarUrl}
-                alt={trip.organizerName}
-                containerClassName="w-10 h-10 rounded-xl border border-slate-200 shrink-0"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-xl bg-coral-50 text-coral-600 font-black text-base flex items-center justify-center shrink-0">
-                {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : 'H'}
-              </div>
-            )}
-
-            <div className="text-[11px] text-slate-600 font-semibold">
-              <p className="text-slate-800 font-bold flex items-center gap-1 group-hover:text-coral-600 transition">
-                Người tổ chức: {trip.organizerName}
-                <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
-              </p>
-              <p className="text-slate-400 flex items-center gap-1.5 pt-0.5">
-                <span className="flex items-center gap-0.5 text-slate-600 font-bold">
-                  <Star size={11} className="text-amber-400 fill-amber-400" />
-                  {trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'}
-                </span>
-                <span>•</span>
-                <span className="text-coral-600 font-bold">Xem thông tin Host ➔</span>
-              </p>
-            </div>
-          </button>
         </div>
 
         {/* BỐ CỤC 2 CỘT (7 COLS MAIN + 5 COLS SIDEBAR) */}
@@ -490,8 +456,28 @@ export const TripDetailPage: React.FC = () => {
           </div>
 
           {/* CỘT PHẢI (SIDEBAR FORM - 5 COLS) */}
-          <div className="lg:col-span-5 space-y-4">
-            {/* Box 3: Ảnh bìa & Hình ảnh */}
+          <div className="lg:col-span-5 space-y-3">
+            {/* THẺ NGƯỜI TỔ CHỨC: CĂN DỊCH VÀO TRONG THẲNG HÀNG VỚI CARD BÊN DƯỚI */}
+            <div className="flex justify-end pb-1 pr-6 sm:pr-7">
+              <button
+                type="button"
+                onClick={handleOpenHostModal}
+                className="text-right cursor-pointer group"
+              >
+                <div className="text-xs leading-tight space-y-0.5">
+                  <div className="font-semibold text-slate-800 flex items-center justify-end gap-1">
+                    Người tổ chức: <span className="font-semibold text-slate-900">{trip.organizerName}</span>
+                    <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+                  </div>
+                  <div className="text-[11px] text-slate-500 font-medium flex items-center justify-end gap-1">
+                    <Star size={12} className="text-amber-400 fill-amber-400" />
+                    <span>{trip.organizerRating ? trip.organizerRating.toFixed(1) : '5.0'} / 5.0 ⭐</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Box 3: Ảnh bìa & Hình ảnh (Dịch thẳng lên trên) */}
             <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-5">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-200/60 pb-3.5 flex items-center gap-2">
                 <ImagePlus size={18} className="text-coral-500" /> Ảnh bìa & Hình ảnh
@@ -581,10 +567,10 @@ export const TripDetailPage: React.FC = () => {
                 <Button
                   disabled={isJoining || isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open}
                   onClick={handleButtonClick}
-                  className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg transition-transform flex items-center justify-center gap-2 ${
+                  className={`w-full py-4 text-sm font-black rounded-2xl shadow-lg flex items-center justify-center gap-2 ${
                     isOrganizer || isPending || isApproved || isRejected || isMemberCompleted || isFull || trip.status !== TripStatus.Open
                       ? 'bg-slate-600 text-white shadow-none opacity-100 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 hover:scale-[1.02] cursor-pointer'
+                      : 'bg-gradient-to-r from-coral-500 to-amber-500 text-white shadow-coral-500/30 transition-colors cursor-pointer'
                   }`}
                 >
                   {isJoining ? (
@@ -634,7 +620,7 @@ export const TripDetailPage: React.FC = () => {
         isOpen={isHostModalOpen}
         onClose={() => setIsHostModalOpen(false)}
         title="Thông tin Người tổ chức"
-        maxWidth="md"
+        maxWidth="lg"
       >
         {isLoadingHostProfile ? (
           <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
@@ -643,34 +629,41 @@ export const TripDetailPage: React.FC = () => {
           </div>
         ) : hostProfile ? (
           <div className="space-y-4 text-left font-sans pt-1">
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-700">Họ và tên</label>
-              <Input value={hostProfile.fullName} readOnly leftIcon={<UserIcon size={16} className="text-slate-400" />} />
+            {/* Hàng 1: Họ và tên CÙNG HÀNG với Email liên hệ */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Họ và tên</label>
+                <Input value={hostProfile.fullName} readOnly leftIcon={<UserIcon size={16} className="text-slate-400" />} />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Email liên hệ</label>
+                <Input value={hostProfile.email} readOnly leftIcon={<Mail size={16} className="text-slate-400" />} />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-700">Email liên hệ</label>
-              <Input value={hostProfile.email} readOnly leftIcon={<Mail size={16} className="text-slate-400" />} />
+            {/* Hàng 2: Đánh giá uy tín CÙNG HÀNG với Số chuyến đi tạo */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Đánh giá uy tín</label>
+                <Input value={`${hostProfile.rating.toFixed(1)} / 5.0 ⭐`} readOnly leftIcon={<Star size={16} className="text-amber-400 fill-amber-400" />} />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Số chuyến đi tạo</label>
+                <Input
+                  value={`${hostProfile.totalCreatedTrips} chuyến (${hostProfile.uncompletedTripsCount} không hoàn thành)`}
+                  readOnly
+                />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-700">Đánh giá uy tín</label>
-              <Input value={`${hostProfile.rating.toFixed(1)} / 5.0 ⭐`} readOnly leftIcon={<Star size={16} className="text-amber-400 fill-amber-400" />} />
-            </div>
-
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-700">Số chuyến đi tạo</label>
-              <Input
-                value={`${hostProfile.totalCreatedTrips} chuyến (${hostProfile.uncompletedTripsCount} không hoàn thành)`}
-                readOnly
-              />
-            </div>
-
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+            {/* NÚT ĐÓNG SẮC NÉT KHÔNG BỊ OVERWRITE TEXT COLOR */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => setIsHostModalOpen(false)}
-                className="px-6 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-100 font-bold text-xs transition cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 transition cursor-pointer"
               >
                 Đóng
               </button>
@@ -688,7 +681,7 @@ export const TripDetailPage: React.FC = () => {
         isOpen={isApplicantModalOpen}
         onClose={() => setIsApplicantModalOpen(false)}
         title="Chi tiết thành viên xin tham gia"
-        maxWidth="md"
+        maxWidth="lg"
       >
         {isLoadingApplicant ? (
           <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
@@ -697,20 +690,21 @@ export const TripDetailPage: React.FC = () => {
           </div>
         ) : applicantProfile ? (
           <div className="space-y-4 text-left font-sans pt-1">
-            {/* Tên */}
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-700">Họ và tên</label>
-              <Input value={applicantProfile.fullName} readOnly leftIcon={<UserIcon size={16} className="text-slate-400" />} />
+            {/* Hàng 1: Họ và tên CÙNG HÀNG với Email liên hệ */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Họ và tên</label>
+                <Input value={applicantProfile.fullName} readOnly leftIcon={<UserIcon size={16} className="text-slate-400" />} />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Email liên hệ</label>
+                <Input value={applicantProfile.email} readOnly leftIcon={<Mail size={16} className="text-slate-400" />} />
+              </div>
             </div>
 
-            {/* Email */}
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-700">Email liên hệ</label>
-              <Input value={applicantProfile.email} readOnly leftIcon={<Mail size={16} className="text-slate-400" />} />
-            </div>
-
-            {/* Giới tính & Ngày sinh */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Hàng 2: Giới tính, Ngày sinh và Đánh giá trung bình CÙNG HÀNG */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <label className="block text-xs font-bold text-slate-700">Giới tính</label>
                 <Input value={applicantProfile.gender || 'Chưa cập nhật'} readOnly />
@@ -719,12 +713,10 @@ export const TripDetailPage: React.FC = () => {
                 <label className="block text-xs font-bold text-slate-700">Ngày sinh</label>
                 <Input value={applicantProfile.birthDate ? formatDate(applicantProfile.birthDate) : 'Chưa cập nhật'} readOnly />
               </div>
-            </div>
-
-            {/* Đánh giá */}
-            <div className="space-y-1">
-              <label className="block text-xs font-bold text-slate-700">Đánh giá trung bình</label>
-              <Input value={`${applicantProfile.avgRating.toFixed(1)} / 5.0 ⭐`} readOnly leftIcon={<Star size={16} className="text-amber-400 fill-amber-400" />} />
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-slate-700">Đánh giá trung bình</label>
+                <Input value={`${applicantProfile.avgRating.toFixed(1)} / 5.0 ⭐`} readOnly leftIcon={<Star size={16} className="text-amber-400 fill-amber-400" />} />
+              </div>
             </div>
 
             {/* 2 Nút Hành động Từ chối và Duyệt (Chỉ hiển thị cho Host đối với thành viên Chờ duyệt) */}
@@ -747,11 +739,11 @@ export const TripDetailPage: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
                 <button
                   type="button"
                   onClick={() => setIsApplicantModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-600 border border-sky-100 font-bold text-xs transition cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 transition cursor-pointer"
                 >
                   Đóng
                 </button>
