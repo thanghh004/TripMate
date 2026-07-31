@@ -16,18 +16,24 @@ import {
   ShieldCheck,
   Sparkles,
   Users,
-  ArrowRight,
-  Loader2,
+  Heart,
+  MessageSquare,
+  Send,
   Compass,
+  Loader2,
+  Globe,
+  MoreHorizontal,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const authContext = useContext(AuthContext);
   const isAuthenticated = authContext?.isAuthenticated;
+  const currentUser = authContext?.user;
   const navigate = useNavigate();
 
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [likedTripIds, setLikedTripIds] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchPublicTrips = async () => {
@@ -45,192 +51,303 @@ export const HomePage: React.FC = () => {
     fetchPublicTrips();
   }, []);
 
+  const toggleLike = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLikedTripIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
       {/* Header / Navbar */}
       <Header />
 
-      {/* Hero Section */}
-      <main className="flex-1 pt-28 pb-20 px-4 sm:px-8 max-w-[1400px] mx-auto w-full space-y-16">
-        <div className="text-center relative z-10 space-y-6 pt-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 border border-orange-200 text-coral-600 text-xs font-bold uppercase tracking-wider shadow-xs">
-            <Sparkles size={14} className="text-amber-500" />
-            Nền tảng Tìm bạn đồng hành & Du lịch nhóm số 1
-          </div>
+      {/* Main Container 3 Cột Phong Cách Facebook */}
+      <main className="flex-1 pt-24 pb-16 px-3 sm:px-6 max-w-[1280px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-slate-900">
-            Khám phá thế giới cùng <br />
-            <span className="bg-gradient-to-r from-coral-500 via-amber-500 to-teal-600 bg-clip-text text-transparent">
-              Những bạn đồng hành lý tưởng
-            </span>
-          </h1>
+        {/* CỘT TRÁI (LEFT SIDEBAR - 3 COLS - Profile summary & Shortcuts) */}
+        <div className="hidden lg:block lg:col-span-3 space-y-4 text-left">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4 sticky top-24">
+            {isAuthenticated && currentUser ? (
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                {currentUser.avatarUrl ? (
+                  <Image src={currentUser.avatarUrl} alt={currentUser.fullName} containerClassName="w-11 h-11 rounded-full border border-slate-200" />
+                ) : (
+                  <div className="w-11 h-11 rounded-full bg-coral-50 text-coral-600 font-bold text-sm flex items-center justify-center border border-coral-200">
+                    {currentUser.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-xs text-slate-900 truncate">{currentUser.fullName}</p>
+                  <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-gradient-to-r from-coral-500/10 to-amber-500/10 rounded-xl space-y-2">
+                <p className="text-xs font-bold text-slate-800">Tham gia TripMate ngay!</p>
+                <p className="text-[11px] text-slate-500">Đăng nhập để kết nối bạn đồng hành và tạo chuyến đi của riêng bạn.</p>
+                <Button onClick={() => navigate('/login')} className="w-full bg-coral-500 text-white font-bold text-xs py-2 rounded-xl">
+                  Đăng nhập
+                </Button>
+              </div>
+            )}
 
-          <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
-            TripMate kết nối bạn với những người cùng đam mê xê dịch. Tìm kiếm các hành trình hấp dẫn đã được kiểm duyệt và tham gia ngay hôm nay.
-          </p>
-
-          {!isAuthenticated && (
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-              <Button
-                size="lg"
-                onClick={() => navigate('/register')}
-                className="w-full sm:w-auto px-8 py-3.5 text-sm font-bold bg-gradient-to-r from-coral-500 to-amber-500 text-white rounded-2xl shadow-xl shadow-coral-500/20 hover:scale-[1.02] transition-transform cursor-pointer"
+            {/* Menu phím tắt */}
+            <div className="space-y-1 font-semibold text-xs text-slate-700">
+              <button
+                onClick={() => navigate('/')}
+                className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-coral-50 text-coral-600 font-bold transition cursor-pointer"
               >
-                Bắt đầu hành trình ngay
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => navigate('/login')}
-                className="w-full sm:w-auto px-8 py-3.5 text-sm border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-2xl shadow-xs cursor-pointer"
-              >
-                Đăng nhập tài khoản
-              </Button>
+                <Compass size={18} /> Newsfeed Chuyến Đi
+              </button>
+
+              {isAuthenticated && (
+                <>
+                  <button
+                    onClick={() => navigate('/my-trips')}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                  >
+                    <Users size={18} className="text-amber-500" /> Chuyến Đi Của Tôi
+                  </button>
+                  <button
+                    onClick={() => navigate('/create-trip')}
+                    className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 text-slate-700 transition cursor-pointer"
+                  >
+                    <Sparkles size={18} className="text-teal-600" /> + Đăng Chuyến Đi Mới
+                  </button>
+                </>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Section: Danh sách Chuyến Đi Đã Duyệt Nổi Bật */}
-        <div className="space-y-8 text-left">
-          <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
-                <Compass size={24} className="text-coral-500" />
-                Hành trình nổi bật đang mở đăng ký
-              </h2>
-              <p className="text-xs text-slate-500 font-medium pt-1">
-                Các chuyến đi đã được Admin phê duyệt an toàn và sẵn sàng cho bạn tham gia.
-              </p>
+        {/* CỘT GIỮA (NEWSFEED - 6 COLS - FACEBOOK STYLE TRIP POSTS) */}
+        <div className="lg:col-span-6 space-y-5 text-left">
+
+          {/* Khung "Đăng tin chuyến đi mới" phong cách Facebook */}
+          {isAuthenticated && (
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
+              <div className="flex items-center gap-3">
+                {currentUser?.avatarUrl ? (
+                  <Image src={currentUser.avatarUrl} alt={currentUser.fullName || ''} containerClassName="w-10 h-10 rounded-full border border-slate-200 shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-coral-50 text-coral-600 font-bold text-xs flex items-center justify-center shrink-0 border border-coral-200">
+                    {currentUser?.fullName ? currentUser.fullName.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                )}
+
+                <button
+                  onClick={() => navigate('/create-trip')}
+                  className="w-full text-left bg-slate-100 hover:bg-slate-200/70 text-slate-500 text-xs font-medium px-4 py-2.5 rounded-full transition cursor-pointer"
+                >
+                  {currentUser?.fullName ? `${currentUser.fullName} ơi, bạn sắp đi đâu thế? Đăng tin tuyển bạn ngay...` : 'Đăng tin tuyển bạn đồng hành...'}
+                </button>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-around text-xs font-bold text-slate-600">
+                <button onClick={() => navigate('/create-trip')} className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-xl transition cursor-pointer text-coral-600">
+                  <Sparkles size={16} /> Lên lịch trình
+                </button>
+                <button onClick={() => navigate('/create-trip')} className="flex items-center gap-2 hover:bg-slate-50 px-3 py-1.5 rounded-xl transition cursor-pointer text-teal-600">
+                  <MapPin size={16} /> Chọn địa điểm
+                </button>
+              </div>
             </div>
+          )}
 
-            {isAuthenticated && (
-              <Button
-                onClick={() => navigate('/create-trip')}
-                className="bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-sm"
-              >
-                <Sparkles size={15} /> + Tạo chuyến mới
-              </Button>
-            )}
-          </div>
-
+          {/* Danh sách Bài Đăng Chuyến Đi (Facebook Post Feeds) */}
           {isLoading ? (
-            <div className="bg-white p-16 rounded-3xl border border-slate-200/80 flex flex-col items-center justify-center gap-3 text-slate-500">
-              <Loader2 size={36} className="animate-spin text-coral-500" />
-              <span className="text-sm font-semibold">Đang nạp các chuyến đi nổi bật...</span>
+            <div className="bg-white p-12 rounded-2xl border border-slate-200/80 flex flex-col items-center justify-center gap-3 text-slate-500">
+              <Loader2 size={32} className="animate-spin text-coral-500" />
+              <span className="text-xs font-semibold">Đang tải bảng tin chuyến đi...</span>
             </div>
           ) : trips.length === 0 ? (
-            <div className="bg-white p-12 rounded-3xl border border-slate-200/80 text-center space-y-3">
-              <Compass size={40} className="mx-auto text-slate-400" />
-              <h3 className="text-base font-bold text-slate-800">Chưa có chuyến đi nào được duyệt</h3>
-              <p className="text-xs text-slate-500">Hãy quay lại sau hoặc là người đầu tiên tạo chuyến đi mới nhé!</p>
+            <div className="bg-white p-10 rounded-2xl border border-slate-200/80 text-center space-y-3">
+              <Compass size={36} className="mx-auto text-slate-400" />
+              <h3 className="text-sm font-bold text-slate-800">Chưa có chuyến đi nào được duyệt</h3>
+              <p className="text-xs text-slate-500">Hãy đăng tin chuyến đi đầu tiên của bạn ngay hôm nay!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trips.map((trip) => (
-                <div
+            trips.map((trip) => {
+              const isLiked = likedTripIds.includes(trip.id);
+              return (
+                <article
                   key={trip.id}
                   onClick={() => navigate(`/trips/${trip.id}`)}
-                  className="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col group"
+                  className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-shadow duration-200 cursor-pointer overflow-hidden font-sans space-y-3.5 pt-4 pb-3"
                 >
-                  {/* Image Cover Top */}
-                  <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                    {trip.coverImageUrl ? (
-                      <Image
-                        src={trip.coverImageUrl}
-                        alt={trip.title}
-                        containerClassName="w-full h-full group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-semibold">
-                        Chưa có ảnh bìa
-                      </div>
-                    )}
+                  {/* 1. Post Header (Avatar, Host Name, Verified badge, Time & Status) */}
+                  <div className="px-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {trip.organizerAvatarUrl ? (
+                        <Image src={trip.organizerAvatarUrl} alt={trip.organizerName} containerClassName="w-10 h-10 rounded-full border border-slate-200 shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-coral-50 text-coral-600 font-black text-sm flex items-center justify-center shrink-0 border border-coral-200">
+                          {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : 'H'}
+                        </div>
+                      )}
 
-                    {/* Status Badge */}
-                    <div className="absolute top-3 left-3 z-10">
+                      <div className="text-xs space-y-0.5">
+                        <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                          <span>{trip.organizerName}</span>
+                          <span title="Host đã xác minh danh tính">
+                            <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
+                          <span>{formatDate(trip.createdAt)}</span>
+                          <span>•</span>
+                          <Globe size={11} className="text-slate-400" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
                       {trip.status === TripStatus.Full ? (
-                        <span className="text-[10px] font-black text-blue-800 bg-blue-100/95 backdrop-blur-xs px-2.5 py-1 rounded-full uppercase tracking-wider shadow-xs">
+                        <span className="text-[10px] font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full uppercase tracking-wider border border-blue-100">
                           Đã đủ chỗ
                         </span>
                       ) : (
-                        <span className="text-[10px] font-black text-emerald-800 bg-emerald-100/95 backdrop-blur-xs px-2.5 py-1 rounded-full uppercase tracking-wider shadow-xs">
-                          Đang mở nhận chỗ
+                        <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-wider border border-emerald-100">
+                          Đang nhận đăng ký
                         </span>
                       )}
+                      <button className="text-slate-400 hover:text-slate-600 p-1 rounded-full transition">
+                        <MoreHorizontal size={18} />
+                      </button>
                     </div>
+                  </div>
 
-                    {/* Category Badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <span className="text-[10px] font-bold text-slate-800 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full shadow-xs">
+                  {/* 2. Post Caption & Title */}
+                  <div className="px-4 space-y-2">
+                    <h2 className="text-base font-extrabold text-slate-900 leading-snug hover:text-coral-600 transition">
+                      {trip.title}
+                    </h2>
+
+                    {/* Tag Lộ trình & Loại hình dạng Viên Nang (Pills) */}
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-100 px-2.5 py-1 rounded-lg">
+                        <MapPin size={12} className="text-teal-600" />
+                        {trip.startLocation}{trip.startCityName ? ` (${trip.startCityName})` : ''} ➔ {trip.destination}{trip.destinationCityName ? ` (${trip.destinationCityName})` : ''}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-coral-700 bg-coral-50 border border-coral-100 px-2.5 py-1 rounded-lg">
+                        <Sparkles size={11} className="text-coral-500" />
                         {trip.categoryName || 'Du lịch'}
                       </span>
                     </div>
+
+                    {trip.description && (
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 pt-1 font-medium">
+                        {trip.description}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Body Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div className="space-y-2.5">
-                      <h3 className="text-base font-extrabold text-slate-900 group-hover:text-coral-600 transition-colors line-clamp-1">
-                        {trip.title}
-                      </h3>
+                  {/* 3. Post Cover Image (Media Block) */}
+                  {trip.coverImageUrl && (
+                    <div className="relative aspect-video bg-slate-100 overflow-hidden">
+                      <Image
+                        src={trip.coverImageUrl}
+                        alt={trip.title}
+                        containerClassName="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300"
+                      />
+                    </div>
+                  )}
 
-                      {/* Organizer info */}
-                      <div className="flex items-center gap-2 text-xs text-slate-600">
-                        {trip.organizerAvatarUrl ? (
-                          <Image src={trip.organizerAvatarUrl} alt={trip.organizerName} containerClassName="w-5 h-5 rounded-full" />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-coral-100 text-coral-600 font-bold text-[10px] flex items-center justify-center">
-                            {trip.organizerName ? trip.organizerName.charAt(0).toUpperCase() : 'H'}
-                          </div>
-                        )}
-                        <span className="font-semibold text-slate-700 truncate">{trip.organizerName}</span>
-                        <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
-                      </div>
-
-                      {/* Route */}
-                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-700 font-medium space-y-1">
-                        <div className="flex items-center gap-1.5 truncate">
-                          <MapPin size={14} className="text-teal-600 shrink-0" />
-                          <span className="truncate">Đi: {trip.startLocation}{trip.startCityName ? ` (${trip.startCityName})` : ''}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 truncate">
-                          <MapPin size={14} className="text-coral-500 shrink-0" />
-                          <span className="truncate">Đến: {trip.destination}{trip.destinationCityName ? ` (${trip.destinationCityName})` : ''}</span>
-                        </div>
-                      </div>
-
-                      {/* Dates & Members */}
-                      <div className="flex items-center justify-between text-xs text-slate-500 pt-1 font-medium">
-                        <span className="flex items-center gap-1">
-                          <Calendar size={13} className="text-slate-400" />
-                          {formatDate(trip.startDate)}
-                        </span>
-                        <span className="flex items-center gap-1 font-bold text-slate-700">
-                          <Users size={13} className="text-coral-500" />
-                          {trip.currentMembers}/{trip.maxMembers} người
-                        </span>
-                      </div>
+                  {/* 4. Travel Stats Bar (Ngày đi, Số chỗ, Chi phí) */}
+                  <div className="mx-4 p-3 bg-slate-50 rounded-xl border border-slate-200/70 grid grid-cols-3 gap-2 text-center text-xs font-semibold">
+                    <div className="border-r border-slate-200/80 pr-1">
+                      <span className="text-[10px] text-slate-400 font-medium block">Ngày khởi hành</span>
+                      <span className="text-slate-800 font-bold text-[11px] flex items-center justify-center gap-1 mt-0.5">
+                        <Calendar size={12} className="text-coral-500" />
+                        {formatDate(trip.startDate)}
+                      </span>
                     </div>
 
-                    {/* Bottom Footer Price & Button */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                      <div>
-                        <span className="text-[11px] text-slate-400 block font-medium">Chi phí ước tính</span>
-                        <span className="text-sm font-black text-coral-600">
-                          {trip.estimatedCost ? `${trip.estimatedCost.toLocaleString('vi-VN')} VNĐ` : 'Miễn phí'}
-                        </span>
-                      </div>
+                    <div className="border-r border-slate-200/80 px-1">
+                      <span className="text-[10px] text-slate-400 font-medium block">Số thành viên</span>
+                      <span className="text-slate-800 font-bold text-[11px] flex items-center justify-center gap-1 mt-0.5">
+                        <Users size={12} className="text-teal-600" />
+                        {trip.currentMembers}/{trip.maxMembers} người
+                      </span>
+                    </div>
 
-                      <span className="text-xs font-bold text-coral-600 group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                        Chi tiết <ArrowRight size={14} />
+                    <div className="pl-1">
+                      <span className="text-[10px] text-slate-400 font-medium block">Chi phí / người</span>
+                      <span className="text-coral-600 font-black text-[11px] mt-0.5 block">
+                        {trip.estimatedCost ? `${trip.estimatedCost.toLocaleString('vi-VN')}đ` : 'Miễn phí'}
                       </span>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+
+                  {/* 5. Post Actions (Like, Comment, Join / Detail Button) */}
+                  <div className="px-4 pt-1 flex items-center justify-between border-t border-slate-100 text-xs font-bold text-slate-600">
+                    <button
+                      type="button"
+                      onClick={(e) => toggleLike(trip.id, e)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl transition cursor-pointer hover:bg-slate-100 ${
+                        isLiked ? 'text-rose-600 font-black' : 'text-slate-600'
+                      }`}
+                    >
+                      <Heart size={16} className={isLiked ? 'fill-rose-600 text-rose-600' : ''} />
+                      <span>Thích</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/trips/${trip.id}`);
+                      }}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl hover:bg-slate-100 transition cursor-pointer text-slate-600"
+                    >
+                      <MessageSquare size={16} />
+                      <span>Thảo luận</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/trips/${trip.id}`);
+                      }}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-coral-50 hover:bg-coral-100 text-coral-600 transition cursor-pointer font-black"
+                    >
+                      <Send size={15} />
+                      <span>Xem & Tham gia</span>
+                    </button>
+                  </div>
+                </article>
+              );
+            })
           )}
         </div>
+
+        {/* CỘT PHẢI (RIGHT SIDEBAR - 3 COLS - Widgets & Community Tips) */}
+        <div className="hidden lg:block lg:col-span-3 space-y-4 text-left font-sans">
+          {/* Widget Mẹo Du Lịch An Toàn */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3 sticky top-24">
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-2.5">
+              <ShieldCheck size={16} className="text-emerald-500" /> Du lịch an toàn cùng TripMate
+            </h3>
+            <ul className="text-xs text-slate-600 space-y-2 leading-relaxed font-medium">
+              <li className="flex items-start gap-2">
+                <span className="text-coral-500 font-bold">•</span>
+                Luôn kiểm tra Tích xanh xác minh CCCD của Trưởng đoàn.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-coral-500 font-bold">•</span>
+                Trao đổi kỹ lịch trình và chi phí trước khi chuyển cọc.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-coral-500 font-bold">•</span>
+                Tuân thủ quy định và yêu cầu độ tuổi/sức khỏe chuyến đi.
+              </li>
+            </ul>
+          </div>
+        </div>
+
       </main>
 
       {/* Footer */}
