@@ -89,6 +89,7 @@ export interface Trip {
   preferredGender?: string;
   status: number;
   statusName?: string;
+  myMemberStatus?: number;
   moderationNote?: string;
   cancellationReason?: string;
   imageUrls: string[];

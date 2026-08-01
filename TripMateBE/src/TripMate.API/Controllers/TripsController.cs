@@ -123,6 +123,17 @@ public class TripsController : BaseApiController
         return Ok(result);
     }
 
+    /// <summary>
+    /// Lấy danh sách các chuyến đi mà người dùng hiện tại đã gửi yêu cầu/đã tham gia làm thành viên
+    /// </summary>
+    [HttpGet("joined")]
+    [Authorize]
+    public async Task<ActionResult<List<TripDto>>> GetJoinedTrips()
+    {
+        var result = await Mediator.Send(new Application.Features.Trips.Queries.GetJoinedTrips.GetJoinedTripsQuery(CurrentUserId));
+        return Ok(result);
+    }
+
     // ─── ADMIN CONTROLS ───
 
     /// <summary>

@@ -53,4 +53,10 @@ export const tripApi = {
     const res = await axiosClient.get<Trip[]>('/api/trips/public');
     return res.data;
   },
+
+  // API Lấy danh sách các chuyến đi mà người dùng hiện tại đã đăng ký tham gia
+  getJoinedTrips: async (): Promise<Trip[]> => {
+    const res = await axiosClient.get<Trip[]>('/api/trips/joined');
+    return res.data;
+  },
 };

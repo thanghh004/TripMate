@@ -190,11 +190,14 @@ export const HomePage: React.FC = () => {
               <span>TripMate AI</span>
             </div>
 
-            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-200/60 transition cursor-pointer text-xs font-semibold text-slate-800">
+            <div
+              onClick={() => navigate('/joined-trips')}
+              className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-200/60 transition cursor-pointer text-xs font-semibold text-slate-800"
+            >
               <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                 <Users size={18} />
               </div>
-              <span>Bạn đồng hành</span>
+              <span>Chuyến đi đã tham gia</span>
             </div>
 
             <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-200/60 transition cursor-pointer text-xs font-semibold text-slate-800">

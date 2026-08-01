@@ -8,6 +8,7 @@ import ProfilePage from './pages/user/ProfilePage';
 import CreateTripPage from './pages/trip/CreateTripPage';
 import TripDetailPage from './pages/trip/TripDetailPage';
 import MyTripsPage from './pages/trip/MyTripsPage';
+import JoinedTripsPage from './pages/trip/JoinedTripsPage';
 import EditTripPage from './pages/trip/EditTripPage';
 import NotFoundPage from './pages/error/NotFoundPage';
 import ForbiddenPage from './pages/error/ForbiddenPage';
@@ -42,6 +43,8 @@ function App() {
         <Route path="/trip/:id" element={<TripDetailPage />} />
         <Route path="/trips/:id/edit" element={<EditTripPage />} />
         <Route path="/my-trips" element={<MyTripsPage />} />
+        <Route path="/joined-trips" element={<JoinedTripsPage />} />
+        <Route path="/trips/joined" element={<JoinedTripsPage />} />
       </Route>
 
       {/* Admin Only Routes */}

@@ -306,7 +306,7 @@ export const Header: React.FC = () => {
                           <button
                             onClick={() => {
                               setShowDropdown(false);
-                              navigate('/my-trips?tab=joined');
+                              navigate('/joined-trips');
                             }}
                             className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer"
                           >
