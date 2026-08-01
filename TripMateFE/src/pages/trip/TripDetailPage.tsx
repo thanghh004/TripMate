@@ -740,24 +740,28 @@ export const TripDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 2 Nút Hành động Từ chối và Duyệt (Chỉ hiển thị cho Host đối với thành viên Chờ duyệt) */}
+            {/* 2 Nút Hành động Từ chối và Duyệt chuẩn màu xanh nhẹ emerald-500 và xám nhạt slate-100 */}
             {isOrganizer && selectedApplicantMember?.status === TripMemberStatus.Pending ? (
-              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
-                <Button
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 font-sans">
+                <button
+                  type="button"
                   disabled={isActionProcessing}
                   onClick={() => handleRejectMember(applicantProfile.userId)}
-                  className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
                 >
-                  <XCircle size={16} /> Từ chối
-                </Button>
+                  <XCircle size={15} />
+                  <span>Từ chối</span>
+                </button>
 
-                <Button
+                <button
+                  type="button"
                   disabled={isActionProcessing}
                   onClick={() => handleApproveMember(applicantProfile.userId)}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
                 >
-                  <CheckCircle2 size={16} /> Duyệt tham gia
-                </Button>
+                  <CheckCircle2 size={15} />
+                  <span>Duyệt tham gia</span>
+                </button>
               </div>
             ) : (
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end">

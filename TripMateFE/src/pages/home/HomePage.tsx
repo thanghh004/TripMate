@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Header } from '../../components/common/Header';
 import Image from '../../components/common/Image';
 import { tripApi } from '../../api/tripApi';
@@ -26,31 +26,48 @@ import {
   ShoppingBag,
   ChevronDown,
   Sparkle,
-  SearchX,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const authContext = useContext(AuthContext);
   const isAuthenticated = authContext?.isAuthenticated;
   const user = authContext?.user;
 
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [advancedFilters, setAdvancedFilters] = useState<TripFilterCriteria>({
-    startCityId: '',
-    destinationCityId: '',
-    minCost: '',
-    maxCost: '',
-    categoryId: '',
-    startDate: '',
-    endDate: '',
-  });
 
-  // Đọc từ khóa từ query param URL (?search=...)
-  const searchParams = new URLSearchParams(location.search);
+  // Đọc bộ lọc nâng cao từ URL SearchParams để giữ nguyên khi quay lại
+  const [advancedFilters, setAdvancedFilters] = useState<TripFilterCriteria>(() => ({
+    startCityId: searchParams.get('startCityId') || '',
+    destinationCityId: searchParams.get('destinationCityId') || '',
+    minCost: searchParams.get('minCost') || '',
+    maxCost: searchParams.get('maxCost') || '',
+    categoryId: searchParams.get('categoryId') || '',
+    startDate: searchParams.get('startDate') || '',
+    endDate: searchParams.get('endDate') || '',
+  }));
+
+  // Đọc từ khóa tìm kiếm ô Header
   const searchQuery = searchParams.get('search') || '';
+
+  // Handler cập nhật bộ lọc vừa lưu state vừa lưu URL SearchParams
+  const handleFilterApply = (newFilters: TripFilterCriteria) => {
+    setAdvancedFilters(newFilters);
+    const params = new URLSearchParams(searchParams);
+    
+    // Cập nhật từng field lọc lên URL
+    Object.entries(newFilters).forEach(([key, val]) => {
+      if (val) {
+        params.set(key, val);
+      } else {
+        params.delete(key);
+      }
+    });
+
+    setSearchParams(params, { replace: true });
+  };
 
   useEffect(() => {
     const fetchPublicTrips = async () => {
@@ -109,18 +126,18 @@ export const HomePage: React.FC = () => {
       return false;
     }
 
-    // 6. Lọc theo Ngày khởi hành (startDate)
+    // 6. Lọc theo Ngày khởi hành (startDate): So sánh dạng chuỗi YYYY-MM-DD chính xác không lỗi múi giờ
     if (advancedFilters.startDate) {
-      const filterStart = new Date(advancedFilters.startDate).getTime();
-      const tripStart = new Date(trip.startDate).getTime();
-      if (!isNaN(filterStart) && !isNaN(tripStart) && tripStart < filterStart) return false;
+      const filterDateStr = advancedFilters.startDate;
+      const tripDateStr = trip.startDate ? trip.startDate.split('T')[0] : '';
+      if (tripDateStr && tripDateStr < filterDateStr) return false;
     }
 
     // 7. Lọc theo Ngày kết thúc (endDate)
     if (advancedFilters.endDate) {
-      const filterEnd = new Date(advancedFilters.endDate).getTime();
-      const tripEnd = new Date(trip.endDate).getTime();
-      if (!isNaN(filterEnd) && !isNaN(tripEnd) && tripEnd > filterEnd) return false;
+      const filterEndStr = advancedFilters.endDate;
+      const tripEndStr = trip.endDate ? trip.endDate.split('T')[0] : '';
+      if (tripEndStr && tripEndStr > filterEndStr) return false;
     }
 
     return true;
@@ -302,35 +319,66 @@ export const HomePage: React.FC = () => {
                 <TripCardSkeleton />
               </div>
             ) : filteredTrips.length === 0 ? (
-              <div className="bg-white p-10 rounded-xl border border-slate-200 text-center space-y-3">
-                {searchQuery ? (
-                  <>
-                    <SearchX size={44} className="text-coral-400 mx-auto" />
-                    <h3 className="text-sm font-bold text-slate-800">
-                      Không tìm thấy chuyến đi phù hợp với từ khóa "{searchQuery}"
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Thử tìm kiếm theo từ khóa khác hoặc nhấn quay lại danh sách tất cả chuyến đi.
-                    </p>
+              <div className="py-12 px-4 text-center space-y-5 select-none">
+                {/* Illustration Hình Bản Đồ & Pin Khổng Lồ Phong Cách Travel (Giống Ảnh Mẫu 2) */}
+                <div className="relative w-44 h-44 mx-auto flex items-center justify-center">
+                  {/* Nền Tròn Vàng Nhạt Soft Glow */}
+                  <div className="absolute inset-0 rounded-full bg-amber-100/60 scale-95" />
+
+                  {/* Khung Thẻ Bản Đồ Với Nét Đứt & Pin Đỏ */}
+                  <div className="relative z-10 w-36 h-28 bg-white rounded-2xl border-2 border-slate-800 shadow-sm flex flex-col justify-between p-3">
+                    {/* Các vạch ngăn cách bản đồ */}
+                    <div className="w-full flex justify-between h-full border-x-2 border-dashed border-slate-200 px-3">
+                      <div className="w-full h-full border-r-2 border-dashed border-slate-200" />
+                    </div>
+
+                    {/* Lộ Trình Nối Nét Đứt Màu Cam */}
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path d="M 25 70 Q 50 30 75 45" fill="none" stroke="#f97316" strokeWidth="3" strokeDasharray="4 4" strokeLinecap="round" />
+                    </svg>
+
+                    {/* Map Pin Đỏ Chân Thật */}
+                    <div className="absolute top-4 left-6 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center animate-bounce">
+                      <div className="w-7 h-7 rounded-full bg-rose-500 text-white font-bold text-[10px] flex items-center justify-center shadow-md border-2 border-white">
+                        ?
+                      </div>
+                      <div className="w-1.5 h-1.5 bg-rose-700 rotate-45 -mt-1 rounded-xs" />
+                    </div>
+
+                    {/* Tag Chữ 404 NOT FOUND */}
+                    <div className="absolute top-3 right-3 text-right leading-none">
+                      <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest block">NO TRIPS</span>
+                      <span className="text-xl font-black text-slate-900 tracking-tight block">404</span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">NOT FOUND</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Typography Tiêu Đề & Mô Tả Tinh Tế */}
+                <div className="space-y-1.5 max-w-md mx-auto">
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                    {searchQuery ? 'No Trips Match Your Search' : 'No Open Trips Available'}
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-500 leading-relaxed">
+                    {searchQuery
+                      ? `Không tìm thấy chuyến đi nào khớp với từ khóa "${searchQuery}".`
+                      : 'Hiện tại chưa có chuyến đi nào mở đăng ký trên hệ thống.'}
+                  </p>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    (Hãy thử thay đổi bộ lọc tìm kiếm hoặc tạo chuyến đi mới để tìm bạn đồng hành ngay)
+                  </p>
+                </div>
+
+                {/* Button Bo Tròn Viên Thuốc (Chỉ hiện khi tìm kiếm) */}
+                {searchQuery && (
+                  <div className="pt-1">
                     <button
                       onClick={() => navigate('/')}
-                      className="px-5 py-2 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-200 transition cursor-pointer"
+                      className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer"
                     >
                       Xem tất cả chuyến đi
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <Compass size={44} className="text-slate-300 mx-auto" />
-                    <h3 className="text-sm font-bold text-slate-800">Chưa có chuyến đi nào mở đăng ký</h3>
-                    <p className="text-xs text-slate-500">Hãy là người đầu tiên tạo chuyến đi để tìm bạn đồng hành!</p>
-                    <button
-                      onClick={handleCreateTripClick}
-                      className="px-5 py-2.5 bg-coral-500 text-white font-bold text-xs rounded-xl hover:bg-coral-600 transition cursor-pointer"
-                    >
-                      Tạo chuyến đi mới
-                    </button>
-                  </>
+                  </div>
                 )}
               </div>
             ) : (
@@ -423,7 +471,10 @@ export const HomePage: React.FC = () => {
 
           {/* CỘT PHẢI (3 COLS): BỘ LỌC TÌM CHUYẾN ĐI CHI TIẾT DẠT SÁT LỀ PHẢI */}
           <div className="hidden lg:block lg:col-span-3 text-left sticky top-24 select-none pr-2 sm:pr-4 pl-1">
-            <TripAdvancedFilter onFilterApply={(newFilters) => setAdvancedFilters(newFilters)} />
+            <TripAdvancedFilter
+              initialFilters={advancedFilters}
+              onFilterApply={handleFilterApply}
+            />
           </div>
 
         </div>

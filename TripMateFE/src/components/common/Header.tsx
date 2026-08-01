@@ -347,19 +347,19 @@ export const Header: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/login"
-                  className="text-xs font-bold text-slate-700 hover:text-slate-900 px-3 py-2 rounded-xl transition"
-                >
-                  Đăng nhập
-                </Link>
-                <Link
-                  to="/register"
-                  className="text-xs font-bold text-white bg-coral-500 hover:bg-coral-600 px-4 py-2 rounded-xl shadow-xs transition"
+              <div className="flex items-center gap-1.5 h-10">
+                <button
+                  onClick={() => navigate('/register')}
+                  className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors cursor-pointer select-none"
                 >
                   Đăng ký
-                </Link>
+                </button>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-slate-900 hover:bg-slate-900/80 rounded-full transition-all shadow-xs cursor-pointer select-none"
+                >
+                  Đăng nhập
+                </button>
               </div>
             )}
           </div>

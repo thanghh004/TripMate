@@ -19,10 +19,11 @@ export interface TripFilterCriteria {
 }
 
 interface TripAdvancedFilterProps {
+  initialFilters?: TripFilterCriteria;
   onFilterApply: (filters: TripFilterCriteria) => void;
 }
 
-const initialFilters: TripFilterCriteria = {
+const defaultInitialFilters: TripFilterCriteria = {
   startCityId: '',
   destinationCityId: '',
   minCost: '',
@@ -32,12 +33,20 @@ const initialFilters: TripFilterCriteria = {
   endDate: '',
 };
 
-export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({ onFilterApply }) => {
+export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({
+  initialFilters = defaultInitialFilters,
+  onFilterApply,
+}) => {
   const [cities, setCities] = useState<City[]>([]);
   const [categories, setCategories] = useState<TripCategory[]>([]);
   
-  // State quản lý giá trị nhập liệu tạm thời (chưa lọc)
+  // State quản lý giá trị nhập liệu tạm thời (khởi tạo từ initialFilters)
   const [localFilters, setLocalFilters] = useState<TripFilterCriteria>(initialFilters);
+
+  // Đồng bộ localFilters khi initialFilters từ props thay đổi (ví dụ khi quay lại trang)
+  useEffect(() => {
+    setLocalFilters(initialFilters);
+  }, [initialFilters]);
 
   // Nạp Master Data (Thành phố/Tỉnh & Danh mục)
   useEffect(() => {
@@ -67,8 +76,8 @@ export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({ onFilter
   };
 
   const handleReset = () => {
-    setLocalFilters(initialFilters);
-    onFilterApply(initialFilters);
+    setLocalFilters(defaultInitialFilters);
+    onFilterApply(defaultInitialFilters);
   };
 
   const cityOptions = [
