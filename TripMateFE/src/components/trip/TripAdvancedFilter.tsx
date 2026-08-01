@@ -82,7 +82,7 @@ export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({ onFilter
   ];
 
   return (
-    <form onSubmit={handleApply} className="space-y-3 font-sans text-left pr-2 max-w-[280px]">
+    <form onSubmit={handleApply} className="space-y-3 font-sans text-left w-full max-w-[320px] pr-1">
       {/* Header Phẳng: NÚT LỌC VÀ NÚT XÓA BỎ VIỀN, BỎ NỀN */}
       <div className="flex items-center justify-between pb-1">
         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -112,9 +112,9 @@ export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({ onFilter
         </div>
       </div>
 
-      {/* HÀNG 1: Điểm đi CÙNG HÀNG Điểm đến (2 COLS) */}
+      {/* HÀNG 1: Điểm đi CÙNG HÀNG Điểm đến */}
       <div className="grid grid-cols-2 gap-2">
-        <div>
+        <div className="w-full">
           <label className="block text-[11px] font-bold text-slate-600 mb-1">Điểm đi</label>
           <Select
             options={cityOptions}
@@ -122,7 +122,7 @@ export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({ onFilter
             onChange={(val) => handleChange('startCityId', val)}
           />
         </div>
-        <div>
+        <div className="w-full">
           <label className="block text-[11px] font-bold text-slate-600 mb-1">Điểm đến</label>
           <Select
             options={cityOptions}
@@ -132,9 +132,9 @@ export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({ onFilter
         </div>
       </div>
 
-      {/* HÀNG 2: Chi phí CÙNG HÀNG Loại hình (2 COLS) */}
+      {/* HÀNG 2: Chi phí CÙNG HÀNG Loại hình */}
       <div className="grid grid-cols-2 gap-2">
-        <div>
+        <div className="w-full">
           <label className="block text-[11px] font-bold text-slate-600 mb-1">Chi phí tối đa</label>
           <Input
             type="number"
@@ -144,7 +144,7 @@ export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({ onFilter
             onChange={(e) => handleChange('maxCost', e.target.value)}
           />
         </div>
-        <div>
+        <div className="w-full">
           <label className="block text-[11px] font-bold text-slate-600 mb-1">Loại hình</label>
           <Select
             options={categoryOptions}
@@ -154,8 +154,8 @@ export const TripAdvancedFilter: React.FC<TripAdvancedFilterProps> = ({ onFilter
         </div>
       </div>
 
-      {/* HÀNG 3: Ngày bắt đầu NẰM Ở DƯỚI CÙNG (1 COL) */}
-      <div>
+      {/* HÀNG 3: Ngày bắt đầu NẰM Ở DƯỚI CÙNG */}
+      <div className="w-full">
         <label className="block text-[11px] font-bold text-slate-600 mb-1">Ngày bắt đầu</label>
         <DatePicker
           value={localFilters.startDate}

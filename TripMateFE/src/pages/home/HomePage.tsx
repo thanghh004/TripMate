@@ -26,7 +26,6 @@ import {
   ShoppingBag,
   ChevronDown,
   Sparkle,
-  ExternalLink,
   SearchX,
 } from 'lucide-react';
 
@@ -223,9 +222,25 @@ export const HomePage: React.FC = () => {
               <span>Xem thêm</span>
             </div>
 
-            {/* Kẻ ngang & BỘ LỌC TÌM KIẾM CHI TIẾT COMPONENT */}
-            <div className="pt-3 border-t border-slate-200/80">
-              <TripAdvancedFilter onFilterApply={(newFilters) => setAdvancedFilters(newFilters)} />
+            {/* Kẻ ngang & Lối tắt */}
+            <div className="pt-3 border-t border-slate-200/80 space-y-2">
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2.5">
+                Lối tắt của bạn
+              </div>
+
+              <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-200/60 transition cursor-pointer text-xs font-medium text-slate-800">
+                <div className="w-8 h-8 rounded-lg bg-teal-500 text-white font-bold flex items-center justify-center text-xs shrink-0">
+                  Sapa
+                </div>
+                <span className="truncate">Săn mây Sa Pa - Mù Cang Chải</span>
+              </div>
+
+              <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-200/60 transition cursor-pointer text-xs font-medium text-slate-800">
+                <div className="w-8 h-8 rounded-lg bg-coral-500 text-white font-bold flex items-center justify-center text-xs shrink-0">
+                  ĐL
+                </div>
+                <span className="truncate">Đà Lạt - Thành phố ngàn hoa</span>
+              </div>
             </div>
           </div>
 
@@ -406,55 +421,9 @@ export const HomePage: React.FC = () => {
             )}
           </div>
 
-          {/* CỘT PHẢI (3 COLS): DẠT SÁT LỀ PHẢI MÀN HÌNH CHUẨN FACEBOOK */}
-          <div className="hidden lg:block lg:col-span-3 space-y-4 text-left sticky top-24 select-none pr-2 sm:pr-4 pl-1">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
-              Được tài trợ
-            </div>
-
-            {/* Ads item 1 */}
-            <a
-              href="https://images.unsplash.com"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-200/60 transition group"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80"
-                alt="Combo Hè 2026"
-                className="w-24 h-24 rounded-xl object-cover shrink-0"
-              />
-              <div className="space-y-1 text-xs">
-                <h4 className="font-bold text-slate-900 group-hover:text-coral-600 transition leading-snug line-clamp-2">
-                  Giảm 40% Chuyến Đi Đầu Tiên
-                </h4>
-                <p className="text-[11px] text-slate-400 font-normal flex items-center gap-1">
-                  tripmate.vn <ExternalLink size={10} />
-                </p>
-              </div>
-            </a>
-
-            {/* Ads item 2 */}
-            <a
-              href="https://images.unsplash.com"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-200/60 transition group"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=300&q=80"
-                alt="Bảo Hiểm Phượt"
-                className="w-24 h-24 rounded-xl object-cover shrink-0"
-              />
-              <div className="space-y-1 text-xs">
-                <h4 className="font-bold text-slate-900 group-hover:text-coral-600 transition leading-snug line-clamp-2">
-                  Bảo Hiểm An Toàn 100% Cho Phượt Thủ
-                </h4>
-                <p className="text-[11px] text-slate-400 font-normal flex items-center gap-1">
-                  baohiemdulich.vn <ExternalLink size={10} />
-                </p>
-              </div>
-            </a>
+          {/* CỘT PHẢI (3 COLS): BỘ LỌC TÌM CHUYẾN ĐI CHI TIẾT DẠT SÁT LỀ PHẢI */}
+          <div className="hidden lg:block lg:col-span-3 text-left sticky top-24 select-none pr-2 sm:pr-4 pl-1">
+            <TripAdvancedFilter onFilterApply={(newFilters) => setAdvancedFilters(newFilters)} />
           </div>
 
         </div>

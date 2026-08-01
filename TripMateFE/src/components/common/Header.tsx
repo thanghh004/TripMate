@@ -1,20 +1,52 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+import { userApi } from '../../api/userApi';
 import { tripApi } from '../../api/tripApi';
+import { HostVerificationStatus } from '../../types/auth';
 import type { Trip } from '../../types/trip';
 import { matchSearch } from '../../utils/formatters';
 import Image from '../common/Image';
-import { LogOut, Search, MessageSquare, Bell, Settings, MapPin, ArrowRight } from 'lucide-react';
+import { LogOut, Search, MessageSquare, Bell, Settings, MapPin, ArrowRight, Compass, Plus, Users, Loader2 } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const authContext = useContext(AuthContext);
   const user = authContext?.user;
   const isAuthenticated = authContext?.isAuthenticated;
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isCheckingHostPermission, setIsCheckingHostPermission] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleCreateTripClick = async () => {
+    setShowDropdown(false);
+    setIsCheckingHostPermission(true);
+    try {
+      const res = await userApi.getProfile();
+      const profile = res.data;
+      const status = profile.hostVerificationStatus;
+
+      if (status === HostVerificationStatus.Approved) {
+        navigate('/create-trip');
+      } else if (status === HostVerificationStatus.Pending) {
+        toast.warning('Tài khoản của bạn đang chờ Admin xét duyệt quyền tạo chuyến. Vui lòng quay lại sau!');
+      } else if (status === HostVerificationStatus.Rejected) {
+        toast.error('Yêu cầu cấp quyền tạo chuyến của bạn đã bị từ chối. Vui lòng quay lại sau!');
+      } else if (status === HostVerificationStatus.Blocked) {
+        toast.error('Quyền tạo chuyến đi của bạn đã bị khóa vĩnh viễn bởi Quản trị viên.');
+      } else {
+        toast.error('Bạn chưa đăng ký quyền Tạo chuyến. Vui lòng gửi yêu cầu trong phần cài đặt!');
+        navigate('/profile');
+      }
+    } catch {
+      toast.error('Không thể xác thực thông tin quyền tạo chuyến. Vui lòng thử lại.');
+    } finally {
+      setIsCheckingHostPermission(false);
+    }
+  };
 
   // SEARCH STATES
   const [searchInput, setSearchInput] = useState('');
@@ -264,36 +296,85 @@ export const Header: React.FC = () => {
                     )}
                   </button>
 
+                  {/* Dropdown Menu (Dribbble Style) */}
                   {showDropdown && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-50 font-sans text-left">
-                      <div className="px-4 py-2 border-b border-slate-100">
-                        <p className="text-xs font-bold text-slate-900 truncate">{user?.fullName}</p>
-                        <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
+                    <>
+                      {/* Invisible Backdrop to close dropdown on click outside */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowDropdown(false)}
+                      />
+
+                      <div className="absolute right-0 mt-1.5 w-60 bg-white rounded-2xl shadow-xl border border-slate-200/80 p-2.5 z-50 flex flex-col select-none animate-in fade-in duration-150">
+                        {/* Actions & Links */}
+                        <div className="w-full space-y-1 text-left">
+                          {/* 1. Tạo chuyến đi mới */}
+                          <button
+                            onClick={handleCreateTripClick}
+                            disabled={isCheckingHostPermission}
+                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-left cursor-pointer disabled:opacity-60"
+                          >
+                            {isCheckingHostPermission ? (
+                              <Loader2 size={15} className="animate-spin text-coral-500" />
+                            ) : (
+                              <Plus size={15} className="text-coral-500" />
+                            )}
+                            <span>Tạo chuyến đi mới</span>
+                          </button>
+
+                          {/* 2. Chuyến đi đã tạo */}
+                          <button
+                            onClick={() => {
+                              setShowDropdown(false);
+                              navigate('/my-trips');
+                            }}
+                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                          >
+                            <Compass size={15} />
+                            <span>Chuyến đi đã tạo</span>
+                          </button>
+
+                          {/* 3. Chuyến đi đã tham gia */}
+                          <button
+                            onClick={() => {
+                              setShowDropdown(false);
+                              navigate('/my-trips?tab=joined');
+                            }}
+                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                          >
+                            <Users size={15} />
+                            <span>Chuyến đi đã tham gia</span>
+                          </button>
+
+                          {/* 4. Cài đặt */}
+                          <button
+                            onClick={() => {
+                              setShowDropdown(false);
+                              navigate('/profile');
+                            }}
+                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors text-left cursor-pointer"
+                          >
+                            <Settings size={15} />
+                            <span>Cài đặt</span>
+                          </button>
+                        </div>
+
+                        <hr className="w-full border-slate-100 my-2" />
+
+                        {/* 5. Đăng xuất */}
+                        <button
+                          onClick={() => {
+                            setShowDropdown(false);
+                            authContext?.logout();
+                            navigate('/');
+                          }}
+                          className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 transition-colors text-left cursor-pointer"
+                        >
+                          <LogOut size={15} />
+                          <span>Đăng xuất</span>
+                        </button>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowDropdown(false);
-                          navigate('/profile');
-                        }}
-                        className="w-full px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition cursor-pointer"
-                      >
-                        <Settings size={15} /> Trang cá nhân
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowDropdown(false);
-                          authContext?.logout();
-                          navigate('/login');
-                        }}
-                        className="w-full px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer"
-                      >
-                        <LogOut size={15} /> Đăng xuất
-                      </button>
-                    </div>
+                    </>
                   )}
                 </div>
               </>
