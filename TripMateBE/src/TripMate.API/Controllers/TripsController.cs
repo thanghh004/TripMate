@@ -88,6 +88,18 @@ public class TripsController : BaseApiController
     }
 
     /// <summary>
+    /// Thành viên tự hủy đăng ký tham gia chuyến đi
+    /// </summary>
+    [HttpPost("{id:guid}/cancel-registration")]
+    [Authorize]
+    public async Task<IActionResult> CancelRegistration(Guid id, [FromBody] CancelRegistrationDto? dto)
+    {
+        var command = new Application.Features.Trips.Commands.CancelRegistration.CancelRegistrationCommand(id, CurrentUserId, dto?.Reason);
+        await Mediator.Send(command);
+        return Ok(new { message = "Đã hủy đăng ký tham gia chuyến đi thành công." });
+    }
+
+    /// <summary>
     /// Trưởng đoàn từ chối thành viên tham gia chuyến đi
     /// </summary>
     [HttpPost("{id:guid}/members/{memberUserId:guid}/reject")]

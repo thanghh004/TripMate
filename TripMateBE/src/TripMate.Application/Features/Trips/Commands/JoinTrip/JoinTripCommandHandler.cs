@@ -83,7 +83,7 @@ public class JoinTripCommandHandler : IRequestHandler<JoinTripCommand, bool>
 
         if (hasOverlap)
         {
-            throw new BusinessRuleException("Bạn đã có lịch trình chuyến đi khác (tổ chức hoặc tham gia) trùng với khoảng thời gian này. Không thể đăng ký!");
+            throw new BusinessRuleException("Bạn đã có lịch trình chuyến đi khác trùng với khoảng thời gian này. Không thể đăng ký!");
         }
 
         // Thêm thành viên mới với trạng thái Chờ duyệt (Pending)

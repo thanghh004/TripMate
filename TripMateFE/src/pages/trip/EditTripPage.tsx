@@ -735,11 +735,9 @@ export const EditTripPage: React.FC = () => {
                   className="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-slate-300 transition resize-none"
                 />
               </div>
-            </div>
 
-            {/* Nút Thao Tác Cuối Form */}
-            <div className="bg-slate-50 p-6 sm:p-7 rounded-3xl space-y-3 font-sans">
-              <div className="grid grid-cols-2 gap-4">
+              {/* Nút Thao Tác Dịch Up Lên Sát Ô Nhập */}
+              <div className="grid grid-cols-2 gap-4 pt-3">
                 <Button
                   type="button"
                   variant="outline"
@@ -752,8 +750,9 @@ export const EditTripPage: React.FC = () => {
 
                 <Button
                   type="submit"
+                  variant="warning"
                   disabled={isSubmitting}
-                  className="w-full bg-coral-500 hover:bg-coral-600 text-white font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-1.5"
+                  className="w-full font-bold text-xs py-3.5 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>

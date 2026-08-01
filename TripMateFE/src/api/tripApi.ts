@@ -59,4 +59,10 @@ export const tripApi = {
     const res = await axiosClient.get<Trip[]>('/api/trips/joined');
     return res.data;
   },
+
+  // API Thành viên tự hủy đăng ký tham gia chuyến đi
+  cancelRegistration: async (tripId: string, reason: string): Promise<{ message: string }> => {
+    const res = await axiosClient.post<{ message: string }>(`/api/trips/${tripId}/cancel-registration`, { reason });
+    return res.data;
+  },
 };

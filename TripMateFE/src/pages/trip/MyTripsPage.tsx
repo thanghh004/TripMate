@@ -349,8 +349,10 @@ export const MyTripsPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Calendar size={15} className="text-slate-400 shrink-0" />
                           <div>
-                            <span className="text-slate-700 font-semibold">Ngày bắt đầu:</span>{' '}
-                            <span>{formatDate(trip.startDate)}</span>
+                            <span className="text-slate-700 font-semibold">Khởi hành:</span>{' '}
+                            <span>
+                              {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
+                            </span>
                           </div>
                         </div>
 
@@ -389,15 +391,15 @@ export const MyTripsPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Cụm Nút Thao Tác Bên Phải - CHỈ HIỂN THỊ CHỈNH SỬA & HỦY KHI Ở TRẠNG THÁI PENDING REVIEW (0) */}
+                    {/* Cụm Nút Thao Tác Bên Phải */}
                     <div className="flex items-center gap-2 shrink-0 self-end md:self-center ml-auto">
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="secondary"
                         onClick={() => navigate(`/trips/${trip.id}`)}
-                        className="font-bold text-xs border-slate-300 text-slate-700"
+                        className="font-bold text-xs py-2 px-4 cursor-pointer"
                       >
-                        Chi tiết
+                        Xem chi tiết
                       </Button>
 
                       {trip.status === TripStatusEnum.PendingReview && (
@@ -480,7 +482,7 @@ export const MyTripsPage: React.FC = () => {
               <label className="block text-xs font-bold text-slate-800">
                 Lý do hủy chuyến <span className="text-rose-500">*</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {CANCEL_REASONS.map((reason) => {
                   const isSelected = selectedReasons.includes(reason);
                   return (
@@ -488,7 +490,7 @@ export const MyTripsPage: React.FC = () => {
                       key={reason}
                       type="button"
                       onClick={() => toggleReason(reason)}
-                      className={`p-3 rounded-xl border text-left text-xs font-semibold flex items-center gap-2.5 transition cursor-pointer ${
+                      className={`py-2 px-2.5 rounded-xl border text-left text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
                         isSelected
                           ? 'bg-rose-50/80 border-rose-300 text-rose-900 shadow-2xs'
                           : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 text-slate-700'
@@ -498,7 +500,7 @@ export const MyTripsPage: React.FC = () => {
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => {}}
-                        className="w-4 h-4 rounded text-rose-500 focus:ring-rose-400 accent-rose-500 cursor-pointer"
+                        className="w-3.5 h-3.5 rounded text-rose-500 focus:ring-rose-400 accent-rose-500 cursor-pointer shrink-0"
                       />
                       <span className="truncate">{reason}</span>
                     </button>
@@ -510,7 +512,7 @@ export const MyTripsPage: React.FC = () => {
             {/* Textarea ghi chú thêm */}
             <div className="space-y-1.5 relative">
               <label className="block text-xs font-semibold text-slate-600">
-                Ghi chú thêm <span className="text-slate-400 font-normal">(tùy chọn)</span>
+                Ghi chú thêm <span className="text-slate-400 font-normal">(hoặc tự nhập lý do tại đây)</span>
               </label>
               <textarea
                 value={customNote}
@@ -526,40 +528,30 @@ export const MyTripsPage: React.FC = () => {
             </div>
 
             {/* Actions */}
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
-              <div>
-                {!hasReason && (
-                  <p className="text-xs font-bold text-rose-500 flex items-center gap-1">
-                    <AlertCircle size={14} /> Vui lòng chọn ít nhất 1 lý do hủy
-                  </p>
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={resetCancelModal}
+                disabled={isCancelling}
+                className="px-5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+              >
+                Đóng
+              </button>
+
+              <button
+                type="submit"
+                disabled={isCancelling || !hasReason}
+                onClick={handleConfirmCancel}
+                className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
+              >
+                {isCancelling ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" /> Đang hủy...
+                  </>
+                ) : (
+                  'Xác nhận Hủy chuyến'
                 )}
-              </div>
-
-              <div className="flex items-center gap-3 shrink-0">
-                <button
-                  type="button"
-                  onClick={resetCancelModal}
-                  disabled={isCancelling}
-                  className="px-5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
-                >
-                  Đóng
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={isCancelling || !hasReason}
-                  onClick={handleConfirmCancel}
-                  className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-6 py-2.5 rounded-xl cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-60 transition"
-                >
-                  {isCancelling ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" /> Đang hủy...
-                    </>
-                  ) : (
-                    'Xác nhận Hủy chuyến'
-                  )}
-                </button>
-              </div>
+              </button>
             </div>
           </div>
         </Modal>
