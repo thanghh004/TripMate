@@ -17,19 +17,31 @@ public class CancelRegistrationCommandHandler : IRequestHandler<CancelRegistrati
 
     public async Task<Unit> Handle(CancelRegistrationCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.Reason))
+        {
+            throw new ArgumentException("Vui lòng cung cấp lý do hủy đăng ký tham gia chuyến đi.");
+        }
+
         var trip = await _tripRepository.GetByIdWithDetailsAsync(request.TripId, cancellationToken);
         if (trip == null)
         {
             throw new KeyNotFoundException("Không tìm thấy chuyến đi.");
         }
 
-        var member = trip.Members.FirstOrDefault(m => m.UserId == request.UserId);
-        if (member == null || member.Status == TripMemberStatus.Cancelled)
+        // 1. Validate Trip Status: Chỉ cho phép Hủy khi Chuyến đi ở trạng thái Open (1) hoặc Full (2)
+        if (trip.Status != TripStatus.Open && trip.Status != TripStatus.Full)
         {
-            throw new InvalidOperationException("Bạn chưa đăng ký hoặc đã hủy tham gia chuyến đi này.");
+            throw new InvalidOperationException("Chuyến đi hiện tại không ở trạng thái mở hoặc đủ người để hủy đăng ký.");
         }
 
-        // Nếu chuyến đi đang ở trạng thái Full, yêu cầu hủy trước ngày khởi hành ít nhất 1 ngày (24h)
+        // 2. Validate Member Status: Chỉ cho phép Hủy khi Thành viên ở trạng thái Pending (0) hoặc Approved (1)
+        var member = trip.Members.FirstOrDefault(m => m.UserId == request.UserId);
+        if (member == null || (member.Status != TripMemberStatus.Pending && member.Status != TripMemberStatus.Approved))
+        {
+            throw new InvalidOperationException("Yêu cầu tham gia của bạn không ở trạng thái hợp lệ để hủy đăng ký.");
+        }
+
+        // 3. Validate Hủy trước 24h đối với Chuyến đi đã Full (2)
         if (trip.Status == TripStatus.Full)
         {
             if (DateTime.UtcNow.AddDays(1) > trip.StartDate)

@@ -297,13 +297,32 @@ export const JoinedTripsPage: React.FC = () => {
                 const myMember = trip.members?.find((m) => m.userId === currentUserId);
                 const effectiveMemberStatus = trip.myMemberStatus !== undefined ? trip.myMemberStatus : myMember?.status;
 
-                // Điều kiện hiển thị Nút Hủy Đăng Ký: Chuyến đi ở Open (1) hoặc Full (2) VÀ trạng thái của member là Pending (0) hoặc Approved (1)
-                const canCancelRegistration =
-                  (trip.status === TripStatus.Open || trip.status === TripStatus.Full || (trip.status as any) === 1 || (trip.status as any) === 2) &&
-                  (effectiveMemberStatus === TripMemberStatus.Pending || effectiveMemberStatus === TripMemberStatus.Approved);
+                // Điều kiện hiển thị Nút Hủy Đăng Ký: 
+                // 1. Chuyến đi ở trạng thái Open (1) hoặc Full (2)
+                // 2. VÀ trạng thái tham gia của member là Pending (0) hoặc Approved (1)
+                const isTripOpenOrFull =
+                  trip.status === TripStatus.Open ||
+                  trip.status === TripStatus.Full ||
+                  (trip.status as any) === 1 ||
+                  (trip.status as any) === 2 ||
+                  String(trip.status).toLowerCase() === 'open' ||
+                  String(trip.status).toLowerCase() === 'full';
+
+                const isMemberPendingOrApproved =
+                  effectiveMemberStatus === TripMemberStatus.Pending ||
+                  effectiveMemberStatus === TripMemberStatus.Approved ||
+                  (effectiveMemberStatus as any) === 0 ||
+                  (effectiveMemberStatus as any) === 1 ||
+                  String(effectiveMemberStatus).toLowerCase() === 'pending' ||
+                  String(effectiveMemberStatus).toLowerCase() === 'approved';
+
+                const canCancelRegistration = isTripOpenOrFull && isMemberPendingOrApproved;
 
                 // Ẩn nút "Xem chi tiết" khi trạng thái tham gia là Cancelled (3)
-                const isCancelled = effectiveMemberStatus === TripMemberStatus.Cancelled;
+                const isCancelled =
+                  effectiveMemberStatus === TripMemberStatus.Cancelled ||
+                  (effectiveMemberStatus as any) === 3 ||
+                  String(effectiveMemberStatus).toLowerCase() === 'cancelled';
 
                 return (
                   <div
