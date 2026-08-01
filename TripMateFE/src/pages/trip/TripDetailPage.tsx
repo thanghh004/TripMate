@@ -8,10 +8,12 @@ import { TripStatus, TripMemberStatus } from '../../types/trip';
 import { Header } from '../../components/common/Header';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
+import { Select } from '../../components/common/Select';
 import Image from '../../components/common/Image';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 import { formatDate } from '../../utils/formatters';
+import { CreateTripSkeleton } from '../../components/skeleton/CreateTripSkeleton';
 import {
   Calendar,
   Users,
@@ -29,7 +31,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  ChevronRight,
 } from 'lucide-react';
 
 interface HostPublicProfile {
@@ -71,6 +72,9 @@ export const TripDetailPage: React.FC = () => {
   const [isHostModalOpen, setIsHostModalOpen] = useState<boolean>(false);
   const [hostProfile, setHostProfile] = useState<HostPublicProfile | null>(null);
   const [isLoadingHostProfile, setIsLoadingHostProfile] = useState<boolean>(false);
+
+  // State Lọc Trạng Thái Thành Viên
+  const [memberStatusFilter, setMemberStatusFilter] = useState<string>('ALL');
 
   // State Applicant Detail Modal (Dành cho Host bấm vào tên thành viên trong bảng)
   const [isApplicantModalOpen, setIsApplicantModalOpen] = useState<boolean>(false);
@@ -185,11 +189,9 @@ export const TripDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-slate-500">
-          <Loader2 size={36} className="animate-spin text-coral-500" />
-          <span className="text-sm font-semibold">Đang tải thông tin chuyến đi...</span>
-        </div>
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+        <Header />
+        <CreateTripSkeleton />
       </div>
     );
   }
@@ -228,8 +230,21 @@ export const TripDetailPage: React.FC = () => {
     handleJoinTrip();
   };
 
-  // Danh sách các thành viên khác đăng ký ngoại trừ Trưởng đoàn (Host)
-  const allMembersOnly = trip.members ? trip.members.filter((m) => m.userId !== trip.organizerId) : [];
+  // Options Select Lọc Trạng Thái Thành Viên
+  const MEMBER_STATUS_OPTIONS = [
+    { label: 'Tất cả trạng thái', value: 'ALL' },
+    { label: 'Đã duyệt', value: String(TripMemberStatus.Approved) },
+    { label: 'Chờ duyệt', value: String(TripMemberStatus.Pending) },
+    { label: 'Bị từ chối', value: String(TripMemberStatus.Rejected) },
+    { label: 'Đã hủy', value: String(TripMemberStatus.Cancelled) },
+  ];
+
+  // Danh sách các thành viên khác đăng ký ngoại trừ Trưởng đoàn (Host) + Lọc theo Select
+  const rawMembersOnly = trip.members ? trip.members.filter((m) => m.userId !== trip.organizerId) : [];
+  const allMembersOnly = rawMembersOnly.filter((m) => {
+    if (memberStatusFilter === 'ALL') return true;
+    return String(m.status) === memberStatusFilter || (memberStatusFilter === String(TripMemberStatus.Approved) && m.status === undefined);
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-coral-500 selection:text-white">
@@ -378,53 +393,55 @@ export const TripDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Box 3: Danh sách Thành viên tham gia */}
-            <div className="bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-4 font-sans">
-              <div className="flex items-center justify-between border-b border-slate-200/60 pb-3.5">
+            {/* Box 3: Danh sách Thành viên tham gia - Căn lề 2 bên (px-6 sm:px-8) thẳng tắp với Textarea phía trên */}
+            <div className="pt-2 px-6 sm:px-8 font-sans space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                   <Users size={18} className="text-coral-500" /> Thành viên đã tham gia ({trip.currentMembers}/{trip.maxMembers})
                 </h2>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                  Còn trống {Math.max(0, trip.maxMembers - trip.currentMembers)} chỗ
-                </span>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full shrink-0">
+                    Còn trống {Math.max(0, trip.maxMembers - trip.currentMembers)} chỗ
+                  </span>
+                  {(isOrganizer || isAdmin) && (
+                    <div className="w-40 shrink-0">
+                      <Select
+                        options={MEMBER_STATUS_OPTIONS}
+                        value={memberStatusFilter}
+                        onChange={(val) => setMemberStatusFilter(val as string)}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* BẢNG / LIST RÕ RÀNG 2 CỘT DÀNH CHO HOST VÀ ADMIN */}
               {(isOrganizer || isAdmin) ? (
                 allMembersOnly.length > 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                  <div className="overflow-hidden">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-100/80 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
+                      <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
                         <tr>
-                          <th className="py-3 px-4">Tên người dùng</th>
-                          <th className="py-3 px-4 text-right">Trạng thái</th>
+                          <th className="py-3 px-2">Tên người dùng</th>
+                          <th className="py-3 px-2 text-right">Trạng thái</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-medium">
                         {allMembersOnly.map((m) => (
-                          <tr key={m.userId} className="hover:bg-slate-50/80 transition">
-                            {/* Cột 1: Tên người dùng (Nhấn vào mở Modal thông tin chi tiết) */}
-                            <td className="py-3 px-4">
+                          <tr key={m.userId} className="hover:bg-slate-50/60 transition">
+                            {/* Cột 1: Tên người dùng / Email dạng link màu xanh sky tươi tắn, không avatar, không mũi tên */}
+                            <td className="py-3.5 px-2">
                               <button
                                 type="button"
                                 onClick={() => handleOpenApplicantModal(m)}
-                                className="flex items-center gap-2.5 text-slate-900 font-bold hover:text-coral-600 transition cursor-pointer text-left group"
+                                className="text-sky-600 font-medium hover:underline transition cursor-pointer text-left"
                               >
-                                {m.avatarUrl ? (
-                                  <Image src={m.avatarUrl} alt={m.fullName} containerClassName="w-8 h-8 rounded-xl border border-slate-200 shrink-0" />
-                                ) : (
-                                  <div className="w-8 h-8 rounded-xl bg-coral-50 text-coral-600 font-bold text-xs flex items-center justify-center shrink-0">
-                                    {m.fullName ? m.fullName.charAt(0).toUpperCase() : 'U'}
-                                  </div>
-                                )}
-                                <span className="group-hover:underline flex items-center gap-1">
-                                  {m.fullName} <ChevronRight size={14} className="text-slate-400 group-hover:text-coral-600" />
-                                </span>
+                                {m.fullName || m.email}
                               </button>
                             </td>
 
-                            {/* Cột 2: Trạng thái (Chờ duyệt, Đã duyệt, Từ chối) */}
-                            <td className="py-3 px-4 text-right">
+                            {/* Cột 2: Trạng thái (Chờ duyệt, Đã duyệt, Từ chối, Đã hủy) */}
+                            <td className="py-3.5 px-2 text-right">
                               {m.status === TripMemberStatus.Pending ? (
                                 <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-full font-bold text-[11px]">
                                   <Clock size={12} /> Chờ duyệt
@@ -437,6 +454,10 @@ export const TripDetailPage: React.FC = () => {
                                 <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 border border-rose-200/80 px-2.5 py-1 rounded-full font-bold text-[11px]">
                                   <XCircle size={12} /> Bị từ chối
                                 </span>
+                              ) : m.status === TripMemberStatus.Cancelled ? (
+                                <span className="inline-flex items-center gap-1 text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full font-bold text-[11px]">
+                                  Đã hủy
+                                </span>
                               ) : (
                                 <span className="text-slate-500 font-semibold text-[11px]">Khác</span>
                               )}
@@ -448,7 +469,7 @@ export const TripDetailPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="py-6 text-center text-xs text-slate-400 italic">
-                    Chưa có danh sách yêu cầu thành viên.
+                    Chưa có danh sách yêu cầu thành viên khớp bộ lọc.
                   </div>
                 )
               ) : null}

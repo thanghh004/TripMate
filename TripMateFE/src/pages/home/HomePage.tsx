@@ -6,7 +6,7 @@ import { tripApi } from '../../api/tripApi';
 import type { Trip } from '../../types/trip';
 import { formatDate, matchSearch } from '../../utils/formatters';
 import { AuthContext } from '../../context/AuthContext';
-import { TripCardSkeleton } from '../../components/trip/TripCardSkeleton';
+import { TripCardSkeleton } from '../../components/skeleton/TripCardSkeleton';
 import { TripAdvancedFilter } from '../../components/trip/TripAdvancedFilter';
 import type { TripFilterCriteria } from '../../components/trip/TripAdvancedFilter';
 import { ScrollToTop } from '../../components/common/ScrollToTop';

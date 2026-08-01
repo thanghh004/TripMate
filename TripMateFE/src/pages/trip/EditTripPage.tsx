@@ -17,6 +17,7 @@ import type { Country, City } from '../../types/location';
 import type { TripCategory } from '../../types/tripCategory';
 import type { Trip, CreateTripRequest } from '../../types/trip';
 import { TripStatus } from '../../types/trip';
+import { CreateTripSkeleton } from '../../components/skeleton/CreateTripSkeleton';
 import {
   Calendar,
   MapPin,
@@ -336,11 +337,9 @@ export const EditTripPage: React.FC = () => {
 
   if (isLoadingMasterData) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-coral-500" />
-          <p className="text-slate-500 font-medium text-sm">Đang nạp dữ liệu chuyến đi...</p>
-        </div>
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+        <Header />
+        <CreateTripSkeleton />
       </div>
     );
   }

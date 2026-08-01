@@ -17,6 +17,7 @@ import type { Country, City } from '../../types/location';
 import type { TripCategory } from '../../types/tripCategory';
 import type { CreateTripRequest } from '../../types/trip';
 import { HostVerificationStatus } from '../../types/auth';
+import { CreateTripSkeleton } from '../../components/skeleton/CreateTripSkeleton';
 import {
   Calendar,
   MapPin,
@@ -40,6 +41,7 @@ export const CreateTripPage: React.FC = () => {
 
   const coverInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const hasCheckedPermissionRef = useRef(false);
 
   // Categories & Location Master Data
   const [categories, setCategories] = useState<TripCategory[]>([]);
@@ -91,12 +93,24 @@ export const CreateTripPage: React.FC = () => {
     const initData = async () => {
       try {
         setIsLoadingMasterData(true);
-        // Check permissions
+        // Check permissions & notify specific status
         const profileRes = await userApi.getProfile();
         const hostStatus = profileRes.data.hostVerificationStatus;
+
         if (hostStatus !== HostVerificationStatus.Approved) {
-          toast.error('Bạn chưa được phê duyệt quyền Tạo chuyến. Vui lòng kiểm tra lại tài khoản.');
-          navigate('/profile');
+          if (hostStatus === HostVerificationStatus.Pending) {
+            toast.warning('Tài khoản của bạn đang chờ Admin xét duyệt quyền tạo chuyến. Vui lòng quay lại sau!');
+            navigate('/profile');
+          } else if (hostStatus === HostVerificationStatus.Rejected) {
+            toast.error('Yêu cầu cấp quyền tạo chuyến của bạn đã bị từ chối.');
+            navigate('/profile');
+          } else if (hostStatus === HostVerificationStatus.Blocked) {
+            toast.error('Quyền tạo chuyến đi của bạn đã bị khóa vĩnh viễn bởi Quản trị viên.');
+            navigate('/my-trips');
+          } else {
+            toast.error('Bạn chưa đăng ký quyền Tạo chuyến. Vui lòng gửi yêu cầu trong phần cài đặt!');
+            navigate('/profile');
+          }
           return;
         }
 
@@ -118,6 +132,8 @@ export const CreateTripPage: React.FC = () => {
     };
 
     if (isAuthenticated) {
+      if (hasCheckedPermissionRef.current) return;
+      hasCheckedPermissionRef.current = true;
       initData();
     }
   }, [isAuthenticated, authContext, navigate]);
@@ -311,11 +327,9 @@ export const CreateTripPage: React.FC = () => {
 
   if (isLoadingMasterData) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-coral-500" />
-          <p className="text-slate-500 font-medium text-sm">Đang nạp cấu hình chuyến đi...</p>
-        </div>
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+        <Header />
+        <CreateTripSkeleton />
       </div>
     );
   }

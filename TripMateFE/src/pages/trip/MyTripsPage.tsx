@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Tag,
 } from 'lucide-react';
+import { MyTripRowSkeleton } from '../../components/skeleton/MyTripRowSkeleton';
 
 const STATUS_FILTER_OPTIONS: SelectOption[] = [
   { label: 'Tất cả trạng thái', value: 'ALL' },
@@ -283,9 +284,10 @@ export const MyTripsPage: React.FC = () => {
 
         {/* Content Section */}
         {isLoading ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3 bg-white rounded-lg border border-slate-200/80">
-            <Loader2 size={32} className="animate-spin text-coral-500" />
-            <p className="text-slate-500 font-medium text-xs">Đang tải danh sách chuyến đi...</p>
+          <div className="space-y-4">
+            <MyTripRowSkeleton />
+            <MyTripRowSkeleton />
+            <MyTripRowSkeleton />
           </div>
         ) : filteredTrips.length === 0 ? (
           /* Empty State - Nền Trong Suốt Full Width */

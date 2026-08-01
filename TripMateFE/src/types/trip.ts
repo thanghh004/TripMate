@@ -49,6 +49,7 @@ export interface CreateTripRequest {
 export interface TripMember {
   userId: string;
   fullName: string;
+  email?: string;
   avatarUrl?: string;
   role?: string | number;
   status?: number; // 0: Pending, 1: Approved, 2: Rejected

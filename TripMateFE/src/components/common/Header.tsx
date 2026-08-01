@@ -1,51 +1,24 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { useToast } from '../../context/ToastContext';
-import { userApi } from '../../api/userApi';
 import { tripApi } from '../../api/tripApi';
-import { HostVerificationStatus } from '../../types/auth';
 import type { Trip } from '../../types/trip';
 import { matchSearch } from '../../utils/formatters';
 import Image from '../common/Image';
-import { LogOut, Search, MessageSquare, Bell, Settings, MapPin, ArrowRight, Compass, Plus, Users, Loader2 } from 'lucide-react';
+import { LogOut, Search, MessageSquare, Bell, Settings, MapPin, ArrowRight, Compass, Plus, Users } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const authContext = useContext(AuthContext);
   const user = authContext?.user;
   const isAuthenticated = authContext?.isAuthenticated;
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const [showDropdown, setShowDropdown] = useState(false);
-  const [isCheckingHostPermission, setIsCheckingHostPermission] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleCreateTripClick = async () => {
+  const handleCreateTripClick = () => {
     setShowDropdown(false);
-    setIsCheckingHostPermission(true);
-    try {
-      const res = await userApi.getProfile();
-      const profile = res.data;
-      const status = profile.hostVerificationStatus;
-
-      if (status === HostVerificationStatus.Approved) {
-        navigate('/create-trip');
-      } else if (status === HostVerificationStatus.Pending) {
-        toast.warning('Tài khoản của bạn đang chờ Admin xét duyệt quyền tạo chuyến. Vui lòng quay lại sau!');
-      } else if (status === HostVerificationStatus.Rejected) {
-        toast.error('Yêu cầu cấp quyền tạo chuyến của bạn đã bị từ chối. Vui lòng quay lại sau!');
-      } else if (status === HostVerificationStatus.Blocked) {
-        toast.error('Quyền tạo chuyến đi của bạn đã bị khóa vĩnh viễn bởi Quản trị viên.');
-      } else {
-        toast.error('Bạn chưa đăng ký quyền Tạo chuyến. Vui lòng gửi yêu cầu trong phần cài đặt!');
-        navigate('/profile');
-      }
-    } catch {
-      toast.error('Không thể xác thực thông tin quyền tạo chuyến. Vui lòng thử lại.');
-    } finally {
-      setIsCheckingHostPermission(false);
-    }
+    navigate('/create-trip');
   };
 
   // SEARCH STATES
@@ -311,14 +284,9 @@ export const Header: React.FC = () => {
                           {/* 1. Tạo chuyến đi mới */}
                           <button
                             onClick={handleCreateTripClick}
-                            disabled={isCheckingHostPermission}
-                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-left cursor-pointer disabled:opacity-60"
+                            className="w-full flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-left cursor-pointer"
                           >
-                            {isCheckingHostPermission ? (
-                              <Loader2 size={15} className="animate-spin text-coral-500" />
-                            ) : (
-                              <Plus size={15} className="text-coral-500" />
-                            )}
+                            <Plus size={15} className="text-coral-500" />
                             <span>Tạo chuyến đi mới</span>
                           </button>
 
