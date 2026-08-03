@@ -186,9 +186,19 @@ public class Trip : BaseEntity
     public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();
 
     /// <summary>
-    /// Danh sách các bài viết chia sẻ liên quan đến chuyến đi này
+    /// Danh sách bài viết chia sẻ liên quan đến chuyến đi này
     /// </summary>
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
+
+    /// <summary>
+    /// Danh sách lượt thích chuyến đi
+    /// </summary>
+    public virtual ICollection<TripLike> Likes { get; set; } = new List<TripLike>();
+
+    /// <summary>
+    /// Danh sách bình luận về chuyến đi
+    /// </summary>
+    public virtual ICollection<TripComment> Comments { get; set; } = new List<TripComment>();
 
     #endregion
 }

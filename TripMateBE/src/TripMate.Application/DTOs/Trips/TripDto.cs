@@ -43,6 +43,9 @@ public class TripDto
     public List<TripMemberDetailDto> Members { get; set; } = new();
     public TripMemberStatus? MyMemberStatus { get; set; }
     public string? MyMemberStatusName => MyMemberStatus?.ToString();
+    public int LikeCount { get; set; }
+    public int CommentCount { get; set; }
+    public bool IsLikedByCurrentUser { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

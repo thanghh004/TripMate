@@ -90,9 +90,22 @@ export interface Trip {
   status: number;
   statusName?: string;
   myMemberStatus?: number;
+  likeCount?: number;
+  commentCount?: number;
+  isLikedByCurrentUser?: boolean;
   moderationNote?: string;
   cancellationReason?: string;
   imageUrls: string[];
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface TripComment {
+  id: string;
+  tripId: string;
+  userId: string;
+  userName: string;
+  userAvatarUrl?: string;
+  content: string;
+  createdAt: string;
 }

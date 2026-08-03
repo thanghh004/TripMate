@@ -33,6 +33,8 @@ public class TripMateDbContext : IdentityDbContext<User, IdentityRole<Guid>, Gui
     public DbSet<Post> Posts { get; set; } = null!;
     public DbSet<PostComment> PostComments { get; set; } = null!;
     public DbSet<PostLike> PostLikes { get; set; } = null!;
+    public DbSet<TripLike> TripLikes { get; set; } = null!;
+    public DbSet<TripComment> TripComments { get; set; } = null!;
 
     #endregion
 

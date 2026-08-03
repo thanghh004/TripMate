@@ -24,7 +24,8 @@ public class TripsController : BaseApiController
     [AllowAnonymous]
     public async Task<ActionResult<List<TripDto>>> GetPublicTrips()
     {
-        var result = await Mediator.Send(new Application.Features.Trips.Queries.GetPublicTrips.GetPublicTripsQuery());
+        Guid? currentUserId = User.Identity?.IsAuthenticated == true ? CurrentUserId : null;
+        var result = await Mediator.Send(new Application.Features.Trips.Queries.GetPublicTrips.GetPublicTripsQuery(currentUserId));
         return Ok(result);
     }
 
@@ -190,5 +191,50 @@ public class TripsController : BaseApiController
     {
         var result = await Mediator.Send(new RejectTripCommand(id, dto));
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Thả hoặc bỏ thả tim chuyến đi
+    /// </summary>
+    [HttpPost("{id:guid}/like")]
+    [Authorize]
+    public async Task<IActionResult> ToggleLike(Guid id)
+    {
+        var isLiked = await Mediator.Send(new Application.Features.Trips.Commands.ToggleLike.ToggleTripLikeCommand(id, CurrentUserId));
+        return Ok(new { isLiked });
+    }
+
+    /// <summary>
+    /// Lấy danh sách bình luận của chuyến đi
+    /// </summary>
+    [HttpGet("{id:guid}/comments")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetComments(Guid id)
+    {
+        var comments = await Mediator.Send(new Application.Features.Trips.Queries.GetComments.GetTripCommentsQuery(id));
+        return Ok(comments);
+    }
+
+    /// <summary>
+    /// Thêm bình luận mới cho chuyến đi
+    /// </summary>
+    [HttpPost("{id:guid}/comments")]
+    [Authorize]
+    public async Task<IActionResult> AddComment(Guid id, [FromBody] Application.DTOs.Trips.CreateCommentDto dto)
+    {
+        var result = await Mediator.Send(new Application.Features.Trips.Commands.AddComment.AddTripCommentCommand(id, CurrentUserId, dto.Content));
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Xóa bình luận
+    /// </summary>
+    [HttpDelete("comments/{commentId:guid}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteComment(Guid commentId)
+    {
+        var isAdmin = User.IsInRole("Admin") || User.IsInRole("1");
+        await Mediator.Send(new Application.Features.Trips.Commands.DeleteComment.DeleteTripCommentCommand(commentId, CurrentUserId, isAdmin));
+        return Ok(new { message = "Đã xóa bình luận thành công." });
     }
 }

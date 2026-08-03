@@ -49,12 +49,42 @@ public interface ITripRepository
     Task AddMemberAsync(TripMember member, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Thêm mới một chuyến đi
+    /// Thêm chuyến đi mới vào CSDL
     /// </summary>
     Task AddAsync(Trip trip, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Cập nhật chuyến đi
+    /// Cập nhật thông tin chuyến đi
     /// </summary>
     void Update(Trip trip);
+
+    /// <summary>
+    /// Xóa chuyến đi
+    /// </summary>
+    void Delete(Trip trip);
+
+    /// <summary>
+    /// Thả hoặc Bỏ thả tim chuyến đi
+    /// </summary>
+    Task<bool> ToggleLikeAsync(Guid tripId, Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Thêm bình luận cho chuyến đi
+    /// </summary>
+    Task<TripComment> AddCommentAsync(Guid tripId, Guid userId, string content, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lấy danh sách bình luận của chuyến đi
+    /// </summary>
+    Task<List<TripComment>> GetCommentsAsync(Guid tripId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lấy bình luận theo ID
+    /// </summary>
+    Task<TripComment?> GetCommentByIdAsync(Guid commentId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Xóa bình luận của chuyến đi
+    /// </summary>
+    void DeleteComment(TripComment comment);
 }

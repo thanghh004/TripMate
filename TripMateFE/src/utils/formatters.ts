@@ -43,6 +43,31 @@ export const matchSearch = (targetText: string = '', query: string = ''): boolea
  * Format số tiền dạng VNĐ
  */
 export const formatVND = (amount?: number | null): string => {
-  if (amount === undefined || amount === null) return '0 ₫';
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  if (amount == null) return '0';
+  return amount.toLocaleString('vi-VN');
+};
+
+/**
+ * Hiển thị thời gian tương đối (VD: vừa xong, 5 phút trước, 2 giờ trước, 3 ngày trước)
+ */
+export const formatRelativeTime = (dateInput?: string | Date | null): string => {
+  if (!dateInput) return '';
+
+  const now = new Date();
+  const date = new Date(dateInput);
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 30) return 'vừa xong';
+  if (diffInSeconds < 60) return `${diffInSeconds} giây trước`;
+
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} giờ trước`;
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 30) return `${diffInDays} ngày trước`;
+
+  return formatDate(dateInput);
 };

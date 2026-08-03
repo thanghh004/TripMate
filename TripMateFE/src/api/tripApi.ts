@@ -1,5 +1,5 @@
 import { axiosClient } from './axiosClient';
-import type { CreateTripRequest, Trip } from '../types/trip';
+import type { CreateTripRequest, Trip, TripComment } from '../types/trip';
 
 export const tripApi = {
   // API Tạo chuyến đi mới
@@ -63,6 +63,30 @@ export const tripApi = {
   // API Thành viên tự hủy đăng ký tham gia chuyến đi
   cancelRegistration: async (tripId: string, reason: string): Promise<{ message: string }> => {
     const res = await axiosClient.post<{ message: string }>(`/api/trips/${tripId}/cancel-registration`, { reason });
+    return res.data;
+  },
+
+  // API Thả / Bỏ thả tim chuyến đi
+  toggleLike: async (tripId: string): Promise<{ isLiked: boolean }> => {
+    const res = await axiosClient.post<{ isLiked: boolean }>(`/api/trips/${tripId}/like`);
+    return res.data;
+  },
+
+  // API Lấy danh sách bình luận của chuyến đi
+  getComments: async (tripId: string): Promise<TripComment[]> => {
+    const res = await axiosClient.get<TripComment[]>(`/api/trips/${tripId}/comments`);
+    return res.data;
+  },
+
+  // API Thêm bình luận mới cho chuyến đi
+  addComment: async (tripId: string, content: string): Promise<TripComment> => {
+    const res = await axiosClient.post<TripComment>(`/api/trips/${tripId}/comments`, { content });
+    return res.data;
+  },
+
+  // API Xóa bình luận
+  deleteComment: async (commentId: string): Promise<{ message: string }> => {
+    const res = await axiosClient.delete<{ message: string }>(`/api/trips/comments/${commentId}`);
     return res.data;
   },
 };

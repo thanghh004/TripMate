@@ -68,6 +68,8 @@ public class TripRepository : ITripRepository
             .Include(t => t.StartCity)
             .Include(t => t.DestinationCity)
             .Include(t => t.Organizer)
+            .Include(t => t.Likes)
+            .Include(t => t.Comments)
             .OrderByDescending(t => t.CreatedAt)
             .ToListAsync(cancellationToken);
     }
@@ -135,5 +137,68 @@ public class TripRepository : ITripRepository
     public void Update(Trip trip)
     {
         _context.Trips.Update(trip);
+    }
+
+    public void Delete(Trip trip)
+    {
+        _context.Trips.Remove(trip);
+    }
+
+    public async Task<bool> ToggleLikeAsync(Guid tripId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var existingLike = await _context.TripLikes
+            .FirstOrDefaultAsync(l => l.TripId == tripId && l.UserId == userId, cancellationToken);
+
+        if (existingLike != null)
+        {
+            _context.TripLikes.Remove(existingLike);
+            return false;
+        }
+        else
+        {
+            var newLike = new TripLike
+            {
+                TripId = tripId,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _context.TripLikes.AddAsync(newLike, cancellationToken);
+            return true;
+        }
+    }
+
+    public async Task<TripComment> AddCommentAsync(Guid tripId, Guid userId, string content, CancellationToken cancellationToken = default)
+    {
+        var comment = new TripComment
+        {
+            TripId = tripId,
+            UserId = userId,
+            Content = content,
+            CreatedAt = DateTime.UtcNow
+        };
+        await _context.TripComments.AddAsync(comment, cancellationToken);
+        return comment;
+    }
+
+    public async Task<List<TripComment>> GetCommentsAsync(Guid tripId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TripComments
+            .AsNoTracking()
+            .Where(c => c.TripId == tripId)
+            .Include(c => c.User)
+            .OrderBy(c => c.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<TripComment?> GetCommentByIdAsync(Guid commentId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TripComments
+            .Include(c => c.Trip)
+            .FirstOrDefaultAsync(c => c.Id == commentId, cancellationToken);
+    }
+
+    public void DeleteComment(TripComment comment)
+    {
+        _context.TripComments.Remove(comment);
     }
 }

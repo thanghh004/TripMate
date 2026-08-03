@@ -10,9 +10,9 @@ import { TripCardSkeleton } from '../../components/skeleton/TripCardSkeleton';
 import { TripAdvancedFilter } from '../../components/trip/TripAdvancedFilter';
 import type { TripFilterCriteria } from '../../components/trip/TripAdvancedFilter';
 import { ScrollToTop } from '../../components/common/ScrollToTop';
+import { TripLikeButton } from '../../components/trip/TripLikeButton';
+import { TripCommentSection } from '../../components/trip/TripCommentSection';
 import {
-  Heart,
-  MessageCircle,
   MapPin,
   Sparkles,
   ShieldCheck,
@@ -446,26 +446,32 @@ export const HomePage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Footer */}
-                  <div className="p-3.5 bg-white border-t border-slate-100 space-y-1.5">
-                    <div className="flex items-center justify-between">
+                  {/* Footer Action Card: Thả tim & Khung Bình luận */}
+                  <div className="p-3.5 bg-white border-t border-slate-100 space-y-2">
+                    <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-6">
-                        <button className="flex items-center gap-1.5 text-slate-600 hover:text-rose-500 font-semibold text-xs transition">
-                          <Heart size={17} />
-                          <span>0</span>
-                        </button>
-                        <button className="flex items-center gap-1.5 text-slate-600 hover:text-coral-500 font-semibold text-xs transition">
-                          <MessageCircle size={17} />
-                          <span>0</span>
-                        </button>
+                        {/* Component Nút Thả Tim */}
+                        <TripLikeButton
+                          tripId={trip.id}
+                          initialIsLiked={trip.isLikedByCurrentUser}
+                          initialLikeCount={trip.likeCount}
+                        />
                       </div>
-                    </div>
 
-                    <div className="text-center pt-1 border-t border-slate-100/60">
-                      <span className="text-[10px] font-normal text-slate-400">
-                        Nhấn vào bài viết để xem chi tiết
+                      <span
+                        onClick={() => navigate(`/trips/${trip.id}`)}
+                        className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 cursor-pointer"
+                      >
+                        Nhấn vào bài viết để xem chi tiết ➔
                       </span>
                     </div>
+
+                    {/* Component Khung Bình Luận Style Facebook */}
+                    <TripCommentSection
+                      tripId={trip.id}
+                      organizerId={trip.organizerId}
+                      initialCommentCount={trip.commentCount}
+                    />
                   </div>
                 </div>
               ))

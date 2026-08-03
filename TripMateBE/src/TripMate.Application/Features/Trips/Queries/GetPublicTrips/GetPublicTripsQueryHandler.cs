@@ -68,6 +68,9 @@ public class GetPublicTripsQueryHandler : IRequestHandler<GetPublicTripsQuery, L
             ModerationNote = t.ModerationNote,
             CancellationReason = t.CancellationReason,
             ImageUrls = t.Images?.Select(i => i.ImageUrl).ToList() ?? new(),
+            LikeCount = t.Likes?.Count ?? 0,
+            CommentCount = t.Comments?.Count ?? 0,
+            IsLikedByCurrentUser = request.CurrentUserId.HasValue && t.Likes != null && t.Likes.Any(l => l.UserId == request.CurrentUserId.Value),
             CreatedAt = t.CreatedAt,
             UpdatedAt = t.UpdatedAt
         }).ToList();
